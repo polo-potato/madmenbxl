@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Mad Men Bruxelles, un mini idle game narratif d'agence belge." />
   <title>MAD MEN BRUXELLES</title>
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <main id="game" aria-live="polite">
@@ -43,7 +43,17 @@
       <div class="agency-grid">
         <section class="map-panel panel">
           <div class="panel-title"><span>PLATEAU / SAINT-GILLES</span><span id="agencyClock">17:42</span></div>
-          <pre class="agency-map" id="agencyMap"></pre>
+          <div class="floor-map" id="agencyMap" aria-label="Plan cathodique simplifié de l'agence">
+            <i class="wire wire-a"></i><i class="wire wire-b"></i><i class="wire wire-c"></i>
+            <article class="station strategy"><span class="signal"></span><small>STRATEGY</small><b>@ LOTTE</b><em>[ briefs ]</em></article>
+            <article class="station creative"><span class="signal"></span><small>CREATIVE</small><b>@ JULES</b><em>[ crt ]</em></article>
+            <article class="station production"><span class="signal"></span><small>PRODUCTION</small><b>@ NOOR</b><em>[ render ]</em></article>
+            <article class="station account"><span class="signal"></span><small>ACCOUNT</small><b>@ SOFIE</b><em>[ ring! ]</em></article>
+            <article class="station social"><span class="signal"></span><small>SOCIAL</small><b>@ YASSINE</b><em>[ posting ]</em></article>
+            <div class="round-table"><span>MEETING?</span></div>
+            <div class="map-kitchen">☕&nbsp; M&nbsp; H₂O<br><small>[ KITCHEN ]</small></div>
+            <div class="map-window">|||||||||||||<br><small>RAIN / BXL</small></div>
+          </div>
           <div class="actions">
             <button class="action primary" data-action="pitch">[ PITCHER UN CLIENT ]</button>
             <button class="action" data-action="concept">[ PONDRE UN CONCEPT ]</button>
@@ -53,45 +63,58 @@
         </section>
 
         <aside class="sidebar">
-          <section class="panel stats-panel">
-            <div class="panel-title">AGENCY SIGNAL</div>
-            <div class="stat"><span>INSIGHTS</span><strong id="insights">18</strong></div>
-            <div class="bar"><i id="insightsBar"></i></div>
-            <div class="stat"><span>TRENDS</span><strong id="trends">12</strong></div>
-            <div class="bar pink"><i id="trendsBar"></i></div>
-            <div class="stat"><span>CLIENTS</span><strong id="clients">3</strong></div>
-            <div class="stat"><span>REPUTATION</span><strong id="reputation">24</strong></div>
-            <div class="resource-grid">
-              <div><span>IDEAS</span><b id="ideas">8</b></div>
-              <div><span>OUTPUT</span><b id="output">4</b></div>
-              <div><span>MORALE</span><b id="morale">62%</b></div>
-              <div><span>HYPE</span><b id="hype">5</b></div>
-            </div>
-          </section>
-
-          <section class="panel consumables">
-            <div class="panel-title"><span>SURVIVAL STOCK</span><span>USE</span></div>
-            <div class="stock-grid" id="stockGrid"></div>
-          </section>
-
           <section class="panel team-panel">
             <div class="panel-title"><span>TEAM / LIVE</span><span id="payroll">-€0/MIN</span></div>
             <div id="teamList"></div>
           </section>
 
-          <section class="panel shop">
-            <div class="panel-title"><span>2ÈME MAIN / SHOP</span><span>PRIX</span></div>
-            <div id="shopList"></div>
+          <section class="panel consumables">
+            <div class="panel-title"><span>CONSUMABLES</span><span>CLICK TO USE</span></div>
+            <div class="stock-grid" id="stockGrid"></div>
           </section>
         </aside>
+
+        <section class="lower-dashboard">
+          <article class="agency-card dash-card">
+            <div class="agency-logo"><small>┌ BUREAU ┐</small><b>1030</b><small>└ BXL.EXE ┘</small></div>
+            <div class="health-block">
+              <div class="panel-title"><span>[ AGENCY HEALTH ]</span><span id="healthStatus">:: STABLE</span></div>
+              <strong id="agencyHealth">68%</strong>
+              <div class="health-track"><i id="healthBar"></i></div>
+              <small id="healthSummary">morale + reputation + runway</small>
+            </div>
+          </article>
+
+          <article class="economy-card dash-card">
+            <div class="panel-title"><span>[ WORLD CURRENCIES ]</span><span>LIVE :: 5 SEC</span></div>
+            <div class="currency-row cash-currency"><span>CASH</span><strong id="cash">€ 480</strong><small id="cashFlow">+€0 income − €0 salary</small></div>
+            <div class="currency-row idea-currency"><span>IDEAS</span><strong id="ideas">8</strong><small id="ideaFlow">+0 auto · pitch costs 5</small></div>
+            <div class="mini-stats">
+              <div><span>INSIGHTS</span><b id="insights">18</b></div><div><span>TRENDS</span><b id="trends">12</b></div>
+              <div><span>OUTPUT</span><b id="output">4</b></div><div><span>HYPE</span><b id="hype">5</b></div>
+              <div><span>CLIENTS</span><b id="clients">3</b></div><div><span>REP</span><b id="reputation">24</b></div>
+            </div>
+          </article>
+
+          <article class="grind-card dash-card">
+            <div class="panel-title"><span>[ GRIND / OBJECTIVES ]</span><span id="morale">62%</span></div>
+            <div id="objectiveList"></div>
+            <div class="farm-line"><span>AUTO FARM</span><b id="farmSummary">calculating...</b></div>
+          </article>
+
+          <article class="shop panel">
+            <div class="panel-title"><span>2ÈME MAIN / SHOP</span><span>PRIX</span></div>
+            <div id="shopList"></div>
+          </article>
+        </section>
       </div>
 
       <footer class="bottom-bar">
         <div class="log"><span class="live-dot"></span><span class="prompt">&gt;</span> <span id="eventLog">Le studio bourdonne. Un deadline approche.</span></div>
-        <div class="cash-box"><span>CASH</span><strong id="cash">€ 480</strong></div>
+        <div class="tick-box">NEXT PAYROLL <strong id="nextTick">05s</strong></div>
       </footer>
     </section>
   </main>
-  <script src="game.js?v=3"></script>
+  <script src="game.js?v=4"></script>
 </body>
 </html>
