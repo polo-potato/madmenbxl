@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Mad Men Bruxelles, un mini idle game narratif d'agence belge." />
+  <title>MAD MEN BRUXELLES</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="game" aria-live="polite">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">BRUXELLES · 08:43 · PLUIE</div>
+        <h1>MAD MEN BRUXELLES</h1>
+      </div>
+      <button id="skipButton" class="skip">SKIP / FULL AGENCY <span>→</span></button>
+    </header>
+
+    <section id="soloView" class="view solo-view">
+      <div class="day">JOUR 01</div>
+      <pre class="solo-ascii" aria-label="Un créatif seul à son bureau">
+                      .--------.
+                      |  _  _  |
+                      |    _   |       ☕
+                      '---| |--'     __/
+                          | |       |__|
+                   _______| |___________
+                  /      /___\          /|
+                 /_____________________/ |
+                 |                     | /
+                 |_____________________|/
+                      _/         \_
+      </pre>
+      <div class="solo-copy">
+        <p id="narrative">Le brief dit « disruptif ». Le budget dit « débrouille-toi ».</p>
+        <button id="thinkButton" class="action primary">[ TROUVER UNE IDÉE ]</button>
+        <small>Chaque clic rend l'agence un peu moins vide.</small>
+      </div>
+    </section>
+
+    <section id="agencyView" class="view agency-view" hidden>
+      <div class="agency-grid">
+        <section class="map-panel panel">
+          <div class="panel-title"><span>PLATEAU / SAINT-GILLES</span><span id="agencyClock">17:42</span></div>
+          <pre class="agency-map" id="agencyMap"></pre>
+          <div class="actions">
+            <button class="action primary" data-action="pitch">[ PITCHER UN CLIENT ]</button>
+            <button class="action" data-action="trend">[ SCROLLER LES TRENDS ]</button>
+            <button class="action" data-action="brew">[ FAIRE DU CAFÉ ]</button>
+          </div>
+        </section>
+
+        <aside class="sidebar">
+          <section class="panel stats-panel">
+            <div class="panel-title">AGENCY SIGNAL</div>
+            <div class="stat"><span>INSIGHTS</span><strong id="insights">18</strong></div>
+            <div class="bar"><i id="insightsBar"></i></div>
+            <div class="stat"><span>TRENDS</span><strong id="trends">12</strong></div>
+            <div class="bar pink"><i id="trendsBar"></i></div>
+            <div class="stat"><span>CLIENTS</span><strong id="clients">3</strong></div>
+            <div class="stat"><span>REPUTATION</span><strong id="reputation">24</strong></div>
+          </section>
+
+          <section class="panel consumables">
+            <div class="panel-title">SURVIVAL STOCK</div>
+            <div class="stock-grid" id="stockGrid"></div>
+          </section>
+
+          <section class="panel shop">
+            <div class="panel-title"><span>2ÈME MAIN / SHOP</span><span>PRIX</span></div>
+            <div id="shopList"></div>
+          </section>
+        </aside>
+      </div>
+
+      <footer class="bottom-bar">
+        <div class="log"><span class="prompt">&gt;</span> <span id="eventLog">Le studio bourdonne. Un deadline approche.</span></div>
+        <div class="cash-box"><span>CASH</span><strong id="cash">€ 480</strong></div>
+      </footer>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
