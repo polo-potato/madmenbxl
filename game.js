@@ -29,37 +29,45 @@ const items = [
   { id: 'plant', name: 'Monstera fatigué', price: 90, glyph: '\\|/' },
 ];
 
+const mapFrames = ['·', 'o', '*', '°'];
+const mapBase = () => String.raw`
+      STRATEGY                 CREATIVE                  PRODUCTION
+   .--------------.       .----------------.        .--------------.
+   | @ Lotte ${state.boosts.lotte ? '⚡' : ' '}   |       |  @ Jules       |        | @ Noor       |
+   | [briefs]  ▓▓ |       |  [ C R T ]  ░░ |        | [render] ▓▓▓ |
+   '--------------'       '----------------'        '--------------'
+
+            ${mapFrames[state.tick % 4]}    o               ${mapFrames[(state.tick + 1) % 4]}                         o
+        . . . . .|. . . . . . . | . . . . . . . . . . . |. . .
+                 |               |                         |
+
+   ACCOUNT                    THE BIG TABLE                 SOCIAL
+ .--------------.        .--------------------.       .--------------.
+ | @ Sofie      |        |   ______________   |       | @ Yassine ${mapFrames[(state.tick + 2) % 4]} |
+ | tel: RING!   |        |  |   meeting?   |  |       | #latergram   |
+ '--------------'        |  |______________|  |       '--------------'
+                         '--------------------'
+
+    KITCHEN                 WINDOW / RAIN               NEW STUFF
+ .-------------.         |||||||||||||||||||||       .--------------.
+ | ☕  M  H₂O  |         |  bxl.exe is grey  |       | ${ownedGlyphs().padEnd(12)} |
+ | [FRIDGE] ${mapFrames[state.tick % 4]} |         |||||||||||||||||||||       | invoices: ${String(state.clients).padStart(2, '0')} |
+ '-------------'                                      '--------------'
+`;
+
 const $ = (q) => document.querySelector(q);
 const clamp = (n, min = 0, max = 100) => Math.max(min, Math.min(max, n));
 const formatCash = () => `€ ${Math.floor(state.cash).toLocaleString('fr-BE')}`;
+const ownedGlyphs = () => state.owned.map(id => items.find(i => i.id === id).glyph).join(' ').slice(0, 12);
 const payroll = () => employees.reduce((sum, e) => sum + e.salary, 0);
-const incomePerTick = () => employees.reduce((sum, e) => sum + (e.produces.cash || 0), 0);
-const ideasPerTick = () => employees.reduce((sum, e) => sum + (e.produces.ideas || 0), 0);
-
-function objectiveMarkup() {
-  const pitchReady = Math.min(state.insights / 8, state.ideas / 5, state.output / 2) * 100;
-  const objectives = [
-    { label: 'NEXT PITCH', value: pitchReady, text: `${Math.min(100, Math.floor(pitchReady))}%` },
-    { label: '€1K RUNWAY', value: state.cash / 10, text: `€${Math.floor(state.cash)}/1000` },
-    { label: 'CULT STATUS', value: state.reputation * 2, text: `${Math.floor(state.reputation)}/50 rep` },
-  ];
-  return objectives.map(o => `<div class="objective"><div class="objective-head"><span>${o.label}</span><span>${o.text}</span></div><div class="objective-track"><i style="width:${clamp(o.value)}%"></i></div></div>`).join('');
-}
 
 function render() {
   $('#cash').textContent = formatCash();
   ['insights', 'trends', 'clients', 'reputation', 'ideas', 'output', 'hype'].forEach(key => $(`#${key}`).textContent = Math.floor(state[key]));
   $('#morale').textContent = `${Math.floor(state.morale)}%`;
+  $('#insightsBar').style.width = `${clamp(state.insights)}%`;
+  $('#trendsBar').style.width = `${clamp(state.trends)}%`;
   $('#payroll').textContent = `-€${payroll()}/MIN`;
-  const netTick = incomePerTick() - payroll() / 12;
-  const health = clamp(state.morale * .45 + state.reputation * .35 + Math.min(100, state.cash / 8) * .2);
-  $('#agencyHealth').textContent = `${Math.floor(health)}%`;
-  $('#healthBar').style.width = `${health}%`;
-  $('#healthStatus').textContent = health > 72 ? ':: THRIVING' : health > 45 ? ':: STABLE' : ':: FRAGILE';
-  $('#cashFlow').textContent = `+€${incomePerTick()}/tick income  −  €${(payroll()/12).toFixed(1)}/tick salary  =  ${netTick >= 0 ? '+€' : '−€'}${Math.abs(netTick).toFixed(1)}`;
-  $('#ideaFlow').textContent = `+${ideasPerTick()}/tick auto  ·  pitch costs 5  ·  current ${Math.floor(state.ideas)}`;
-  $('#farmSummary').textContent = `+${employees[0].produces.insights} insight · +${employees[0].produces.trends + employees[4].produces.trends} trends · +${ideasPerTick()} ideas · +1 output / tick`;
-  $('#objectiveList').innerHTML = objectiveMarkup();
   $('#stockGrid').innerHTML = Object.entries(state.stock).map(([name, count]) => {
     const c = consumables[name];
     return `<button class="stock" data-consume="${name}" title="${c.effect}" ${count < 1 ? 'disabled' : ''}><b>${count}</b>${c.label}</button>`;
@@ -73,7 +81,7 @@ function render() {
     const owned = state.owned.includes(item.id);
     return `<div class="shop-item ${owned ? 'owned' : ''}"><span>${item.glyph} ${item.name}</span><span class="shop-price">€${item.price}</span><button class="buy" data-buy="${item.id}" ${owned ? 'disabled' : ''}>${owned ? 'OK' : 'BUY'}</button></div>`;
   }).join('');
-  document.querySelector('.strategy')?.classList.toggle('boosted-station', state.boosts.lotte > Date.now());
+  $('#agencyMap').textContent = mapBase();
 }
 
 function log(message) {
@@ -156,14 +164,6 @@ function autoWork() {
   render();
 }
 
-let secondsToTick = 5;
-setInterval(() => { autoWork(); secondsToTick = 5; }, 5000);
-setInterval(() => {
-  if (!$('#agencyView').hidden) {
-    const d = new Date();
-    $('#agencyClock').textContent = d.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' });
-    secondsToTick = secondsToTick <= 1 ? 5 : secondsToTick - 1;
-    $('#nextTick').textContent = `0${secondsToTick}s`;
-  }
-}, 1000);
+setInterval(autoWork, 5000);
+setInterval(() => { if (!$('#agencyView').hidden) { const d = new Date(); $('#agencyClock').textContent = d.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' }); } }, 1000);
 render();
