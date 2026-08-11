@@ -1,40 +1,11 @@
-const editRoot = "https://github.com/polo-potato/madmenbxl/edit/main/";
-const editor = document.querySelector("#markdown");
-const toast = document.querySelector("#toast");
-
-document.querySelectorAll("[data-edit]").forEach(link => {
-  link.href = editRoot + link.dataset.edit;
-  link.target = "_blank";
-  link.rel = "noopener";
-});
-
-function check() {
-  const source = editor.value;
-  document.querySelector("#scene-count").textContent = (source.match(/^---$/gm) || []).length;
-  document.querySelector("#action-count").textContent = (source.match(/^\[ACTION\]/gm) || []).length;
-  document.querySelector("#unlock-count").textContent = (source.match(/^\[UNLOCK\]/gm) || []).length;
-  document.querySelector("#state").textContent = "UNSAVED CHANGES";
-}
-
-function message(text) {
-  toast.textContent = text;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 3500);
-}
-
-async function load() {
-  const response = await fetch(`../content/prologue.md?v=${Date.now()}`);
-  editor.value = await response.text();
-  check();
-  document.querySelector("#state").textContent = "LOADED FROM GITHUB";
-}
-
-editor.addEventListener("input", check);
-document.querySelector("#reload").addEventListener("click", load);
-document.querySelector("#publish").addEventListener("click", async () => {
-  await navigator.clipboard.writeText(editor.value);
-  message("FULL MARKDOWN COPIED — PASTE IT IN GITHUB");
-  window.open(editRoot + "content/prologue.md", "_blank", "noopener");
-});
-
-load().catch(() => message("COULD NOT LOAD PROLOGUE.MD"));
+const editRoot="https://github.com/polo-potato/madmenbxl/edit/main/",editor=document.querySelector("#markdown"),toast=document.querySelector("#toast");let current="prologue";
+const modules={
+prologue:{file:"prologue.md",legend:`<p class="kicker">PROLOGUE TAGS</p><section class="tag thought"><code>[THOUGHT]</code><b>YOU WRITE</b><p>Player types. WHAT IF is automatic.</p></section><section class="tag narration"><code>[NARRATION]</code><b>LIFE HAPPENS</b><p>Italic and automatic.</p></section><section class="tag"><code>[ACTION] check phone</code><b>PAUSE HERE</b><p>Works before, during or after text. Click, then continue below.</p></section><section class="tag unlock"><code>[UNLOCK] scroll</code><b>PERMANENT HABIT</b><p>Attach directly after an action.</p></section><div class="rules"><b>SCENE</b><pre>---\n[NARRATION]\n## TEXT\nfirst words.\n\n[ACTION] continue\n\nmore words.</pre></div>`,counts:s=>[["SCENES",/^---$/gm],["ACTIONS",/^\[ACTION\]/gm],["UNLOCKS",/^\[UNLOCK\]/gm]]},
+brief:{file:"brief.md",legend:`<p class="kicker">BRIEF TAGS</p><section class="tag"><code>[PROMPT] waiting felt useful?</code><b>PLAYER THOUGHT</b></section><section class="tag"><code>[ACTION] try a direction</code><b>IDEA BUTTON</b></section><section class="tag"><code>[METER] IDEA</code><b>GAUGE NAME</b></section><section class="tag"><code>[COMPLETE] there it is.</code><b>SUCCESS COPY</b></section><div class="rules"><p>One line per interface element. Keep the tag; change what follows it.</p></div>`,counts:s=>[["FIELDS",/^\[(?:LABEL|PREFIX|PROMPT|ACTION|METER|COMPLETE|SEND)\]/gm]]},
+habits:{file:"habits.md",legend:`<p class="kicker">HABIT TAGS</p><section class="tag unlock"><code>[HABIT] cigarette</code><b>PERMANENT BUTTON</b></section><section class="tag"><code>[EFFECT] stress -5</code><b>GAUGE CHANGE</b><p>Use + to boost, − to reduce.</p></section><section class="tag narration"><code>## NOTE</code><b>CLICK FEEDBACK</b><p>Automatic italic response.</p></section><div class="rules"><b>HABIT</b><pre>---\n[HABIT] cigarette\n[EFFECT] stress -5\n[EFFECT] creativity +2\n## NOTE\nfirst drag.</pre></div>`,counts:s=>[["HABITS",/^\[HABIT\]/gm],["EFFECTS",/^\[EFFECT\]/gm]]},
+events:{file:"events.md",legend:`<p class="kicker">EVENT TAGS</p><section class="tag narration"><code>## TEXT</code><b>WHAT HAPPENS</b></section><section class="tag"><code>[CHOICE] open the window</code><b>CONTEXT BUTTON</b></section><section class="tag"><code>[EFFECT] stress -4</code><b>CONSEQUENCE</b></section><section class="tag unlock"><code>[UNLOCK] take a walk</code><b>OPTIONAL PERMANENT HABIT</b></section><section class="tag narration"><code>## RESULT</code><b>AFTER THE CHOICE</b></section>`,counts:s=>[["EVENTS",/^---$/gm],["CHOICES",/^\[CHOICE\]/gm],["EFFECTS",/^\[EFFECT\]/gm]]}
+};
+function message(text){toast.textContent=text;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),3200)}
+function check(){const m=modules[current],source=editor.value;document.querySelector("#detected").innerHTML=`<span>LIVE CHECK</span>`+m.counts(source).map(([name,re])=>`<b>${(source.match(re)||[]).length}</b><small>${name}</small>`).join("");document.querySelector("#state").textContent="UNSAVED CHANGES"}
+async function load(){const m=modules[current];document.querySelector("#guide").innerHTML=m.legend;document.querySelector("#path").textContent=`content/${m.file}`;document.querySelectorAll("[data-module]").forEach(b=>b.classList.toggle("active",b.dataset.module===current));const response=await fetch(`../content/${m.file}?v=${Date.now()}`);editor.value=await response.text();check();document.querySelector("#state").textContent="LOADED FROM GITHUB"}
+document.querySelector(".modules").addEventListener("click",e=>{const b=e.target.closest("[data-module]");if(!b)return;current=b.dataset.module;load().catch(()=>message("COULD NOT LOAD MODULE"))});editor.addEventListener("input",check);document.querySelector("#reload").addEventListener("click",load);document.querySelector("#publish").addEventListener("click",async()=>{const file=modules[current].file;await navigator.clipboard.writeText(editor.value);message("MODULE COPIED — PASTE IT IN GITHUB");window.open(editRoot+"content/"+file,"_blank","noopener")});load().catch(()=>message("COULD NOT LOAD MODULE"));

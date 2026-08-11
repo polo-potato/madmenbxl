@@ -1,41 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHAT IF / Writer's Room</title>
-  <link rel="stylesheet" href="writer.css?v=4">
-</head>
-<body>
-  <header>
-    <div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div>
-    <nav><a href="../" target="_blank">[ OPEN GAME ↗ ]</a><button id="reload">[ RELOAD FILE ]</button></nav>
-  </header>
-  <main>
-    <aside>
-      <p class="kicker">THE FIVE TAGS</p>
-      <section class="tag thought"><code>[THOUGHT]</code><b>YOU WRITE</b><p>The player types. <i>WHAT IF...</i> is added automatically.</p></section>
-      <section class="tag narration"><code>[NARRATION]</code><b>LIFE HAPPENS</b><p>Italic text that writes itself.</p></section>
-      <section class="tag"><code>[ACTION] check phone</code><b>PAUSE HERE</b><p>Put it anywhere. The story pauses there, waits for the click, then continues below.</p></section>
-      <section class="tag unlock"><code>[UNLOCK] cigarette</code><b>PERMANENT HABIT</b><p>Keeps this action forever in the HABITS menu.</p></section>
-      <div class="rules"><b>ONE SCENE</b><pre>---
-[THOUGHT]
-## TEXT
-first words.
-
-[ACTION] do something
-
-the story continues.</pre><p><code>---</code> starts a new scene. Everything inside a scene runs from top to bottom.</p></div>
-      <div class="detected"><span>LIVE CHECK</span><b id="scene-count">—</b><small>SCENES</small><b id="action-count">—</b><small>ACTIONS</small><b id="unlock-count">—</b><small>UNLOCKS</small></div>
-      <div class="other"><p class="kicker">OTHER FILES</p><a data-edit="content/brief.md">FIRST BRIEF ↗</a><a data-edit="content/habits.md">HABITS ↗</a><a data-edit="content/events.md">EVENTS ↗</a></div>
-    </aside>
-    <section class="editor">
-      <div class="editor-head"><span>content/prologue.md</span><span id="state">LOADED FROM GITHUB</span></div>
-      <textarea id="markdown" aria-label="Full prologue Markdown" spellcheck="false"></textarea>
-      <div class="save"><p><b>TO SAVE</b><br>Copy, open GitHub, replace everything with <kbd>⌘A</kbd> <kbd>⌘V</kbd>, then commit.</p><button id="publish">[ COPY ALL + OPEN GITHUB ↗ ]</button></div>
-    </section>
-  </main>
-  <div class="toast" id="toast" role="status"></div>
-  <script src="writer.js?v=4"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WHAT IF / Writer's Room</title><link rel="stylesheet" href="writer.css?v=5"></head><body>
+<header><div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div><nav><a href="../" target="_blank">[ OPEN GAME ↗ ]</a><button id="reload">[ RELOAD FILE ]</button></nav></header>
+<main><aside><p class="kicker">MODULES</p><nav class="modules"><button data-module="prologue" class="active">PROLOGUE</button><button data-module="brief">FIRST BRIEF</button><button data-module="habits">HABITS</button><button data-module="events">EVENTS</button></nav><div id="guide"></div><div class="detected" id="detected"></div></aside>
+<section class="editor"><div class="editor-head"><span id="path">content/prologue.md</span><span id="state">LOADED FROM GITHUB</span></div><textarea id="markdown" aria-label="Full module Markdown" spellcheck="false"></textarea><div class="save"><p><b>TO SAVE</b><br>Copy, open GitHub, replace everything with <kbd>⌘A</kbd> <kbd>⌘V</kbd>, then commit.</p><button id="publish">[ COPY ALL + OPEN GITHUB ↗ ]</button></div></section></main><div class="toast" id="toast" role="status"></div><script src="writer.js?v=5"></script></body></html>
