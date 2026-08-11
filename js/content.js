@@ -47,7 +47,9 @@ function parseHabits(source) {
   return Object.fromEntries(blocks(source).map(block => {
     const [head, note] = block.split("## NOTE");
     const data = meta(head);
-    return [data.id, { creativity: Number(data.creativity || 0), energy: Number(data.energy || 0), stress: Number(data.stress || 0), note: note.trim() }];
+    const id = head.match(/^\[HABIT\]\s+(.+)$/m)?.[1]?.trim() || data.id;
+    const tagged = Object.fromEntries([...head.matchAll(/^\[EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
+    return [id, { creativity: tagged.creativity ?? Number(data.creativity || 0), energy: tagged.energy ?? Number(data.energy || 0), stress: tagged.stress ?? Number(data.stress || 0), note: note.trim() }];
   }));
 }
 
@@ -59,10 +61,19 @@ function parseEvents(source) {
     const choices = choiceParts.map(part => {
       const [choiceHead, result] = part.split("## RESULT");
       const choice = meta(choiceHead);
-      return { label: choice.label, effects: effects(choice.effects), result: result.trim() };
+      const label = choiceHead.match(/^\s*(?:\[CHOICE\]\s+(.+)|label:\s*(.+))$/m);
+      const taggedEffects = Object.fromEntries([...choiceHead.matchAll(/^\[EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
+      const unlock = choiceHead.match(/^\[UNLOCK\]\s+(.+)$/m)?.[1]?.trim();
+      return { label: label?.[1]?.trim() || label?.[2]?.trim() || choice.label, effects: Object.keys(taggedEffects).length ? taggedEffects : effects(choice.effects), result: result.trim(), ...(unlock ? { unlock } : {}) };
     });
-    return { id: data.id, text: eventText.trim(), choices };
+    return { text: eventText.trim(), choices };
   });
+}
+
+function parseBrief(source) {
+  const legacy = meta(source);
+  const tag = name => source.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`, "m"))?.[1]?.trim();
+  return { label: tag("LABEL") || legacy.label, anchor: tag("PREFIX") || legacy.anchor, prompt: tag("PROMPT") || legacy.prompt, attempt: tag("ACTION") || legacy.attempt, idea: tag("METER") || legacy.idea, completion: tag("COMPLETE") || legacy.completion, send: tag("SEND") || legacy.send };
 }
 
 const [prologueSource, briefSource, habitsSource, eventsSource] = await Promise.all([
@@ -70,7 +81,7 @@ const [prologueSource, briefSource, habitsSource, eventsSource] = await Promise.
 ]);
 
 export const introBeats = parsePrologue(prologueSource);
-export const briefCopy = meta(briefSource);
+export const briefCopy = parseBrief(briefSource);
 export const personalActions = parseHabits(habitsSource);
 export const briefEvents = parseEvents(eventsSource);
 
