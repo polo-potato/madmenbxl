@@ -76,6 +76,8 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .personal-side { position: absolute; left: 618px; top: max(15vh, 86px); width: 242px; }
 .personal-metrics { padding-bottom: 30px; border-bottom: 1px dotted var(--line); }
 .personal-metric { margin-bottom: 20px; }
+.idea-meter .row-head, .personal-metric .row-head { position: relative; }
+.metric-delta { position: absolute; right: -48px; top: 0; min-width: 38px; color: var(--ink); font-size: 12px; text-align: left; pointer-events: none; }
 .habit-menu { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 28px; }
 .habit-menu button:disabled { opacity: .3; }
 .brief-event { position: absolute; left: 42px; top: 350px; width: 300px; padding: 18px 20px; background: var(--paper); border: 1px solid var(--ink); border-left-width: 3px; z-index: 5; }
@@ -148,6 +150,7 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
   .early { grid-template-columns: 1fr; }
   .early-map { order: -1; }
   .personal-side { position: static; width: min(420px, 100%); padding: 0 0 80px; }
+  .metric-delta { right: 0; top: -18px; }
 }
 
 @media (max-width: 760px) {
