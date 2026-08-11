@@ -9,19 +9,53 @@
 <body>
   <header>
     <div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div>
-    <a class="game-link" href="../" target="game-preview">[ OPEN GAME ↗ ]</a>
+    <a class="game-link" href="../" target="_blank">[ OPEN GAME ↗ ]</a>
   </header>
+
+  <section class="legend" aria-label="Narrative legend">
+    <div><span class="legend-mark typed-mark">Aa</span><b>YOU WRITE</b><small>Normal text · the player types to reveal it</small></div>
+    <div><span class="legend-mark narration-mark">Aa</span><b>LIFE HAPPENS</b><small>Italic text · appears automatically</small></div>
+    <div><span class="legend-mark">[ ]</span><b>ACTION</b><small>A button before or after a scene</small></div>
+    <div><span class="legend-mark prefix-mark">WI</span><b>WHAT IF...</b><small>Added automatically to every thought</small></div>
+  </section>
+
   <main>
-    <section class="files" aria-label="Editable content files">
-      <p class="intro">Choose what you want to write. GitHub opens a plain text editor. Change the copy, click <b>Commit changes</b>, then refresh the preview.</p>
-      <article><div><span class="number">01</span><h2>PROLOGUE</h2><p>Thoughts, automatic narration and contextual actions.</p></div><a data-edit="content/prologue.md">[ EDIT ]</a></article>
-      <article><div><span class="number">02</span><h2>FIRST BRIEF</h2><p>The first prompt, button labels and completion copy.</p></div><a data-edit="content/brief.md">[ EDIT ]</a></article>
-      <article><div><span class="number">03</span><h2>HABITS</h2><p>Cigarettes, coffee, walks and their effects.</p></div><a data-edit="content/habits.md">[ EDIT ]</a></article>
-      <article><div><span class="number">04</span><h2>EVENTS</h2><p>Distractions, choices and consequences.</p></div><a data-edit="content/events.md">[ EDIT ]</a></article>
-      <div class="help"><b>HOW TO SAVE</b><ol><li>Edit only the words and numbers you understand.</li><li>Click <i>Commit changes…</i> in GitHub.</li><li>Keep “Commit directly to main” selected.</li><li>Refresh the game after about 30 seconds.</li></ol><a data-edit="content/README.md">[ SYNTAX GUIDE ]</a></div>
+    <aside class="sidebar">
+      <p class="kicker">PROLOGUE / SCENES</p>
+      <p class="side-help">Pick a scene. Change the words. The preview reacts immediately.</p>
+      <nav id="beats" aria-label="Prologue scenes"></nav>
+      <button class="add" id="add-beat">[ + NEW SCENE ]</button>
+      <div class="other-files">
+        <p class="kicker">OTHER CONTENT</p>
+        <a data-edit="content/brief.md">FIRST BRIEF ↗</a>
+        <a data-edit="content/habits.md">HABITS ↗</a>
+        <a data-edit="content/events.md">EVENTS ↗</a>
+        <a data-edit="content/README.md">SYNTAX GUIDE ↗</a>
+      </div>
+    </aside>
+
+    <section class="editor">
+      <div class="editor-head"><span id="scene-number">SCENE</span><span id="save-state">LOADED FROM GITHUB</span></div>
+      <label class="field"><span>WHOSE VOICE?</span><select id="kind"><option value="thought">YOU WRITE — player types</option><option value="narration">LIFE HAPPENS — automatic italic</option></select></label>
+      <div class="two-fields">
+        <label class="field"><span>BUTTON BEFORE <i>optional</i></span><input id="gate" placeholder="e.g. check phone"></label>
+        <label class="field"><span>BUTTON AFTER <i>optional</i></span><input id="action" placeholder="e.g. light a cigarette"></label>
+      </div>
+      <label class="field copy-field"><span>WORDS ON SCREEN</span><textarea id="copy" spellcheck="true"></textarea></label>
+      <details><summary>Advanced: scene ID</summary><label class="field"><span>UNIQUE ID</span><input id="scene-id"></label></details>
+      <div class="save-row">
+        <p><b>TO SAVE:</b> click below, then replace the GitHub text with <kbd>⌘A</kbd> <kbd>⌘V</kbd> and commit.</p>
+        <button id="publish">[ COPY MARKDOWN + OPEN GITHUB ↗ ]</button>
+      </div>
     </section>
-    <section class="preview"><div class="preview-head"><span>LIVE GAME</span><button id="reload">[ REFRESH ]</button></div><iframe name="game-preview" src="../" title="Game preview"></iframe></section>
+
+    <section class="preview" aria-label="Live style preview">
+      <div class="preview-head"><span>LIVE STYLE PREVIEW</span><span id="preview-mode">YOU WRITE</span></div>
+      <div class="paper"><div id="preview-copy"></div><div id="preview-action"></div></div>
+      <p class="preview-note">This previews voice, italics, recurring prefix and button position. Keep the game itself open in another tab to test timing.</p>
+    </section>
   </main>
+  <div class="toast" id="toast" role="status"></div>
   <script src="writer.js"></script>
 </body>
 </html>
