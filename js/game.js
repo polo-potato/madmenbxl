@@ -10,6 +10,9 @@ let erasePauseTimer = null;
 let eraseInterval = null;
 let autoTypeInterval = null;
 let metricTween = null;
+let activeMetricDeltas = {};
+let activeIdeaDelta = 0;
+let metricDeltaProgress = 0;
 const game = document.querySelector("#game");
 
 const elapsed = Math.max(0, (Date.now() - (state.lastSaved || Date.now())) / 1000);
@@ -175,20 +178,25 @@ function renderBrief() {
     return `<button data-personal-action="${id}" ${disabled||state.metricAnimating?'disabled':''}>[ ${id} ]</button>`;
   }).join("");
   const eventBlock = event ? `<div class="brief-event"><span class="label warning">DISTRACTION</span><p>${event.text.replaceAll("\n","<br>")}</p>${event.choices.map((c,i)=>`<button data-event-choice="${i}" ${state.metricAnimating?'disabled':''}>[ ${c.label} ]</button>`).join("")}</div>` : brief.eventResult ? `<div class="brief-event event-result">${brief.eventResult.replaceAll("\n","<br>")}</div>` : "";
-  const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow'):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green'):personalMetric('STRESS',p.stress,'fill-purple')).join('');
-  const ideaMeter=brief.promptComplete?`<div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${Math.floor(brief.idea)} / 100</span></div>${bar(brief.idea,'fill-yellow',20)}</div>`:'';
+  const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green',metric):personalMetric('STRESS',p.stress,'fill-purple',metric)).join('');
+  const ideaMeter=brief.promptComplete?`<div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${Math.floor(brief.idea)} / 100</span>${deltaBadge(activeIdeaDelta)}</div>${bar(brief.idea,'fill-yellow',20)}</div>`:'';
   const completion=briefCopy.completion.replace(' / ','<br><br>');
   const attempt=brief.promptComplete?(brief.completed?`<p class="idea-found">${completion}</p><button data-finish-brief>[ ${briefCopy.send} ]</button>`:`<button class="try-idea" data-try-idea ${state.metricAnimating?'disabled':''}>[ ${briefCopy.attempt} ]</button>`):'';
   game.innerHTML=`<section class="brief-screen"><div class="brief-dialogue"><span class="label insight brief-label">${briefCopy.label}</span><div class="brief-thought"><span class="auto-anchor">${briefCopy.anchor}</span><br><br><span>${promptVisible}</span>${!brief.promptComplete?'<span class="cursor">|</span>':''}</div>${ideaMeter}${attempt}${eventBlock}</div>
   <aside class="personal-side">${metrics?`<div class="personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:''}<nav class="habit-menu"><span class="action-menu-title">HABITS</span>${actions}</nav></aside><div class="hint">${brief.promptComplete?'':'TYPE TO THINK'}</div></section>`;
 }
 
-function personalMetric(name,value,color){return `<div class="personal-metric"><div class="row-head"><span>${name}</span><span>${Math.round(value)}</span></div>${bar(value,color,12)}</div>`;}
+function personalMetric(name,value,color,id){return `<div class="personal-metric"><div class="row-head"><span>${name}</span><span>${Math.round(value)}</span>${deltaBadge(activeMetricDeltas[id])}</div>${bar(value,color,12)}</div>`;}
 
 function unlockPersonal(id){ if(!state.unlockedActions.includes(id)) state.unlockedActions.push(id); }
 function unlockMetric(id){ if(!state.unlockedMetrics.includes(id)) state.unlockedMetrics.push(id); }
 function adjustPersonal(effects){ Object.entries(effects).forEach(([k,v])=>state.personal[k]=Math.max(0,Math.min(100,state.personal[k]+v))); }
 function signed(value){ return `${value>0?"+":"−"}${Math.abs(value)}`; }
+function deltaBadge(value){
+  if(!value)return "";
+  const opacity=metricDeltaProgress<.2?metricDeltaProgress/.2:metricDeltaProgress<.65?1:Math.max(0,(1-metricDeltaProgress)/.35);
+  return `<span class="metric-delta" style="opacity:${opacity};transform:translateY(${-8*metricDeltaProgress}px)">${signed(value)}</span>`;
+}
 
 const ideaRequirements = [
   { id:"creativity", message:"Creativity is missing.\n\nMaybe look somewhere else." },
@@ -207,11 +215,15 @@ function advanceBriefTyping(){
 function animateMetrics(effects, ideaGain=0, done=()=>{}) {
   if(state.metricAnimating) return;
   state.metricAnimating=true;
+  activeMetricDeltas=Object.fromEntries(Object.entries(effects).filter(([k,v])=>k in state.personal&&v));
+  activeIdeaDelta=ideaGain;
+  metricDeltaProgress=0;
   const steps=18;
   let step=0;
   if(metricTween) clearInterval(metricTween);
   metricTween=setInterval(()=>{
     step++;
+    metricDeltaProgress=step/steps;
     const partial={};
     Object.entries(effects).filter(([k])=>k in state.personal).forEach(([k,v])=>partial[k]=v/steps);
     adjustPersonal(partial);
@@ -221,6 +233,9 @@ function animateMetrics(effects, ideaGain=0, done=()=>{}) {
       metricTween=null;
       state.metricAnimating=false;
       done();
+      activeMetricDeltas={};
+      activeIdeaDelta=0;
+      metricDeltaProgress=0;
       saveState(state);
     }
     render();
@@ -261,7 +276,7 @@ document.addEventListener("click", e=>{
     const gain=Math.max(prologueIdea.minimumGain,Math.round(prologueIdea.base+source*boost));
     const costs=Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.tryCost]));
     b.ideaUnlocked=true;
-    b.eventResult=`what it cost:\n${Object.entries(costs).map(([id,value])=>`${id} ${signed(value)}`).join(" · ")}\n\n${briefCopy.idea} +${gain}`;
+    b.eventResult="";
     animateMetrics(costs,gain,()=>{b.attempts++;if(b.idea>=99.5){b.idea=100;b.completed=true;}else if(b.attempts%2===0&&briefEvents.length){b.pendingEvent=briefEvents[b.eventIndex%briefEvents.length];b.eventIndex++;}});
     return render();
   }
