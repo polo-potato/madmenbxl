@@ -2,10 +2,13 @@
 
 ## IDEA FORMULA
 
-[IDEA BASE] 8
+[IDEA BASE] 2
 [IDEA MINIMUM GAIN] 9
 
-Each attempt gains: base + creativity weight + stress weight. Energy is required and consumed, but does not directly improve the idea.
+Creativity is the source of every IDEA point. Energy and stress only make that creativity work faster.
+
+Each attempt gains: base + (creativity source × energy/stress boosts).
+All three gauges must first be discovered. If a required value is too low, the attempt becomes a hint and consumes nothing.
 
 ---
 [GAUGE] creativity
@@ -13,9 +16,9 @@ Each attempt gains: base + creativity weight + stress weight. Energy is required
 [DRIFT] -0.025
 [TRY MINIMUM] 12
 [TRY COST] -12
-[IDEA WEIGHT] +0.14
+[IDEA SOURCE] +0.14
 ## PURPOSE
-Creative fuel. Higher creativity makes every direction generate more IDEA. Actions such as walking or looking outside restore it.
+Creative fuel and the only direct source of IDEA. Actions such as walking or looking outside restore it.
 
 ---
 [GAUGE] energy
@@ -23,16 +26,16 @@ Creative fuel. Higher creativity makes every direction generate more IDEA. Actio
 [DRIFT] -0.085
 [TRY MINIMUM] 6
 [TRY COST] -7
-[IDEA WEIGHT] 0
+[IDEA BOOST] +0.006
 ## PURPOSE
-Capacity to keep working. Every direction consumes energy. Coffee restores it; when it is too low, the player cannot try another direction.
+Capacity to keep working. Energy makes creativity turn into IDEA faster. Every direction consumes it; coffee restores it.
 
 ---
 [GAUGE] stress
 [START] 36
 [DRIFT] +0.045
-[TRY MINIMUM] 0
+[TRY MINIMUM] 6
 [TRY COST] +5
-[IDEA WEIGHT] -0.035
+[IDEA BOOST] +0.004
 ## PURPOSE
-Pressure accumulated while working. Stress grows over time and with attempts. High stress reduces IDEA gain; cigarettes and walks lower it.
+Pressure and urgency. A little stress makes creativity turn into IDEA faster, but every attempt adds more. Cigarettes and walks lower it.
