@@ -4,8 +4,7 @@
 
 - `[THOUGHT]` = **YOU WRITE** — normal text, advanced by typing.
 - `[NARRATION]` = **LIFE HAPPENS** — italic text, written automatically.
-- `[ACTION] check phone` before `## TEXT` = a button before the scene.
-- `[ACTION] light a cigarette` after the text = a button after the scene.
+- `[ACTION] check phone` = pause exactly here and wait for a click, even in the middle of text.
 - `[UNLOCK] cigarette` = that action remains permanently in the **HABITS** menu.
 - `---` = a new screen / beat.
 
@@ -18,6 +17,7 @@ narration-style: italic
 narration-mode: automatic
 
 The game automatically adds `WHAT IF...` above every `[THOUGHT]` screen. Do not type it again inside `## TEXT`.
+The story always runs from top to bottom. Put `[ACTION]` wherever you want the scene to pause.
 
 ---
 [THOUGHT]
@@ -84,10 +84,11 @@ fuck.
 
 ---
 [NARRATION]
-[ACTION] check phone
-[UNLOCK] scroll
 ## TEXT
 one message.
+
+[ACTION] check phone
+[UNLOCK] scroll
 
 instagram.
 

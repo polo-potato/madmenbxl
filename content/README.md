@@ -8,8 +8,7 @@ The files in this folder are loaded directly by the game. Save a file and reload
 | --- | --- | --- |
 | `[THOUGHT]` | Normal text with `WHAT IF...` above it | The player types |
 | `[NARRATION]` | Italic text | Automatically |
-| `[ACTION] check phone` before `## TEXT` | A contextual button before the scene | The player clicks |
-| `[ACTION] light a cigarette` after the text | A contextual button after the scene | The player clicks |
+| `[ACTION] check phone` anywhere | The story pauses at that exact position | The player clicks, then it continues |
 | `[UNLOCK] cigarette` | A permanent button in the HABITS menu | Once unlocked, it stays |
 
 The recurring `WHAT IF...` is configured once at the top of `prologue.md` with `thought-prefix: WHAT IF...`. Never repeat it in each thought.
@@ -22,7 +21,7 @@ Edit `prologue.md`. Every screen is separated by `---`.
 ---
 id: a-unique-name
 [THOUGHT]
-[ACTION] optional button label after the text
+[ACTION] optional button label wherever the story should pause
 [UNLOCK] optional permanent habit id
 ## TEXT
 your text here.
