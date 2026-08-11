@@ -43,11 +43,11 @@ function parsePrologue(source) {
   });
 }
 
-function parseHabits(source) {
+function parseActions(source) {
   return Object.fromEntries(blocks(source).map(block => {
     const [head, note] = block.split("## NOTE");
     const data = meta(head);
-    const id = head.match(/^\[HABIT\]\s+(.+)$/m)?.[1]?.trim() || data.id;
+    const id = head.match(/^\[ACTION\]\s+(.+)$/m)?.[1]?.trim() || data.id;
     const tagged = Object.fromEntries([...head.matchAll(/^\[EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
     return [id, { creativity: tagged.creativity ?? Number(data.creativity || 0), energy: tagged.energy ?? Number(data.energy || 0), stress: tagged.stress ?? Number(data.stress || 0), note: note.trim() }];
   }));
@@ -76,13 +76,13 @@ function parseBrief(source) {
   return { label: tag("LABEL") || legacy.label, anchor: tag("PREFIX") || legacy.anchor, prompt: tag("PROMPT") || legacy.prompt, attempt: tag("ACTION") || legacy.attempt, idea: tag("METER") || legacy.idea, completion: tag("COMPLETE") || legacy.completion, send: tag("SEND") || legacy.send };
 }
 
-const [prologueSource, briefSource, habitsSource, eventsSource] = await Promise.all([
-  loadText("prologue.md"), loadText("brief.md"), loadText("habits.md"), loadText("events.md")
+const [prologueSource, briefSource, actionsSource, eventsSource] = await Promise.all([
+  loadText("prologue.md"), loadText("brief.md"), loadText("actions.md"), loadText("events.md")
 ]);
 
 export const introBeats = parsePrologue(prologueSource);
 export const briefCopy = parseBrief(briefSource);
-export const personalActions = parseHabits(habitsSource);
+export const personalActions = parseActions(actionsSource);
 export const briefEvents = parseEvents(eventsSource);
 
 export const peopleSeed = [
