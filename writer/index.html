@@ -4,63 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WHAT IF / Writer's Room</title>
-  <link rel="stylesheet" href="writer.css?v=3">
+  <link rel="stylesheet" href="writer.css?v=4">
 </head>
 <body>
   <header>
     <div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div>
-    <a class="game-link" href="../" target="_blank">[ OPEN GAME ↗ ]</a>
+    <nav><a href="../" target="_blank">[ OPEN GAME ↗ ]</a><button id="reload">[ RELOAD FILE ]</button></nav>
   </header>
-
-  <section class="legend" aria-label="Narrative legend">
-    <div><span class="legend-mark typed-mark">Aa</span><b>YOU WRITE</b><small>Normal text · the player types to reveal it</small></div>
-    <div><span class="legend-mark narration-mark">Aa</span><b>LIFE HAPPENS</b><small>Italic text · appears automatically</small></div>
-    <div><span class="legend-mark">[ ]</span><b>ACTION</b><small>A button before or after a scene</small></div>
-    <div><span class="legend-mark prefix-mark">WI</span><b>WHAT IF...</b><small>Added automatically to every thought</small></div>
-  </section>
-
   <main>
-    <aside class="sidebar">
-      <p class="kicker">STORY FLOW / PROLOGUE</p>
-      <p class="side-help">This is the order played in the game. Scenes and actions are all part of the flow.</p>
-      <nav id="beats" aria-label="Prologue scenes"></nav>
-      <button class="add" id="add-beat">[ + NEW SCENE ]</button>
-      <div class="other-files">
-        <p class="kicker">OTHER CONTENT</p>
-        <a data-edit="content/brief.md">FIRST BRIEF ↗</a>
-        <a data-edit="content/habits.md">HABITS ↗</a>
-        <a data-edit="content/events.md">EVENTS ↗</a>
-        <a data-edit="content/README.md">SYNTAX GUIDE ↗</a>
-      </div>
+    <aside>
+      <p class="kicker">THE FIVE TAGS</p>
+      <section class="tag thought"><code>[THOUGHT]</code><b>YOU WRITE</b><p>The player types. <i>WHAT IF...</i> is added automatically.</p></section>
+      <section class="tag narration"><code>[NARRATION]</code><b>LIFE HAPPENS</b><p>Italic text that writes itself.</p></section>
+      <section class="tag"><code>[ACTION] check phone</code><b>ONE ACTION TAG</b><p>Place it before <code>## TEXT</code> for a button before the scene, or after the words for a button after.</p></section>
+      <section class="tag unlock"><code>[UNLOCK] cigarette</code><b>PERMANENT HABIT</b><p>Keeps this action forever in the HABITS menu.</p></section>
+      <div class="rules"><b>ONE SCENE</b><pre>---
+[THOUGHT]
+## TEXT
+your words here.</pre><p><code>---</code> starts a new scene. Keep tags above <code>## TEXT</code>.</p></div>
+      <div class="detected"><span>LIVE CHECK</span><b id="scene-count">—</b><small>SCENES</small><b id="action-count">—</b><small>ACTIONS</small><b id="unlock-count">—</b><small>UNLOCKS</small></div>
+      <div class="other"><p class="kicker">OTHER FILES</p><a data-edit="content/brief.md">FIRST BRIEF ↗</a><a data-edit="content/habits.md">HABITS ↗</a><a data-edit="content/events.md">EVENTS ↗</a></div>
     </aside>
-
     <section class="editor">
-      <div class="editor-head"><span id="scene-number">SCENE</span><span id="save-state">LOADED FROM GITHUB</span></div>
-      <div class="scene-tools" aria-label="Scene controls">
-        <button id="move-up" title="Move scene earlier">[ ↑ EARLIER ]</button>
-        <button id="move-down" title="Move scene later">[ ↓ LATER ]</button>
-        <button class="danger" id="delete-beat">[ DELETE SCENE ]</button>
-      </div>
-      <label class="field"><span>WHOSE VOICE?</span><select id="kind"><option value="thought">YOU WRITE — player types</option><option value="narration">LIFE HAPPENS — automatic italic</option></select></label>
-      <div class="two-fields">
-        <label class="field"><span>BUTTON BEFORE <i>optional</i></span><input id="gate" placeholder="e.g. check phone"></label>
-        <label class="field"><span>BUTTON AFTER <i>optional</i></span><input id="action" placeholder="e.g. light a cigarette"></label>
-      </div>
-      <label class="field copy-field"><span>WORDS ON SCREEN</span><textarea id="copy" spellcheck="true"></textarea></label>
-      <details><summary>Advanced: scene ID</summary><label class="field"><span>UNIQUE ID</span><input id="scene-id"></label></details>
-      <div class="save-row">
-        <p><b>TO SAVE:</b> click below, then replace the GitHub text with <kbd>⌘A</kbd> <kbd>⌘V</kbd> and commit.</p>
-        <button id="publish">[ COPY MARKDOWN + OPEN GITHUB ↗ ]</button>
-      </div>
-    </section>
-
-    <section class="preview" aria-label="Live style preview">
-      <div class="preview-head"><span>LIVE STYLE PREVIEW</span><span id="preview-mode">YOU WRITE</span></div>
-      <div class="paper"><div id="preview-copy"></div><div id="preview-action"></div></div>
-      <p class="preview-note">This previews voice, italics, recurring prefix and button position. Keep the game itself open in another tab to test timing.</p>
+      <div class="editor-head"><span>content/prologue.md</span><span id="state">LOADED FROM GITHUB</span></div>
+      <textarea id="markdown" aria-label="Full prologue Markdown" spellcheck="false"></textarea>
+      <div class="save"><p><b>TO SAVE</b><br>Copy, open GitHub, replace everything with <kbd>⌘A</kbd> <kbd>⌘V</kbd>, then commit.</p><button id="publish">[ COPY ALL + OPEN GITHUB ↗ ]</button></div>
     </section>
   </main>
   <div class="toast" id="toast" role="status"></div>
-  <script src="writer.js?v=3"></script>
+  <script src="writer.js?v=4"></script>
 </body>
 </html>
