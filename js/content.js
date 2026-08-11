@@ -23,14 +23,23 @@ function parsePrologue(source) {
     const [head, body = ""] = block.split("## TEXT");
     const data = meta(head);
     const kind = /^\[NARRATION\]$/m.test(head) ? "narration" : /^\[THOUGHT\]$/m.test(head) ? "thought" : data.kind;
-    const before = head.match(/^\[ACTION\]\s+(.+)$/m)?.[1]?.trim() || head.match(/^\[ACTION BEFORE\]\s+(.+)$/m)?.[1]?.trim() || data.gate;
-    const after = body.match(/^\[ACTION\]\s+(.+)$/m)?.[1]?.trim() || head.match(/^\[ACTION AFTER\]\s+(.+)$/m)?.[1]?.trim() || data.action;
-    const unlock = block.match(/^\[UNLOCK\]\s+(.+)$/m)?.[1]?.trim() || data.unlock;
-    const cleanText = body.replace(/^\[(?:ACTION|UNLOCK)\]\s+.+$/mg, "").trim();
+    const actions = [];
+    const before = head.match(/^\[ACTION\]\s+(.+)$/m)?.[1]?.trim();
+    if (before) actions.push({ offset: 0, label: before, unlock: head.match(/^\[UNLOCK\]\s+(.+)$/m)?.[1]?.trim() || "" });
+    const raw = body.trim();
+    const tag = /^\[ACTION\]\s+(.+?)(?:\n\[UNLOCK\]\s+(.+))?$/gm;
+    let cleanText = "", last = 0, match;
+    while ((match = tag.exec(raw))) {
+      cleanText = (cleanText + raw.slice(last, match.index)).trimEnd();
+      actions.push({ offset: cleanText.length, label: match[1].trim(), unlock: match[2]?.trim() || "" });
+      last = match.index + match[0].length;
+    }
+    cleanText = (cleanText + raw.slice(last)).trim();
     const prefixedText = kind === "thought" && !cleanText.startsWith(`${thoughtPrefix}\n\n`)
       ? `${thoughtPrefix}\n\n${cleanText}`
       : cleanText;
-    return { id: data.id, kind, text: prefixedText, ...(after ? { action: after } : {}), ...(before ? { gateAction: before } : {}), ...(unlock ? { unlock } : {}) };
+    const prefixOffset = kind === "thought" ? thoughtPrefix.length + 2 : 0;
+    return { kind, text: prefixedText, actions: actions.map(action => ({ ...action, offset: action.offset + prefixOffset })) };
   });
 }
 

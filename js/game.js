@@ -29,34 +29,28 @@ function render() {
 function renderIntro() {
   const b = introBeats[state.beat];
   if (!b) { state.mode="inbox"; render(); return; }
-  const gated = b.gateAction && !state.waiting;
   const anchored = b.text.startsWith("WHAT IF...\n\n");
   const dialogue = anchored ? b.text.slice(12) : b.text;
-  const visible = dialogue.slice(0,state.char);
-  const complete = state.char >= dialogue.length;
-  let currentAction = null;
-  if (complete && b.action) {
-    const id = b.unlock || b.action;
-    currentAction = { id, label: b.action, attr: "data-intro-action", persistent: Boolean(b.unlock) };
-  } else if (gated) {
-    const id = b.unlock || b.gateAction;
-    currentAction = { id, label: b.gateAction, attr: "data-gate-action", persistent: Boolean(b.unlock) };
-  }
+  const action = b.actions?.[state.actionStep];
+  const limit = action ? Math.max(0, action.offset - (anchored ? 12 : 0)) : dialogue.length;
+  const visible = dialogue.slice(0, Math.min(state.char, limit));
+  const atAction = Boolean(action) && state.char >= limit;
+  const complete = !action && state.char >= dialogue.length;
+  const currentAction = atAction ? { id: action.unlock || action.label, label: action.label, attr: "data-resume-action", persistent: Boolean(action.unlock) } : null;
   const persistentAction = currentAction?.persistent;
   if (persistentAction && !state.unlockedActions.includes(currentAction.id)) {
     state.unlockedActions.push(currentAction.id);
     saveState(state);
   }
   const anchor = anchored ? `<span class="auto-anchor">WHAT IF...</span>\n\n` : "";
-  const gate = gated ? (b.kind === "narration" ? `<div class="thought-anchor narration">your phone lights up.</div>` : `<div class="thought-anchor">WHAT IF...<br><br><span class="cursor">|</span></div>`) : "";
-  const acceptingInput = !gated && !complete && !state.erasing && !state.autoTyping;
+  const acceptingInput = !atAction && !complete && !state.erasing && !state.autoTyping;
   const cursorMoving = acceptingInput || state.autoTyping;
-  const cursor = !gated && b.kind !== "narration" ? `<span class="cursor ${cursorMoving?'':'cursor-still'}">|</span>` : '';
+  const cursor = b.kind !== "narration" && !atAction ? `<span class="cursor ${cursorMoving?'':'cursor-still'}">|</span>` : '';
   const hint = acceptingInput ? (state.beat === 0 ? 'TYPE TO THINK' : 'KEEP TYPING') : '';
   const menu = renderActionMenu(currentAction);
   const voiceClass = b.kind === "narration" ? "narration" : "typed";
-  game.innerHTML = `<section class="prologue"><div class="prologue-output">${gate || `${anchor}<span class="${voiceClass}">${visible}</span>${cursor}`}${menu}</div><div class="hint">${hint}</div></section>`;
-  if (complete && !b.action && !state.erasing) scheduleErase();
+  game.innerHTML = `<section class="prologue"><div class="prologue-output">${anchor}<span class="${voiceClass}">${visible}</span>${cursor}${menu}</div><div class="hint">${hint}</div></section>`;
+  if (complete && !state.erasing) scheduleErase();
 }
 
 function renderActionMenu(current) {
@@ -74,9 +68,10 @@ function renderActionMenu(current) {
 function advanceTyping() {
   if (state.mode !== "intro") return;
   const b=introBeats[state.beat];
-  if (state.erasing || state.autoTyping || b.kind === "narration" || (b.gateAction && !state.waiting)) return;
+  if (state.erasing || state.autoTyping || b.kind === "narration") return;
   const dialogue = b.text.startsWith("WHAT IF...\n\n") ? b.text.slice(12) : b.text;
-  if (state.char < dialogue.length) state.char = Math.min(dialogue.length, state.char + (state.beat === 0 ? 1 : 3));
+  const action=b.actions?.[state.actionStep], limit=action?Math.max(0,action.offset-12):dialogue.length;
+  if (state.char < limit) state.char = Math.min(limit, state.char + (state.beat === 0 ? 1 : 3));
   render();
 }
 
@@ -93,6 +88,7 @@ function scheduleErase() {
         clearInterval(eraseInterval);
         eraseInterval = null;
         state.beat++;
+        state.actionStep=0;
         state.erasing = false;
         state.waiting = false;
         saveState(state);
@@ -108,15 +104,16 @@ function nextThought(auto = false) {
   if (autoTypeInterval) clearTimeout(autoTypeInterval);
   state.beat++;
   state.char=0;
+  state.actionStep=0;
   state.waiting=false;
   state.autoTyping=false;
   saveState(state);
-  if (auto || introBeats[state.beat]?.kind === "narration" && !introBeats[state.beat]?.gateAction) startAutoDialogue(); else render();
+  if (auto || introBeats[state.beat]?.kind === "narration") startAutoDialogue(); else render();
 }
 
 function enterCurrentBeat() {
   const b=introBeats[state.beat];
-  if(b?.kind==="narration"&&!b.gateAction) startAutoDialogue();
+  if(b?.kind==="narration") startAutoDialogue();
   else render();
 }
 
@@ -124,11 +121,13 @@ function startAutoDialogue() {
   const b=introBeats[state.beat];
   if(!b) return render();
   const dialogue=b.text.startsWith("WHAT IF...\n\n")?b.text.slice(12):b.text;
+  const action=b.actions?.[state.actionStep];
+  const limit=action?Math.max(0,action.offset-(b.text.startsWith("WHAT IF...\n\n")?12:0)):dialogue.length;
   state.autoTyping=true;
   state.autoHold=false;
   render();
   const step=()=>{
-    state.char=Math.min(dialogue.length,state.char+1);
+    state.char=Math.min(limit,state.char+1);
     const typed=dialogue.slice(0,state.char);
     const character=typed.at(-1);
     const next=dialogue[state.char];
@@ -139,16 +138,26 @@ function startAutoDialogue() {
     else if(/[.!?]/.test(character)) delay=380;
     else if(/[,;:]/.test(character)) delay=180;
     render();
-    if(state.char>=dialogue.length){
+    if(state.char>=limit){
       autoTypeInterval=null;
       state.autoTyping=false;
-      state.autoHold=true;
+      state.autoHold=!action;
       render();
       return;
     }
     autoTypeInterval=setTimeout(step,delay);
   };
   autoTypeInterval=setTimeout(step,480);
+}
+
+function resumeIntroAction() {
+  const b=introBeats[state.beat];
+  if (!b?.actions?.[state.actionStep]) return;
+  state.actionStep++;
+  state.autoTyping=false;
+  state.autoHold=false;
+  saveState(state);
+  if (b.kind === "narration") startAutoDialogue(); else render();
 }
 
 function renderInbox() {
@@ -225,6 +234,7 @@ document.addEventListener("click", e=>{
   if(el.dataset.action==="skip") return skipToAgency();
   if(el.dataset.action==="reset"){ resetState(); state=initialState(); afkNote=""; return render(); }
   if(el.hasAttribute("data-intro-action")) return nextThought(el.textContent.includes("cigarette"));
+  if(el.hasAttribute("data-resume-action")) return resumeIntroAction();
   if(el.hasAttribute("data-next-thought")) return nextThought();
   if(el.hasAttribute("data-gate-action")){
     const phone=el.textContent.includes("phone");

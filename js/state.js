@@ -4,7 +4,7 @@ export const SAVE_KEY = "what-if-prototype-v1";
 
 export function initialState() {
   return {
-    mode: "intro", beat: 0, char: 0, waiting: false, erasing: false, autoTyping: false, autoHold: false, inbox: false,
+    mode: "intro", beat: 0, char: 0, actionStep: 0, waiting: false, erasing: false, autoTyping: false, autoHold: false, inbox: false,
     unlockedActions: [],
     personal: { creativity: 48, energy: 62, stress: 36 },
     firstBrief: { idea: 0, attempts: 0, eventIndex: 0, pendingEvent: null, eventResult: "", completed: false, promptChar: 0, promptComplete: false, ideaUnlocked: false },
