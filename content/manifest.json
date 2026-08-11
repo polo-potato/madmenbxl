@@ -3,6 +3,7 @@
   "eras": [
     { "id": "prologue", "label": "Prologue", "status": "active", "modules": [
       { "id": "story", "label": "Story", "file": "prologue.md" },
+      { "id": "gauges", "label": "Gauges", "file": "prologue-gauges.md" },
       { "id": "brief", "label": "First brief", "file": "brief.md" },
       { "id": "events", "label": "Events", "file": "events.md" }
     ]},
