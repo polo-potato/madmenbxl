@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Mad Men Bruxelles, un mini idle game narratif d'agence belge." />
   <title>MAD MEN BRUXELLES</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=agency-feed-2" />
 </head>
 <body>
   <main id="game" aria-live="polite">
@@ -42,7 +42,7 @@
     <section id="agencyView" class="view agency-view" hidden>
       <div class="agency-grid">
         <section class="map-panel panel">
-          <div class="panel-title"><span>PLATEAU / SAINT-GILLES</span><span id="agencyClock">17:42</span></div>
+          <div class="map-clock" id="agencyClock">17:42</div>
           <pre class="agency-map" id="agencyMap"></pre>
           <div class="actions">
             <button class="action primary" data-action="pitch">[ PITCHER UN CLIENT ]</button>
@@ -52,46 +52,17 @@
           </div>
         </section>
 
-        <aside class="sidebar">
-          <section class="panel stats-panel">
-            <div class="panel-title">AGENCY SIGNAL</div>
-            <div class="stat"><span>INSIGHTS</span><strong id="insights">18</strong></div>
-            <div class="bar"><i id="insightsBar"></i></div>
-            <div class="stat"><span>TRENDS</span><strong id="trends">12</strong></div>
-            <div class="bar pink"><i id="trendsBar"></i></div>
-            <div class="stat"><span>CLIENTS</span><strong id="clients">3</strong></div>
-            <div class="stat"><span>REPUTATION</span><strong id="reputation">24</strong></div>
-            <div class="resource-grid">
-              <div><span>IDEAS</span><b id="ideas">8</b></div>
-              <div><span>OUTPUT</span><b id="output">4</b></div>
-              <div><span>MORALE</span><b id="morale">62%</b></div>
-              <div><span>HYPE</span><b id="hype">5</b></div>
-            </div>
-          </section>
-
-          <section class="panel consumables">
-            <div class="panel-title"><span>SURVIVAL STOCK</span><span>USE</span></div>
-            <div class="stock-grid" id="stockGrid"></div>
-          </section>
-
-          <section class="panel team-panel">
-            <div class="panel-title"><span>TEAM / LIVE</span><span id="payroll">-€0/MIN</span></div>
-            <div id="teamList"></div>
-          </section>
-
-          <section class="panel shop">
-            <div class="panel-title"><span>2ÈME MAIN / SHOP</span><span>PRIX</span></div>
-            <div id="shopList"></div>
-          </section>
+        <aside class="agency-feed" aria-label="Activité de l'agence">
+          <pre id="agencyFeed"></pre>
         </aside>
       </div>
 
-      <footer class="bottom-bar">
+      <footer class="bottom-bar ascii-footer">
         <div class="log"><span class="live-dot"></span><span class="prompt">&gt;</span> <span id="eventLog">Le studio bourdonne. Un deadline approche.</span></div>
         <div class="cash-box"><span>CASH</span><strong id="cash">€ 480</strong></div>
       </footer>
     </section>
   </main>
-  <script src="game.js"></script>
+  <script src="game.js?v=agency-feed-2"></script>
 </body>
 </html>
