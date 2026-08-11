@@ -76,14 +76,24 @@ function parseBrief(source) {
   return { label: tag("LABEL") || legacy.label, anchor: tag("PREFIX") || legacy.anchor, prompt: tag("PROMPT") || legacy.prompt, attempt: tag("ACTION") || legacy.attempt, idea: tag("METER") || legacy.idea, completion: tag("COMPLETE") || legacy.completion, send: tag("SEND") || legacy.send };
 }
 
-const [prologueSource, briefSource, actionsSource, eventsSource] = await Promise.all([
-  loadText("prologue.md"), loadText("brief.md"), loadText("actions.md"), loadText("events.md")
+function parseGauges(source) {
+  const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
+  const gauges=Object.fromEntries(source.split(/^---$/m).slice(1).map(block=>{
+    const id=block.match(/^\[GAUGE\]\s+(.+)$/m)?.[1]?.trim();
+    return [id,{start:numberTag(block,"START"),drift:numberTag(block,"DRIFT"),tryMinimum:numberTag(block,"TRY MINIMUM"),tryCost:numberTag(block,"TRY COST"),ideaWeight:numberTag(block,"IDEA WEIGHT"),purpose:block.split("## PURPOSE")[1]?.trim()||""}];
+  }).filter(([id])=>id));
+  return {gauges,idea:{base:numberTag(source,"IDEA BASE",8),minimumGain:numberTag(source,"IDEA MINIMUM GAIN",9)}};
+}
+
+const [prologueSource, briefSource, actionsSource, eventsSource, gaugesSource] = await Promise.all([
+  loadText("prologue.md"), loadText("brief.md"), loadText("actions.md"), loadText("events.md"), loadText("prologue-gauges.md")
 ]);
 
 export const introBeats = parsePrologue(prologueSource);
 export const briefCopy = parseBrief(briefSource);
 export const personalActions = parseActions(actionsSource);
 export const briefEvents = parseEvents(eventsSource);
+export const { gauges: prologueGauges, idea: prologueIdea } = parseGauges(gaugesSource);
 
 export const peopleSeed = [
   { id: "maya", name: "MAYA", role: "Creative", state: "ON FIRE", className: "fire", status: "ON PROJECT", salary: 3900 },
