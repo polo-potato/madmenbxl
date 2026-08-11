@@ -191,9 +191,9 @@ function adjustPersonal(effects){ Object.entries(effects).forEach(([k,v])=>state
 function signed(value){ return `${value>0?"+":"−"}${Math.abs(value)}`; }
 
 const ideaRequirements = [
-  { id:"creativity", message:"La créativité vous manque.\n\nPeut-être regarder ailleurs." },
+  { id:"creativity", message:"Creativity is missing.\n\nMaybe look somewhere else." },
   { id:"energy", message:"Your energy is low.\n\nCoffee is still there." },
-  { id:"stress", message:"Vous n'avez pas de motivation.\n\nA little pressure might help." }
+  { id:"stress", message:"You have no motivation.\n\nA little pressure might help." }
 ];
 
 function advanceBriefTyping(){
