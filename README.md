@@ -8,7 +8,7 @@ Open the **[Writer's Room](https://polo-potato.github.io/madmenbxl/writer/)**. I
 
 - [Edit the prologue](https://github.com/polo-potato/madmenbxl/edit/main/content/prologue.md)
 - [Edit the first brief](https://github.com/polo-potato/madmenbxl/edit/main/content/brief.md)
-- [Edit habits](https://github.com/polo-potato/madmenbxl/edit/main/content/habits.md)
+- [Edit global actions](https://github.com/polo-potato/madmenbxl/edit/main/content/actions.md)
 - [Edit events](https://github.com/polo-potato/madmenbxl/edit/main/content/events.md)
 - [Read the syntax guide](content/README.md)
 
