@@ -54,7 +54,7 @@ function parseActions(source) {
 }
 
 function parseEvents(source) {
-  return source.split(/^---$/m).map(s => s.trim()).filter(s => s.includes("## TEXT")).map(block => {
+  return source.split(/^---$/m).map(s => s.trim()).filter(s => /^\[EVENT\]\s+.+$/m.test(s) && /^## TEXT$/m.test(s)).map(block => {
     const [head, body] = block.split("## TEXT");
     const data = meta(head);
     const [eventText, ...choiceParts] = body.split("## CHOICE");
@@ -80,7 +80,7 @@ function parseGauges(source) {
   const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
   const gauges=Object.fromEntries(source.split(/^---$/m).slice(1).map(block=>{
     const id=block.match(/^\[GAUGE\]\s+(.+)$/m)?.[1]?.trim();
-    return [id,{start:numberTag(block,"START"),drift:numberTag(block,"DRIFT"),tryMinimum:numberTag(block,"TRY MINIMUM"),tryCost:numberTag(block,"TRY COST"),ideaWeight:numberTag(block,"IDEA WEIGHT"),purpose:block.split("## PURPOSE")[1]?.trim()||""}];
+    return [id,{start:numberTag(block,"START"),drift:numberTag(block,"DRIFT"),tryMinimum:numberTag(block,"TRY MINIMUM"),tryCost:numberTag(block,"TRY COST"),ideaSource:numberTag(block,"IDEA SOURCE"),ideaBoost:numberTag(block,"IDEA BOOST"),purpose:block.split("## PURPOSE")[1]?.trim()||""}];
   }).filter(([id])=>id));
   return {gauges,idea:{base:numberTag(source,"IDEA BASE",8),minimumGain:numberTag(source,"IDEA MINIMUM GAIN",9)}};
 }
