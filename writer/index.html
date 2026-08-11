@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WHAT IF / Writer's Room</title>
-  <link rel="stylesheet" href="writer.css?v=2">
+  <link rel="stylesheet" href="writer.css?v=3">
 </head>
 <body>
   <header>
@@ -21,8 +21,8 @@
 
   <main>
     <aside class="sidebar">
-      <p class="kicker">PROLOGUE / SCENES</p>
-      <p class="side-help">Pick a scene. Change the words. The preview reacts immediately.</p>
+      <p class="kicker">STORY FLOW / PROLOGUE</p>
+      <p class="side-help">This is the order played in the game. Scenes and actions are all part of the flow.</p>
       <nav id="beats" aria-label="Prologue scenes"></nav>
       <button class="add" id="add-beat">[ + NEW SCENE ]</button>
       <div class="other-files">
@@ -36,6 +36,11 @@
 
     <section class="editor">
       <div class="editor-head"><span id="scene-number">SCENE</span><span id="save-state">LOADED FROM GITHUB</span></div>
+      <div class="scene-tools" aria-label="Scene controls">
+        <button id="move-up" title="Move scene earlier">[ ↑ EARLIER ]</button>
+        <button id="move-down" title="Move scene later">[ ↓ LATER ]</button>
+        <button class="danger" id="delete-beat">[ DELETE SCENE ]</button>
+      </div>
       <label class="field"><span>WHOSE VOICE?</span><select id="kind"><option value="thought">YOU WRITE — player types</option><option value="narration">LIFE HAPPENS — automatic italic</option></select></label>
       <div class="two-fields">
         <label class="field"><span>BUTTON BEFORE <i>optional</i></span><input id="gate" placeholder="e.g. check phone"></label>
@@ -56,6 +61,6 @@
     </section>
   </main>
   <div class="toast" id="toast" role="status"></div>
-  <script src="writer.js?v=2"></script>
+  <script src="writer.js?v=3"></script>
 </body>
 </html>

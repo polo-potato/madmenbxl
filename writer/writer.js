@@ -21,7 +21,9 @@ function parse(source) {
 
 function sceneLabel(beat, index) {
   const first = beat.text.split("\n").find(Boolean) || "empty scene";
-  return `<button data-beat="${index}" class="${index === active ? "active" : ""}"><span>${String(index + 1).padStart(2, "0")} · ${beat.kind === "thought" ? "YOU" : "LIFE"}</span><b>${first.slice(0, 34)}</b></button>`;
+  const gate = beat.gate ? `<button class="flow-action before" data-beat="${index}" data-focus="gate"><small>BEFORE</small>[ ${beat.gate} ]</button><i class="flow-arrow">↓</i>` : "";
+  const action = beat.action ? `<i class="flow-arrow">↓</i><button class="flow-action after" data-beat="${index}" data-focus="action"><small>AFTER</small>[ ${beat.action} ]</button>` : "";
+  return `<div class="flow-step ${index === active ? "selected" : ""}">${gate}<button data-beat="${index}" class="scene-card ${index === active ? "active" : ""}"><span>${String(index + 1).padStart(2, "0")} · ${beat.kind === "thought" ? "YOU WRITE" : "LIFE HAPPENS"}</span><b>${first.slice(0, 34)}</b></button>${action}</div>`;
 }
 
 function renderList() { $("#beats").innerHTML = beats.map(sceneLabel).join(""); }
@@ -68,16 +70,46 @@ function markdown() {
   return intro + beats.map(beat => `\n---\nid: ${beat.id}\nkind: ${beat.kind}${beat.gate ? `\ngate: ${beat.gate}` : ""}${beat.action ? `\naction: ${beat.action}` : ""}\n## TEXT\n${beat.text.trim()}\n`).join("");
 }
 
+function moveBeat(direction) {
+  const target = active + direction;
+  if (target < 0 || target >= beats.length) return;
+  [beats[active], beats[target]] = [beats[target], beats[active]];
+  loadBeat(target);
+  $("#save-state").textContent = "UNSAVED CHANGES";
+}
+
+function deleteBeat() {
+  if (beats.length === 1) return showToast("THE STORY NEEDS AT LEAST ONE SCENE");
+  const beat = beats[active];
+  if (!window.confirm(`Delete scene ${active + 1}: “${beat.text.split("\n").find(Boolean) || beat.id}”?`)) return;
+  beats.splice(active, 1);
+  loadBeat(Math.min(active, beats.length - 1));
+  $("#save-state").textContent = "UNSAVED CHANGES";
+  showToast("SCENE REMOVED FROM THE FLOW");
+}
+
+function showToast(message) {
+  $("#toast").textContent = message;
+  $("#toast").classList.add("show");
+  setTimeout(() => $("#toast").classList.remove("show"), 3500);
+}
+
 document.querySelectorAll("[data-edit]").forEach(link => { link.href = editRoot + link.dataset.edit; link.target = "_blank"; link.rel = "noopener"; });
-$("#beats").addEventListener("click", event => { const button = event.target.closest("[data-beat]"); if (button) loadBeat(Number(button.dataset.beat)); });
+$("#beats").addEventListener("click", event => {
+  const button = event.target.closest("[data-beat]");
+  if (!button) return;
+  loadBeat(Number(button.dataset.beat));
+  if (button.dataset.focus) $("#" + button.dataset.focus).focus();
+});
 ["#kind", "#gate", "#action", "#copy", "#scene-id"].forEach(selector => $(selector).addEventListener("input", sync));
 $("#add-beat").addEventListener("click", () => { beats.push({ id: `scene-${beats.length + 1}`, kind: "thought", gate: "", action: "", text: "a new thought." }); loadBeat(beats.length - 1); sync(); });
+$("#move-up").addEventListener("click", () => moveBeat(-1));
+$("#move-down").addEventListener("click", () => moveBeat(1));
+$("#delete-beat").addEventListener("click", deleteBeat);
 $("#publish").addEventListener("click", async () => {
   await navigator.clipboard.writeText(markdown());
-  $("#toast").textContent = "MARKDOWN COPIED — PASTE IT IN GITHUB";
-  $("#toast").classList.add("show");
+  showToast("MARKDOWN COPIED — PASTE IT IN GITHUB");
   window.open(editRoot + "content/prologue.md", "_blank", "noopener");
-  setTimeout(() => $("#toast").classList.remove("show"), 4500);
 });
 
 fetch("../content/prologue.md").then(response => response.text()).then(source => { parse(source); loadBeat(0); }).catch(() => { $("#beats").innerHTML = "Could not load prologue.md"; });
