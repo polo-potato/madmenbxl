@@ -20,13 +20,17 @@ function parsePrologue(source) {
   const settings = meta(settingsSource);
   const thoughtPrefix = settings["thought-prefix"] || "WHAT IF...";
   return blocks(source).map(block => {
-    const [head, text] = block.split("## TEXT");
+    const [head, body = ""] = block.split("## TEXT");
     const data = meta(head);
-    const cleanText = text.trim();
-    const prefixedText = data.kind === "thought" && !cleanText.startsWith(`${thoughtPrefix}\n\n`)
+    const kind = /^\[NARRATION\]$/m.test(head) ? "narration" : /^\[THOUGHT\]$/m.test(head) ? "thought" : data.kind;
+    const before = head.match(/^\[ACTION\]\s+(.+)$/m)?.[1]?.trim() || head.match(/^\[ACTION BEFORE\]\s+(.+)$/m)?.[1]?.trim() || data.gate;
+    const after = body.match(/^\[ACTION\]\s+(.+)$/m)?.[1]?.trim() || head.match(/^\[ACTION AFTER\]\s+(.+)$/m)?.[1]?.trim() || data.action;
+    const unlock = block.match(/^\[UNLOCK\]\s+(.+)$/m)?.[1]?.trim() || data.unlock;
+    const cleanText = body.replace(/^\[(?:ACTION|UNLOCK)\]\s+.+$/mg, "").trim();
+    const prefixedText = kind === "thought" && !cleanText.startsWith(`${thoughtPrefix}\n\n`)
       ? `${thoughtPrefix}\n\n${cleanText}`
       : cleanText;
-    return { id: data.id, kind: data.kind, text: prefixedText, ...(data.action ? { action: data.action } : {}), ...(data.gate ? { gateAction: data.gate } : {}) };
+    return { id: data.id, kind, text: prefixedText, ...(after ? { action: after } : {}), ...(before ? { gateAction: before } : {}), ...(unlock ? { unlock } : {}) };
   });
 }
 

@@ -36,13 +36,13 @@ function renderIntro() {
   const complete = state.char >= dialogue.length;
   let currentAction = null;
   if (complete && b.action) {
-    const id = b.action === "light a cigarette" ? "cigarette" : b.action;
-    currentAction = { id, label: b.action, attr: "data-intro-action" };
+    const id = b.unlock || b.action;
+    currentAction = { id, label: b.action, attr: "data-intro-action", persistent: Boolean(b.unlock) };
   } else if (gated) {
-    const id = b.gateAction === "check phone" ? "scroll" : b.gateAction;
-    currentAction = { id, label: b.gateAction, attr: "data-gate-action" };
+    const id = b.unlock || b.gateAction;
+    currentAction = { id, label: b.gateAction, attr: "data-gate-action", persistent: Boolean(b.unlock) };
   }
-  const persistentAction = currentAction && ["cigarette","scroll","coffee"].includes(currentAction.id);
+  const persistentAction = currentAction?.persistent;
   if (persistentAction && !state.unlockedActions.includes(currentAction.id)) {
     state.unlockedActions.push(currentAction.id);
     saveState(state);
@@ -60,7 +60,7 @@ function renderIntro() {
 }
 
 function renderActionMenu(current) {
-  const isPersistent = current && ["cigarette","scroll","coffee"].includes(current.id);
+  const isPersistent = current?.persistent;
   const contextual = current && !isPersistent ? `<button class="context-prompt" ${current.attr}>[ ${current.label} ]</button>` : "";
   if (!state.unlockedActions.length && !contextual) return "";
   return `<nav class="action-menu" aria-label="actions">${state.unlockedActions.length?'<span class="action-menu-title">HABITS</span>':''}${state.unlockedActions.map(id => {
