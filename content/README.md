@@ -1,72 +1,54 @@
-# Editing WHAT IF
+# WHAT IF content system
 
-The files in this folder are loaded directly by the game. Save a file and reload the browser to see the change.
+`manifest.json` defines the hierarchy. `actions.md` is global. The active era is Prologue, composed of `prologue.md`, `brief.md`, and `events.md`. Agency is reserved for later.
 
-## Legend
+## Prologue story
 
-| What you write | What the player sees | How it advances |
-| --- | --- | --- |
-| `[THOUGHT]` | Normal text with `WHAT IF...` above it | The player types |
-| `[NARRATION]` | Italic text | Automatically |
-| `[ACTION] check phone` anywhere | The story pauses at that exact position | The player clicks, then it continues |
-| `[UNLOCK] cigarette` | A permanent button in the HABITS menu | Once unlocked, it stays |
-
-The recurring `WHAT IF...` is configured once at the top of `prologue.md` with `thought-prefix: WHAT IF...`. Never repeat it in each thought.
-
-## Prologue
-
-Edit `prologue.md`. Every screen is separated by `---`.
+- `[THOUGHT]`: player types; `WHAT IF...` is automatic.
+- `[NARRATION]`: automatic italic text.
+- `[ACTION] label`: pause exactly here until clicked.
+- `[UNLOCK] action-id`: permanently unlock the matching global action.
+- `---`: next scene.
 
 ```md
 ---
-id: a-unique-name
-[THOUGHT]
-[ACTION] optional button label wherever the story should pause
-[UNLOCK] optional permanent habit id
+[NARRATION]
 ## TEXT
-your text here.
+first words.
+
+[ACTION] check phone
+[UNLOCK] scroll
+
+the story continues.
 ```
 
-- `[THOUGHT]` is written by keyboard input.
-- `[NARRATION]` is italic and advances automatically.
-- Omit action tags when the screen has no interaction.
-- Add `[UNLOCK] habit-id` only when that button should remain permanently available.
+## Global actions
 
-## Brief copy
-
-Edit the short `key: value` lines in `brief.md`.
-
-## Habits
-
-Edit `habits.md`. Gauge changes are ordinary signed numbers:
+Every `[UNLOCK] cigarette` must match an `[ACTION] cigarette` in `actions.md`.
 
 ```md
 ---
-id: coffee
-creativity: 1
-energy: 18
-stress: 4
+[ACTION] cigarette
+[EFFECT] stress -13
+[EFFECT] creativity +2
+[EFFECT] energy -3
 ## NOTE
-still too hot.
+first drag.
 ```
 
-The `id` is also used as the button label.
-
-## Events
-
-Edit `events.md`. Events can contain any number of choices:
+## Prologue events
 
 ```md
 ---
-id: fly
+[EVENT] fly
 ## TEXT
 a fly enters the room.
 
 ## CHOICE
-label: open the window
-effects: stress -4, creativity +2
+[CHOICE] open the window
+[EFFECT] stress -4
 ## RESULT
 the fly stays.
 ```
 
-Supported gauges are `creativity`, `energy`, and `stress`.
+Supported gauges: `creativity`, `energy`, `stress`.

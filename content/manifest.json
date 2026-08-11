@@ -1,0 +1,11 @@
+{
+  "globals": [{ "id": "actions", "label": "Actions", "file": "actions.md" }],
+  "eras": [
+    { "id": "prologue", "label": "Prologue", "status": "active", "modules": [
+      { "id": "story", "label": "Story", "file": "prologue.md" },
+      { "id": "brief", "label": "First brief", "file": "brief.md" },
+      { "id": "events", "label": "Events", "file": "events.md" }
+    ]},
+    { "id": "agency", "label": "Agency", "status": "later", "modules": [] }
+  ]
+}

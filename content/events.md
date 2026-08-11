@@ -3,6 +3,7 @@
 ## LEGEND
 
 - `## TEXT` = what happens automatically.
+- `[EVENT] ice cream truck` = internal title used to organise the file.
 - `[CHOICE] go downstairs` = contextual player button.
 - `[EFFECT] energy +8` = consequence of that choice.
 - `[UNLOCK] take a walk` = permanently adds a HABIT after choosing.
@@ -10,6 +11,7 @@
 - `---` = next event.
 
 ---
+[EVENT] ice cream truck
 ## TEXT
 a melody outside.
 
@@ -38,6 +40,7 @@ the melody gets smaller.
 then starts again.
 
 ---
+[EVENT] fly
 ## TEXT
 a fly has found
 the exact centre
@@ -63,6 +66,7 @@ bzz.
 bzz.
 
 ---
+[EVENT] neighbour noise
 ## TEXT
 upstairs, someone drops
 something structurally important.
