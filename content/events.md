@@ -1,9 +1,15 @@
-# FIRST BRIEF / DISTRACTIONS
+# FIRST BRIEF / EVENTS
 
-Each event has text and choices. Effects use `gauge +/-number`, separated by commas.
+## LEGEND
+
+- `## TEXT` = what happens automatically.
+- `[CHOICE] go downstairs` = contextual player button.
+- `[EFFECT] energy +8` = consequence of that choice.
+- `[UNLOCK] take a walk` = permanently adds a HABIT after choosing.
+- `## RESULT` = automatic feedback after the choice.
+- `---` = next event.
 
 ---
-id: icecream
 ## TEXT
 a melody outside.
 
@@ -12,8 +18,11 @@ is moving very slowly
 down the street.
 
 ## CHOICE
-label: go downstairs
-effects: energy +8, stress -7, creativity +3
+[CHOICE] go downstairs
+[EFFECT] energy +8
+[EFFECT] stress -7
+[EFFECT] creativity +3
+[UNLOCK] take a walk
 ## RESULT
 vanilla.
 
@@ -21,31 +30,31 @@ not a breakthrough.
 still worth it.
 
 ## CHOICE
-label: let it pass
-effects: stress +2
+[CHOICE] let it pass
+[EFFECT] stress +2
 ## RESULT
 the melody gets smaller.
 
 then starts again.
 
 ---
-id: fly
 ## TEXT
 a fly has found
 the exact centre
 of the room.
 
 ## CHOICE
-label: open the window
-effects: stress -4, creativity +2
+[CHOICE] open the window
+[EFFECT] stress -4
+[EFFECT] creativity +2
 ## RESULT
 the fly stays.
 
 the air is better.
 
 ## CHOICE
-label: ignore it
-effects: stress +5
+[CHOICE] ignore it
+[EFFECT] stress +5
 ## RESULT
 bzz.
 
@@ -54,22 +63,23 @@ bzz.
 bzz.
 
 ---
-id: neighbour
 ## TEXT
 upstairs, someone drops
 something structurally important.
 
 ## CHOICE
-label: look up
-effects: creativity +4, stress -2
+[CHOICE] look up
+[EFFECT] creativity +4
+[EFFECT] stress -2
 ## RESULT
 silence.
 
 a line arrives anyway.
 
 ## CHOICE
-label: keep working
-effects: energy -3, stress +3
+[CHOICE] keep working
+[EFFECT] energy -3
+[EFFECT] stress +3
 ## RESULT
 professionalism.
 

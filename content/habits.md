@@ -1,53 +1,57 @@
 # HABITS
 
-Each block defines the three gauge changes and the narration shown after clicking.
-Positive numbers raise a gauge. Negative numbers lower it.
+## LEGEND
+
+- `[HABIT] cigarette` = permanent button name.
+- `[EFFECT] stress -13` = gauge change after one click.
+- `## NOTE` = automatic italic feedback after the click.
+- `---` = next habit.
 
 ---
-id: cigarette
-creativity: 2
-energy: -3
-stress: -13
+[HABIT] cigarette
+[EFFECT] creativity +2
+[EFFECT] energy -3
+[EFFECT] stress -13
 ## NOTE
 first drag.
 
 the shoulders drop.
 
 ---
-id: scroll
-creativity: -3
-energy: -2
-stress: 4
+[HABIT] scroll
+[EFFECT] creativity -3
+[EFFECT] energy -2
+[EFFECT] stress +4
 ## NOTE
 a kitchen. a dog.
 
 an ad that was annoyingly good.
 
 ---
-id: coffee
-creativity: 1
-energy: 18
-stress: 4
+[HABIT] coffee
+[EFFECT] creativity +1
+[EFFECT] energy +18
+[EFFECT] stress +4
 ## NOTE
 still too hot.
 
 then suddenly cold.
 
 ---
-id: look out the window
-creativity: 7
-energy: -1
-stress: -3
+[HABIT] look out the window
+[EFFECT] creativity +7
+[EFFECT] energy -1
+[EFFECT] stress -3
 ## NOTE
 someone misses the tram.
 
 a useful sentence appears.
 
 ---
-id: take a walk
-creativity: 16
-energy: 4
-stress: -7
+[HABIT] take a walk
+[EFFECT] creativity +16
+[EFFECT] energy +4
+[EFFECT] stress -7
 ## NOTE
 around the block.
 
