@@ -9,17 +9,24 @@ const meta = source => Object.fromEntries(source.split("\n").map(line => {
   return colon < 0 ? null : [line.slice(0, colon).trim(), line.slice(colon + 1).trim()];
 }).filter(Boolean));
 
-const blocks = source => source.split(/^---$/m).map(s => s.trim()).filter(s => s.includes("## TEXT") || s.includes("## NOTE"));
+const blocks = source => source.split(/^---$/m).map(s => s.trim()).filter(s => /^## (TEXT|NOTE)$/m.test(s));
 const effects = source => Object.fromEntries((source || "").split(",").map(item => {
   const [key, value] = item.trim().split(/\s+/);
   return key && value ? [key, Number(value)] : null;
 }).filter(Boolean));
 
 function parsePrologue(source) {
+  const settingsSource = source.split(/^---$/m)[0];
+  const settings = meta(settingsSource);
+  const thoughtPrefix = settings["thought-prefix"] || "WHAT IF...";
   return blocks(source).map(block => {
     const [head, text] = block.split("## TEXT");
     const data = meta(head);
-    return { id: data.id, kind: data.kind, text: text.trim(), ...(data.action ? { action: data.action } : {}), ...(data.gate ? { gateAction: data.gate } : {}) };
+    const cleanText = text.trim();
+    const prefixedText = data.kind === "thought" && !cleanText.startsWith(`${thoughtPrefix}\n\n`)
+      ? `${thoughtPrefix}\n\n${cleanText}`
+      : cleanText;
+    return { id: data.id, kind: data.kind, text: prefixedText, ...(data.action ? { action: data.action } : {}), ...(data.gate ? { gateAction: data.gate } : {}) };
   });
 }
 
