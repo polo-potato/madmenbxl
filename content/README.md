@@ -2,6 +2,17 @@
 
 The files in this folder are loaded directly by the game. Save a file and reload the browser to see the change.
 
+## Legend
+
+| What you write | What the player sees | How it advances |
+| --- | --- | --- |
+| `kind: thought` | Normal text with `WHAT IF...` above it | The player types |
+| `kind: narration` | Italic text | Automatically |
+| `gate: check phone` | A button before the scene | The player clicks |
+| `action: light a cigarette` | A button after the scene | The player clicks |
+
+The recurring `WHAT IF...` is configured once at the top of `prologue.md` with `thought-prefix: WHAT IF...`. Never repeat it in each thought.
+
 ## Prologue
 
 Edit `prologue.md`. Every screen is separated by `---`.
@@ -13,8 +24,6 @@ kind: thought
 action: optional button after the text
 gate: optional button before the text
 ## TEXT
-WHAT IF...
-
 your text here.
 ```
 

@@ -1,14 +1,27 @@
 # WHAT IF / PROLOGUE
 
-`kind: thought` is written by the player. `kind: narration` appears automatically in italics.
-Use `action:` for a button after the text, or `gate:` for a button before the text.
+## LEGEND — READ THIS FIRST
+
+- `kind: thought` = **YOU WRITE** — normal text, advanced by typing.
+- `kind: narration` = **LIFE HAPPENS** — italic text, written automatically.
+- `gate:` = a button appears **before** the text.
+- `action:` = a button appears **after** the text.
+- `---` = a new screen / beat.
+
+## GLOBAL SETTINGS
+
+thought-prefix: WHAT IF...
+thought-prefix-mode: automatic
+thought-input: keyboard
+narration-style: italic
+narration-mode: automatic
+
+The game automatically adds `WHAT IF...` above every `kind: thought` screen. Do not type it again inside `## TEXT`.
 
 ---
 id: first-question
 kind: thought
 ## TEXT
-WHAT IF...
-
 people didn't have to choose?
 
 ...
@@ -19,8 +32,6 @@ too broad.
 id: something-to-keep
 kind: thought
 ## TEXT
-WHAT IF...
-
 we made something
 people actually wanted to keep?
 
@@ -34,8 +45,6 @@ no.
 id: what-they-avoid
 kind: thought
 ## TEXT
-WHAT IF...
-
 it's not about what they want.
 
 it's about what they avoid.
@@ -68,8 +77,6 @@ nothing.
 id: convince
 kind: thought
 ## TEXT
-WHAT IF...
-
 we stopped trying to convince people
 and just
 
@@ -113,8 +120,6 @@ got lost.
 id: what-is-it
 kind: thought
 ## TEXT
-WHAT IF...
-
 what is it.
 what is it.
 what is it.
@@ -142,8 +147,6 @@ still cold.
 id: smaller
 kind: thought
 ## TEXT
-WHAT IF...
-
 we make it smaller?
 
 smaller how?
@@ -166,8 +169,6 @@ close tab.
 id: truth
 kind: thought
 ## TEXT
-WHAT IF...
-
 we just tell the truth?
 
 what truth?
@@ -178,8 +179,6 @@ what truth?
 id: unnoticed
 kind: thought
 ## TEXT
-WHAT IF...
-
 it's something people already know
 
 but never noticed.
@@ -203,8 +202,6 @@ id: not-an-ad
 kind: thought
 action: go to sleep
 ## TEXT
-WHAT IF...
-
 we don't make an ad.
 
 ...
@@ -237,8 +234,6 @@ id: simple
 kind: thought
 action: shower
 ## TEXT
-WHAT IF...
-
 it's actually really simple.
 
 ...
@@ -264,8 +259,6 @@ id: still-stuck
 kind: thought
 action: check mail
 ## TEXT
-WHAT IF...
-
 we
 
 ...
