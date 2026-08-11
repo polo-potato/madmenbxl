@@ -178,7 +178,7 @@ function renderBrief() {
   const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow'):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green'):personalMetric('STRESS',p.stress,'fill-purple')).join('');
   const ideaMeter=brief.ideaUnlocked?`<div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${Math.floor(brief.idea)} / 100</span></div>${bar(brief.idea,'fill-yellow',20)}</div>`:'';
   const completion=briefCopy.completion.replace(' / ','<br><br>');
-  const attempt=brief.promptComplete?(brief.completed?`<p class="idea-found">${completion}</p><button data-finish-brief>[ ${briefCopy.send} ]</button>`:`<button class="try-idea" data-try-idea ${Object.entries(prologueGauges).some(([id,gauge])=>p[id]<gauge.tryMinimum)||state.metricAnimating?'disabled':''}>[ ${briefCopy.attempt} ]</button>`):'';
+  const attempt=brief.promptComplete?(brief.completed?`<p class="idea-found">${completion}</p><button data-finish-brief>[ ${briefCopy.send} ]</button>`:`<button class="try-idea" data-try-idea ${state.metricAnimating?'disabled':''}>[ ${briefCopy.attempt} ]</button>`):'';
   game.innerHTML=`<section class="brief-screen"><div class="brief-dialogue"><span class="label insight brief-label">${briefCopy.label}</span><div class="brief-thought"><span class="auto-anchor">${briefCopy.anchor}</span><br><br><span>${promptVisible}</span>${!brief.promptComplete?'<span class="cursor">|</span>':''}</div>${ideaMeter}${attempt}${eventBlock}</div>
   <aside class="personal-side">${metrics?`<div class="personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:''}<nav class="habit-menu"><span class="action-menu-title">HABITS</span>${actions}</nav></aside><div class="hint">${brief.promptComplete?'':'TYPE TO THINK'}</div></section>`;
 }
@@ -188,6 +188,13 @@ function personalMetric(name,value,color){return `<div class="personal-metric"><
 function unlockPersonal(id){ if(!state.unlockedActions.includes(id)) state.unlockedActions.push(id); }
 function unlockMetric(id){ if(!state.unlockedMetrics.includes(id)) state.unlockedMetrics.push(id); }
 function adjustPersonal(effects){ Object.entries(effects).forEach(([k,v])=>state.personal[k]=Math.max(0,Math.min(100,state.personal[k]+v))); }
+function signed(value){ return `${value>0?"+":"−"}${Math.abs(value)}`; }
+
+const ideaRequirements = [
+  { id:"creativity", message:"La créativité vous manque.\n\nPeut-être regarder ailleurs." },
+  { id:"energy", message:"Your energy is low.\n\nCoffee is still there." },
+  { id:"stress", message:"Vous n'avez pas de motivation.\n\nA little pressure might help." }
+];
 
 function advanceBriefTyping(){
   const b=state.firstBrief,prompt=briefCopy.prompt;
@@ -245,7 +252,19 @@ document.addEventListener("click", e=>{
   }
   if(el.hasAttribute("data-reply")){ state.mode="brief"; unlockPersonal("look out the window"); saveState(state); return render(); }
   if(el.dataset.personalAction){ const id=el.dataset.personalAction,a=personalActions[id]; if(id==='cigarette'||id==='scroll')unlockMetric('stress');if(id==='coffee')unlockMetric('energy');if(id==='look out the window'||id==='take a walk')unlockMetric('creativity'); state.firstBrief.eventResult=a.note; state.actionUses[id]=(state.actionUses[id]||0)+1; animateMetrics(a); return render(); }
-  if(el.hasAttribute("data-try-idea")){ const p=state.personal,b=state.firstBrief; b.ideaUnlocked=true; const gain=Math.max(prologueIdea.minimumGain,Math.round(prologueIdea.base+Object.entries(prologueGauges).reduce((sum,[id,gauge])=>sum+p[id]*gauge.ideaWeight,0))); b.eventResult=""; animateMetrics(Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.tryCost])),gain,()=>{b.attempts++;if(b.idea>=99.5){b.idea=100;b.completed=true;}else if(b.attempts%2===0){b.pendingEvent=briefEvents[b.eventIndex%briefEvents.length];b.eventIndex++;}}); return render(); }
+  if(el.hasAttribute("data-try-idea")){
+    const p=state.personal,b=state.firstBrief;
+    const problem=ideaRequirements.find(({id})=>!state.unlockedMetrics.includes(id)||p[id]<(prologueGauges[id]?.tryMinimum||0));
+    if(problem){ b.eventResult=problem.message; saveState(state); return render(); }
+    const source=Object.entries(prologueGauges).reduce((sum,[id,gauge])=>sum+p[id]*gauge.ideaSource,0);
+    const boost=1+Object.entries(prologueGauges).reduce((sum,[id,gauge])=>sum+p[id]*gauge.ideaBoost,0);
+    const gain=Math.max(prologueIdea.minimumGain,Math.round(prologueIdea.base+source*boost));
+    const costs=Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.tryCost]));
+    b.ideaUnlocked=true;
+    b.eventResult=`what it cost:\n${Object.entries(costs).map(([id,value])=>`${id} ${signed(value)}`).join(" · ")}\n\n${briefCopy.idea} +${gain}`;
+    animateMetrics(costs,gain,()=>{b.attempts++;if(b.idea>=99.5){b.idea=100;b.completed=true;}else if(b.attempts%2===0&&briefEvents.length){b.pendingEvent=briefEvents[b.eventIndex%briefEvents.length];b.eventIndex++;}});
+    return render();
+  }
   if(el.dataset.eventChoice!==undefined){ const b=state.firstBrief,event=b.pendingEvent,index=Number(el.dataset.eventChoice),c=event.choices[index]; b.pendingEvent=null; b.eventResult=c.result; if(c.unlock) unlockPersonal(c.unlock); animateMetrics(c.effects); return render(); }
   if(el.hasAttribute("data-finish-brief")){ state.mode="early"; state.resources.ideas=18; saveState(state); return render(); }
   if(el.hasAttribute("data-first-brief")){ state.mode="agency"; state.events.unshift({age:"THEN",text:"16:00.\n\nIt was an interview."}); saveState(state); return render(); }
