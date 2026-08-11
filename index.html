@@ -1,68 +1,19 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Mad Men Bruxelles, un mini idle game narratif d'agence belge." />
-  <title>MAD MEN BRUXELLES</title>
-  <link rel="stylesheet" href="style.css?v=agency-feed-2" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WHAT IF</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main id="game" aria-live="polite">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">BRUXELLES · 08:43 · PLUIE</div>
-        <h1>MAD MEN BRUXELLES</h1>
-      </div>
-      <button id="skipButton" class="skip">SKIP / FULL AGENCY <span>→</span></button>
-    </header>
-
-    <section id="soloView" class="view solo-view">
-      <div class="day">JOUR 01</div>
-      <pre class="solo-ascii" aria-label="Un créatif seul à son bureau">
-                      .--------.
-                      |  _  _  |
-                      |    _   |       ☕
-                      '---| |--'     __/
-                          | |       |__|
-                   _______| |___________
-                  /      /___\          /|
-                 /_____________________/ |
-                 |                     | /
-                 |_____________________|/
-                      _/         \_
-      </pre>
-      <div class="solo-copy">
-        <p id="narrative">Le brief dit « disruptif ». Le budget dit « débrouille-toi ».</p>
-        <button id="thinkButton" class="action primary">[ TROUVER UNE IDÉE ]</button>
-        <small>Chaque clic rend l'agence un peu moins vide.</small>
-      </div>
-    </section>
-
-    <section id="agencyView" class="view agency-view" hidden>
-      <div class="agency-grid">
-        <section class="map-panel panel">
-          <div class="map-clock" id="agencyClock">17:42</div>
-          <pre class="agency-map" id="agencyMap"></pre>
-          <div class="actions">
-            <button class="action primary" data-action="pitch">[ PITCHER UN CLIENT ]</button>
-            <button class="action" data-action="concept">[ PONDRE UN CONCEPT ]</button>
-            <button class="action" data-action="trend">[ SCROLLER LES TRENDS ]</button>
-            <button class="action" data-action="invoice">[ RELANCER UNE FACTURE ]</button>
-          </div>
-        </section>
-
-        <aside class="agency-feed" aria-label="Activité de l'agence">
-          <pre id="agencyFeed"></pre>
-        </aside>
-      </div>
-
-      <footer class="bottom-bar ascii-footer">
-        <div class="log"><span class="live-dot"></span><span class="prompt">&gt;</span> <span id="eventLog">Le studio bourdonne. Un deadline approche.</span></div>
-        <div class="cash-box"><span>CASH</span><strong id="cash">€ 480</strong></div>
-      </footer>
-    </section>
-  </main>
-  <script src="game.js?v=agency-feed-2"></script>
+  <main id="game" aria-live="polite"></main>
+  <div id="debug" class="debug-controls">
+    <a href="writer/">[ WRITER'S ROOM ]</a>
+    <button data-action="brief">[ DEBUG: SKIP TO BRIEF ]</button>
+    <button data-action="skip">[ DEBUG: SKIP TO AGENCY ]</button>
+    <button data-action="reset">[ RESET SAVE ]</button>
+  </div>
+  <script type="module" src="js/game.js"></script>
 </body>
 </html>
