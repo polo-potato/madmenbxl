@@ -1,0 +1,26 @@
+:root { --paper:#f5f3ee; --ink:#151515; --muted:#76736b; --line:#cbc7bc; --green:#9bea55; --blue:#5b79ff; }
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; background:var(--paper); color:var(--ink); }
+body,button { font:12px/1.5 "IBM Plex Mono","Courier New",monospace; }
+a,button { color:inherit; background:none; border:0; font:inherit; cursor:pointer; text-decoration:none; }
+a:hover,a:focus-visible,button:hover,button:focus-visible { background:var(--ink); color:var(--paper); outline:0; }
+header { height:82px; display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--ink); }
+.eyebrow { color:var(--muted); font-size:9px; letter-spacing:.16em; }
+h1 { margin:3px 0 0; font-size:17px; font-weight:400; }
+.game-link { padding:2px 4px; }
+main { min-height:calc(100vh - 82px); display:grid; grid-template-columns:minmax(410px, .8fr) minmax(520px, 1.2fr); }
+.files { padding:38px 34px 60px; border-right:1px solid var(--line); overflow:auto; }
+.intro { max-width:520px; margin:0 0 34px; color:var(--muted); }
+article { display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center; max-width:560px; padding:18px 0; border-top:1px dotted var(--line); }
+article:last-of-type { border-bottom:1px dotted var(--line); }
+.number { float:left; width:34px; color:var(--muted); }
+h2 { display:inline; margin:0; font-size:12px; font-weight:400; }
+article p { margin:5px 0 0 34px; color:var(--muted); font-size:10px; }
+article a { padding:2px 5px; }
+.help { max-width:520px; margin-top:38px; padding-left:16px; border-left:3px solid var(--green); }
+.help ol { padding-left:19px; color:var(--muted); }
+.help a { display:inline-block; margin-top:6px; }
+.preview { min-width:0; display:flex; flex-direction:column; }
+.preview-head { height:42px; padding:11px 16px; display:flex; justify-content:space-between; border-bottom:1px dotted var(--line); color:var(--muted); font-size:9px; letter-spacing:.12em; }
+iframe { width:100%; flex:1; min-height:620px; border:0; background:var(--paper); }
+@media (max-width:900px){ main{grid-template-columns:1fr}.files{border-right:0;border-bottom:1px solid var(--line)}.preview{min-height:700px} }

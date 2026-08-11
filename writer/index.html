@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WHAT IF / Writer's Room</title>
+  <link rel="stylesheet" href="writer.css">
+</head>
+<body>
+  <header>
+    <div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div>
+    <a class="game-link" href="../" target="game-preview">[ OPEN GAME ↗ ]</a>
+  </header>
+  <main>
+    <section class="files" aria-label="Editable content files">
+      <p class="intro">Choose what you want to write. GitHub opens a plain text editor. Change the copy, click <b>Commit changes</b>, then refresh the preview.</p>
+      <article><div><span class="number">01</span><h2>PROLOGUE</h2><p>Thoughts, automatic narration and contextual actions.</p></div><a data-edit="content/prologue.md">[ EDIT ]</a></article>
+      <article><div><span class="number">02</span><h2>FIRST BRIEF</h2><p>The first prompt, button labels and completion copy.</p></div><a data-edit="content/brief.md">[ EDIT ]</a></article>
+      <article><div><span class="number">03</span><h2>HABITS</h2><p>Cigarettes, coffee, walks and their effects.</p></div><a data-edit="content/habits.md">[ EDIT ]</a></article>
+      <article><div><span class="number">04</span><h2>EVENTS</h2><p>Distractions, choices and consequences.</p></div><a data-edit="content/events.md">[ EDIT ]</a></article>
+      <div class="help"><b>HOW TO SAVE</b><ol><li>Edit only the words and numbers you understand.</li><li>Click <i>Commit changes…</i> in GitHub.</li><li>Keep “Commit directly to main” selected.</li><li>Refresh the game after about 30 seconds.</li></ol><a data-edit="content/README.md">[ SYNTAX GUIDE ]</a></div>
+    </section>
+    <section class="preview"><div class="preview-head"><span>LIVE GAME</span><button id="reload">[ REFRESH ]</button></div><iframe name="game-preview" src="../" title="Game preview"></iframe></section>
+  </main>
+  <script src="writer.js"></script>
+</body>
+</html>
