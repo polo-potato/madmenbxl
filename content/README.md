@@ -6,10 +6,11 @@ The files in this folder are loaded directly by the game. Save a file and reload
 
 | What you write | What the player sees | How it advances |
 | --- | --- | --- |
-| `kind: thought` | Normal text with `WHAT IF...` above it | The player types |
-| `kind: narration` | Italic text | Automatically |
-| `gate: check phone` | A button before the scene | The player clicks |
-| `action: light a cigarette` | A button after the scene | The player clicks |
+| `[THOUGHT]` | Normal text with `WHAT IF...` above it | The player types |
+| `[NARRATION]` | Italic text | Automatically |
+| `[ACTION] check phone` before `## TEXT` | A contextual button before the scene | The player clicks |
+| `[ACTION] light a cigarette` after the text | A contextual button after the scene | The player clicks |
+| `[UNLOCK] cigarette` | A permanent button in the HABITS menu | Once unlocked, it stays |
 
 The recurring `WHAT IF...` is configured once at the top of `prologue.md` with `thought-prefix: WHAT IF...`. Never repeat it in each thought.
 
@@ -20,16 +21,17 @@ Edit `prologue.md`. Every screen is separated by `---`.
 ```md
 ---
 id: a-unique-name
-kind: thought
-action: optional button after the text
-gate: optional button before the text
+[THOUGHT]
+[ACTION] optional button label after the text
+[UNLOCK] optional permanent habit id
 ## TEXT
 your text here.
 ```
 
-- `kind: thought` is written by keyboard input.
-- `kind: narration` is italic and advances automatically.
-- Omit `action` and `gate` when the screen has no interaction.
+- `[THOUGHT]` is written by keyboard input.
+- `[NARRATION]` is italic and advances automatically.
+- Omit action tags when the screen has no interaction.
+- Add `[UNLOCK] habit-id` only when that button should remain permanently available.
 
 ## Brief copy
 

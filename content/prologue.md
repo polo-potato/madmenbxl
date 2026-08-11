@@ -2,10 +2,11 @@
 
 ## LEGEND — READ THIS FIRST
 
-- `kind: thought` = **YOU WRITE** — normal text, advanced by typing.
-- `kind: narration` = **LIFE HAPPENS** — italic text, written automatically.
-- `gate:` = a button appears **before** the text.
-- `action:` = a button appears **after** the text.
+- `[THOUGHT]` = **YOU WRITE** — normal text, advanced by typing.
+- `[NARRATION]` = **LIFE HAPPENS** — italic text, written automatically.
+- `[ACTION] check phone` before `## TEXT` = a button before the scene.
+- `[ACTION] light a cigarette` after the text = a button after the scene.
+- `[UNLOCK] cigarette` = that action remains permanently in the **HABITS** menu.
 - `---` = a new screen / beat.
 
 ## GLOBAL SETTINGS
@@ -16,11 +17,10 @@ thought-input: keyboard
 narration-style: italic
 narration-mode: automatic
 
-The game automatically adds `WHAT IF...` above every `kind: thought` screen. Do not type it again inside `## TEXT`.
+The game automatically adds `WHAT IF...` above every `[THOUGHT]` screen. Do not type it again inside `## TEXT`.
 
 ---
-id: first-question
-kind: thought
+[THOUGHT]
 ## TEXT
 people didn't have to choose?
 
@@ -29,8 +29,7 @@ people didn't have to choose?
 too broad.
 
 ---
-id: something-to-keep
-kind: thought
+[THOUGHT]
 ## TEXT
 we made something
 people actually wanted to keep?
@@ -42,8 +41,7 @@ maybe.
 no.
 
 ---
-id: what-they-avoid
-kind: thought
+[THOUGHT]
 ## TEXT
 it's not about what they want.
 
@@ -54,16 +52,15 @@ it's about what they avoid.
 sounds smarter than it is.
 
 ---
-id: six-minutes
-kind: narration
-action: light a cigarette
+[NARRATION]
 ## TEXT
 you've been reading those two words
 for six minutes.
 
+[ACTION] light a cigarette
+[UNLOCK] cigarette
 ---
-id: first-drag
-kind: narration
+[NARRATION]
 ## TEXT
 first drag.
 
@@ -74,8 +71,7 @@ just to think.
 nothing.
 
 ---
-id: convince
-kind: thought
+[THOUGHT]
 ## TEXT
 we stopped trying to convince people
 and just
@@ -87,9 +83,9 @@ just...
 fuck.
 
 ---
-id: phone
-kind: narration
-gate: check phone
+[NARRATION]
+[ACTION] check phone
+[UNLOCK] scroll
 ## TEXT
 one message.
 
@@ -117,8 +113,7 @@ fuck.
 got lost.
 
 ---
-id: what-is-it
-kind: thought
+[THOUGHT]
 ## TEXT
 what is it.
 what is it.
@@ -134,8 +129,7 @@ same thing?
 no.
 
 ---
-id: cold-coffee
-kind: narration
+[NARRATION]
 ## TEXT
 coffee is cold.
 
@@ -144,8 +138,7 @@ you drink it anyway.
 still cold.
 
 ---
-id: smaller
-kind: thought
+[THOUGHT]
 ## TEXT
 we make it smaller?
 
@@ -156,8 +149,7 @@ smaller how?
 no.
 
 ---
-id: new-tab
-kind: narration
+[NARRATION]
 ## TEXT
 you open a new tab.
 
@@ -166,8 +158,7 @@ you don't remember why.
 close tab.
 
 ---
-id: truth
-kind: thought
+[THOUGHT]
 ## TEXT
 we just tell the truth?
 
@@ -176,8 +167,7 @@ what truth?
 ...
 
 ---
-id: unnoticed
-kind: thought
+[THOUGHT]
 ## TEXT
 it's something people already know
 
@@ -188,8 +178,7 @@ but never noticed.
 maybe.
 
 ---
-id: staring
-kind: narration
+[NARRATION]
 ## TEXT
 you stare at it.
 
@@ -198,9 +187,7 @@ you stare at it.
 still nothing.
 
 ---
-id: not-an-ad
-kind: thought
-action: go to sleep
+[THOUGHT]
 ## TEXT
 we don't make an ad.
 
@@ -214,10 +201,9 @@ no.
 
 fuck this.
 
+[ACTION] go to sleep
 ---
-id: dream
-kind: narration
-action: coffee
+[NARRATION]
 ## TEXT
 you dream about it.
 
@@ -229,10 +215,10 @@ gone.
 
 coffee.
 
+[ACTION] coffee
+[UNLOCK] coffee
 ---
-id: simple
-kind: thought
-action: shower
+[THOUGHT]
 ## TEXT
 it's actually really simple.
 
@@ -240,9 +226,9 @@ it's actually really simple.
 
 nope.
 
+[ACTION] shower
 ---
-id: shower
-kind: narration
+[NARRATION]
 ## TEXT
 hot water.
 
@@ -255,12 +241,12 @@ one really good thought.
 gone before you get out.
 
 ---
-id: still-stuck
-kind: thought
-action: check mail
+[THOUGHT]
 ## TEXT
 we
 
 ...
 
 still stuck.
+
+[ACTION] check mail
