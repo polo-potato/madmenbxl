@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 
-const files = ["content/prologue.md", "content/brief.md", "content/actions.md", "content/events.md"];
+const files = ["content/prologue.md", "content/prologue-gauges.md", "content/brief.md", "content/actions.md", "content/events.md"];
 const sources = Object.fromEntries(await Promise.all(files.map(async file => [file, await readFile(file,"utf8")])));
 const errors=[];
 const requireTextBlocks=(file,marker)=>{
@@ -16,6 +16,7 @@ if(!/^\[ACTION\]/m.test(sources["content/actions.md"]))errors.push("content/acti
 if(!/^\[EFFECT\]/m.test(sources["content/actions.md"]))errors.push("content/actions.md: no [EFFECT] tags");
 if(!/^\[CHOICE\]/m.test(sources["content/events.md"]))errors.push("content/events.md: no [CHOICE] tags");
 if(!/^\[EVENT\]/m.test(sources["content/events.md"]))errors.push("content/events.md: no [EVENT] titles");
+for(const tag of ["GAUGE","START","DRIFT","TRY MINIMUM","TRY COST","IDEA WEIGHT"]){if(!new RegExp(`^\\[${tag}\\]`,"m").test(sources["content/prologue-gauges.md"]))errors.push(`content/prologue-gauges.md: missing [${tag}]`);}
 const actionIds=[...sources["content/actions.md"].matchAll(/^\[ACTION\]\s+(.+)$/gm)].map(match=>match[1].trim());
 const duplicateActions=actionIds.filter((id,index)=>actionIds.indexOf(id)!==index);
 duplicateActions.forEach(id=>errors.push(`content/actions.md: duplicate action ${id}`));
