@@ -36,7 +36,6 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .studio-element.selected{outline:1px solid var(--ink);outline-offset:3px}
 .studio-element.rect{border:1px solid var(--ink)}
 .studio-element.rect-muted{border:1px solid var(--line)}
-.studio-element.ellipse{border:1px solid var(--ink);border-radius:45%}
 .studio-element.circle{border:1px solid var(--ink);border-radius:50%}
 .studio-element.window{border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
 .studio-element.line{border-top:2px solid var(--ink)}
@@ -67,7 +66,6 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .inspector-help,.selection-summary p{color:var(--muted);font-size:9px}
 .layers,.shape-fields,.selection-summary{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
-.shape-type{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;padding:6px 7px;border:1px solid var(--line);color:var(--muted)}.shape-type b{color:var(--ink);font-weight:400}
 .layers>div{display:flex;align-items:center;justify-content:space-between}
 .layer-row{position:relative;display:flex;align-items:center}.layer-row>button:first-child{display:grid;width:100%;grid-template-columns:20px minmax(0,1fr) auto;gap:5px;align-items:center;padding:6px 27px 6px 6px;text-align:left}.layer-row>button:first-child span{color:var(--muted)}.layer-row>button:first-child small{color:var(--muted);font-size:8px}.layer-row.active>button:first-child{background:var(--ink);color:var(--paper)}.layer-row.active>button:first-child span,.layer-row.active>button:first-child small{color:inherit}.layer-remove{position:absolute;right:3px;display:grid;width:21px;height:21px;padding:0;place-items:center;opacity:0}.layer-row:hover .layer-remove,.layer-remove:focus{opacity:1}.layer-row.active .layer-remove{color:var(--paper)}.layer-row.active .layer-remove:hover{background:var(--paper);color:var(--ink)}
 

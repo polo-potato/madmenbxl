@@ -115,7 +115,6 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .map-composite { position: absolute; display: block; }
 .shape-rect { border: 1px solid var(--ink); }
 .shape-rect-muted { border: 1px solid var(--line); }
-.shape-ellipse { border: 1px solid var(--ink); border-radius: 45%; }
 .shape-circle { border: 1px solid var(--ink); border-radius: 50%; }
 .shape-window { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
 .shape-window::before, .shape-window::after { content: ""; position: absolute; top: 0; height: 8px; border-left: 1px solid var(--line); }

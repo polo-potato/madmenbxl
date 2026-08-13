@@ -23,6 +23,20 @@ let activePartId = "";
 let activeTool = "select";
 let pendingElementDelete = "";
 
+const shapeTypes = [
+  ["hline", "Line"],
+  ["rect", "Rectangle"],
+  ["circle", "Circle"],
+  ["hline-muted", "Muted line"],
+  ["vline-muted", "Vertical muted line"],
+  ["rect-muted", "Muted rectangle"],
+  ["line", "Slanted line"],
+  ["text", "Text"],
+  ["triangle", "Triangle"],
+  ["dot", "Dot"],
+  ["smoke", "Smoke"]
+];
+
 const modules = {
   story: {
     file: "prologue.md",
@@ -222,7 +236,7 @@ function renderInspector() {
   if (selectedPartIds.size > 1) {
     selection = `<section class="selection-summary"><p class="kicker">SELECTION</p><b>${selectedPartIds.size} LAYERS SELECTED</b><p>Use Move to drag them together, or Delete Selected to remove them.</p></section>`;
   } else if (chosen) {
-    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><div class="shape-type"><small>TYPE</small><b>${escapeHtml(chosen.shape)}</b></div><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
+    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><label>TYPE<select name="shape">${shapeTypes.map(([value, label]) => `<option value="${value}"${value === chosen.shape ? " selected" : ""}>${label}</option>`).join("")}</select></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
   }
   mapInspector.innerHTML = metadata + layerList(item) + selection;
 }
@@ -684,7 +698,7 @@ mapInspector.addEventListener("input", event => {
       selectedPartIds.delete(old);
       selectedPartIds.add(part.id);
       activePartId = part.id;
-    } else if (["x", "y", "width", "height", "text"].includes(name)) part[name] = value;
+    } else if (["shape", "x", "y", "width", "height", "text"].includes(name)) part[name] = value;
   }
   syncVisual();
 });
