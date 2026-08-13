@@ -16,30 +16,12 @@
 [ELEMENT] window
 [WIDTH] 118
 [HEIGHT] 9
-[PART] top-frame
-[SHAPE] hline
-[X] 0
-[Y] 0
-[WIDTH] 118
-[HEIGHT] 1
-[PART] bottom-frame
-[SHAPE] hline-muted
-[X] 0
+[PART] line
+[SHAPE] line
+[X] -31
 [Y] 8
-[WIDTH] 118
-[HEIGHT] 1
-[PART] left-divider
-[SHAPE] vline-muted
-[X] 39
-[Y] 0
-[WIDTH] 1
-[HEIGHT] 9
-[PART] right-divider
-[SHAPE] vline-muted
-[X] 79
-[Y] 0
-[WIDTH] 1
-[HEIGHT] 9
+[WIDTH] 183
+[HEIGHT] 4
 
 ---
 [ELEMENT] desk
@@ -104,9 +86,9 @@
 [SHOW] coffee
 [PART] cup
 [SHAPE] text
-[TEXT] ○
 [X] 0
 [Y] 0
+[TEXT] ○
 
 ---
 [ELEMENT] pizza
@@ -138,6 +120,6 @@
 [ATTACH] player
 [PART] smoke
 [SHAPE] smoke
-[TEXT] ∿
 [X] 0
 [Y] 0
+[TEXT] ∿
