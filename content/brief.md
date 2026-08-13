@@ -11,6 +11,7 @@
 - `[SEND]` = final button.
 
 [BRIEF]
+[UNLOCK] eat
 [LABEL] BRIEF
 [PREFIX] WHAT IF...
 [PROMPT] waiting felt useful?
