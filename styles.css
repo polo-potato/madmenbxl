@@ -89,9 +89,9 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .activity-log { color: var(--muted); font-size: 10px; line-height: 1.45; }
 .activity-rule { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: var(--muted); font-size: 9px; letter-spacing: .15em; }
 .activity-rule::after { content: ""; flex: 1; border-top: 1px dotted var(--line); }
-.activity-messages { display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; max-height: 155px; overflow: hidden; }
+.activity-messages { display: flex; flex-direction: column; gap: 6px; max-height: 155px; overflow: hidden; }
 .activity-entry { flex: 0 0 auto; margin: 0; opacity: .64; }
-.activity-entry span { display: inline-block; width: 54px; color: var(--ink); font-size: 8px; letter-spacing: .11em; text-transform: uppercase; }
+.activity-entry:first-child { color: var(--ink); opacity: 1; }
 .activity-writing { opacity: 1; animation: log-write .75s steps(8,end) both; }
 .activity-log-brief { position: absolute; left: 0; top: 430px; width: 390px; max-height: 190px; overflow: hidden; }
 .activity-log-early { width: 390px; margin-top: 80px; }
