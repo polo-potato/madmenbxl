@@ -1,5 +1,5 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=7";
-import { initialState, loadState, saveState, resetState } from "./state.js?v=6";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=8";
+import { initialState, loadState, saveState, resetState } from "./state.js?v=7";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
 
