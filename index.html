@@ -4,19 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WHAT IF</title>
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <main id="game" aria-live="polite"></main>
   <div id="debug" class="debug-controls">
     <a href="writer/index.html">[ WRITER'S ROOM ]</a>
     <button data-theme-toggle>[ DARK MODE ]</button>
-    <button data-action="brief">[ DEBUG: SKIP TO BRIEF ]</button>
-    <button data-action="after-brief">[ DEBUG: AFTER BRIEF ]</button>
-    <button data-action="skip">[ DEBUG: SKIP TO AGENCY ]</button>
-    <button data-action="reset">[ RESET SAVE ]</button>
+    <details class="debug-menu">
+      <summary>[ DEBUG ]</summary>
+      <div class="debug-menu-panel">
+        <button data-action="brief">[ SKIP TO BRIEF ]</button>
+        <button data-action="after-brief">[ AFTER BRIEF ]</button>
+        <button data-action="skip">[ SKIP TO AGENCY ]</button>
+        <button data-action="reset">[ RESET SAVE ]</button>
+      </div>
+    </details>
   </div>
-  <script type="module" src="js/game.js?v=12"></script>
+  <script type="module" src="js/game.js?v=13"></script>
   <script type="module" src="js/theme.js"></script>
 </body>
 </html>
