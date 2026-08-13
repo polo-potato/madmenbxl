@@ -122,6 +122,7 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .shape-laptop { border: 1px solid var(--ink); }
 .shape-laptop::after { content: ""; position: absolute; left: -5px; right: -5px; bottom: -5px; border-top: 1px solid var(--ink); }
 .shape-text { color: var(--ink); font-size: 13px; }
+.shape-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
 .shape-triangle { width: 0 !important; height: 0 !important; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 15px solid var(--ink); transform: rotate(-18deg); }
 .shape-line { border-top: 2px solid var(--ink); transform: rotate(-16deg); }
 .shape-smoke { color: var(--muted); font-size: 16px; animation: room-smoke 1.8s ease-out infinite; }
