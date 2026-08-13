@@ -1,5 +1,5 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
-const loadText = name => fetch(new URL(`../content/${name}?v=10`, import.meta.url)).then(r => {
+const loadText = name => fetch(new URL(`../content/${name}?v=11`, import.meta.url)).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.text();
 });
@@ -111,6 +111,7 @@ function parseElements(source) {
     const tag=name=>block.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";
     const firstPart=block.search(/^\[PART\]/m),head=firstPart<0?block:block.slice(0,firstPart);
     const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|$)/gm)].map(match=>{const body=match[2];const partTag=name=>body.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";return{id:match[1].trim(),...normalizeVisual(partTag("SHAPE")||"rect",partTag("STYLE")),x:numberTag(body,"X"),y:numberTag(body,"Y"),width:numberTag(body,"WIDTH"),height:numberTag(body,"HEIGHT"),text:partTag("TEXT")};});
+    parts.forEach(part=>{if(part.shape==="circle"){const diameter=part.width||part.height;part.width=diameter;part.height=diameter;}});
     return [id,{id,width:numberTag(head,"WIDTH"),height:numberTag(head,"HEIGHT"),show:tag("SHOW"),attach:tag("ATTACH"),parts}];
   }).filter(Boolean));
 }

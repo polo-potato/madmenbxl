@@ -122,7 +122,9 @@ function parseElementCatalog(source) {
     const head = firstPart < 0 ? block : block.slice(0, firstPart);
     const parts = [...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match => {
       const visual = normalizeShape(tag(match[2], "SHAPE") || "rect", tag(match[2], "STYLE"));
-      return { id: match[1].trim(), ...visual, x: numberTag(match[2], "X"), y: numberTag(match[2], "Y"), width: numberTag(match[2], "WIDTH"), height: numberTag(match[2], "HEIGHT"), text: tag(match[2], "TEXT") };
+      const width = numberTag(match[2], "WIDTH");
+      const height = visual.shape === "circle" ? width || numberTag(match[2], "HEIGHT") : numberTag(match[2], "HEIGHT");
+      return { id: match[1].trim(), ...visual, x: numberTag(match[2], "X"), y: numberTag(match[2], "Y"), width, height, text: tag(match[2], "TEXT") };
     });
     return {
       id,
@@ -253,7 +255,8 @@ function renderInspector() {
     selection = `<section class="selection-summary"><p class="kicker">SELECTION</p><b>${selectedPartIds.size} LAYERS SELECTED</b><p>Use Move to drag them together, or Delete Selected to remove them.</p></section>`;
   } else if (chosen) {
     const effects = shapeStyles[chosen.shape] || [["pure", "Pure"]];
-    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><label>TYPE<span class="fixed-type">${escapeHtml(shapeLabels[chosen.shape] || chosen.shape)}</span></label><label>EFFECT<select name="style"${effects.length === 1 ? " disabled" : ""}>${effects.map(([value, label]) => `<option value="${value}"${value === chosen.style ? " selected" : ""}>${label}</option>`).join("")}</select></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
+    const sizeFields = chosen.shape === "circle" ? `<label>DIAMETER<input name="diameter" type="number" min="1" value="${chosen.width || chosen.height || ""}"></label>` : `<div class="inspector-grid"><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div>`;
+    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><label>TYPE<span class="fixed-type">${escapeHtml(shapeLabels[chosen.shape] || chosen.shape)}</span></label><label>EFFECT<select name="style"${effects.length === 1 ? " disabled" : ""}>${effects.map(([value, label]) => `<option value="${value}"${value === chosen.style ? " selected" : ""}>${label}</option>`).join("")}</select></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label></div>${sizeFields}<p class="inspector-help">Hold Shift while resizing to keep proportions.</p><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
   }
   mapInspector.innerHTML = metadata + layerList(item) + selection;
 }
@@ -519,8 +522,17 @@ function beginResize(event, item, part, corner) {
     let height = origin.height;
     if (corner.includes("e")) width = Math.max(4, origin.width + dx);
     if (corner.includes("s")) height = Math.max(4, origin.height + dy);
-    if (corner.includes("w")) { width = Math.max(4, origin.width - dx); x = origin.x + origin.width - width; }
-    if (corner.includes("n")) { height = Math.max(4, origin.height - dy); y = origin.y + origin.height - height; }
+    if (corner.includes("w")) width = Math.max(4, origin.width - dx);
+    if (corner.includes("n")) height = Math.max(4, origin.height - dy);
+    if (part.shape === "circle" || next.shiftKey) {
+      const ratio = part.shape === "circle" ? 1 : Math.max(.01, origin.width / Math.max(1, origin.height));
+      const widthChange = Math.abs(width - origin.width) / Math.max(1, origin.width);
+      const heightChange = Math.abs(height - origin.height) / Math.max(1, origin.height);
+      if (widthChange >= heightChange) height = Math.max(4, Math.round(width / ratio));
+      else width = Math.max(4, Math.round(height * ratio));
+    }
+    if (corner.includes("w")) x = origin.x + origin.width - width;
+    if (corner.includes("n")) y = origin.y + origin.height - height;
     Object.assign(part, { x, y, width, height });
     serializeCurrentSource();
     renderCanvas();
@@ -743,7 +755,7 @@ mapInspector.addEventListener("click", event => {
 mapInspector.addEventListener("input", event => {
   const name = event.target.name;
   if (!name) return;
-  const numeric = ["x", "y", "width", "height", "element-width", "element-height"].includes(name);
+  const numeric = ["x", "y", "width", "height", "diameter", "element-width", "element-height"].includes(name);
   const value = numeric ? Number(event.target.value || 0) : event.target.value.trim();
   if (current === "map") {
     const item = activePlacement();
@@ -774,7 +786,11 @@ mapInspector.addEventListener("input", event => {
       selectedPartIds.delete(old);
       selectedPartIds.add(part.id);
       activePartId = part.id;
-    } else if (["style", "x", "y", "width", "height", "text"].includes(name)) part[name] = value;
+    } else if (name === "diameter" && part.shape === "circle") part.width = part.height = Math.max(1, value);
+    else if (["style", "x", "y", "width", "height", "text"].includes(name)) {
+      part[name] = value;
+      if (part.shape === "circle" && (name === "width" || name === "height")) part.width = part.height = Math.max(1, value);
+    }
   }
   syncVisual();
 });
