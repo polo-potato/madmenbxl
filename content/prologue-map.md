@@ -17,53 +17,62 @@
 ---
 [PLACE] window
 [INSTANCE] window-1
-[X] 46
-[Y] 0
+[X] -44
+[Y] 159
+[ROTATION] 90
 
 ---
 [PLACE] desk
 [INSTANCE] desk-1
-[X] 46
-[Y] 44
+[X] 75
+[Y] 32
+[ROTATION] 0
 
 ---
 [PLACE] laptop
 [INSTANCE] laptop-1
 [X] 84
 [Y] 57
+[ROTATION] 0
 
 ---
 [PLACE] chair
 [INSTANCE] chair-1
-[X] 83
-[Y] 119
+[X] 92
+[Y] 103
+[ROTATION] 0
 
 ---
 [PLACE] bed
 [INSTANCE] bed-1
-[X] 46
-[Y] 256
+[X] 147
+[Y] 281
+[ROTATION] 180
 
 ---
 [PLACE] coffee
 [INSTANCE] coffee-1
-[X] 137
-[Y] 53
+[X] 157
+[Y] 52
+[ROTATION] 0
 
 ---
 [PLACE] pizza
 [INSTANCE] pizza-1
-[X] 57
-[Y] 82
+[X] 163
+[Y] 39
+[ROTATION] 0
 
 ---
 [PLACE] cigarette
 [INSTANCE] cigarette-1
-[X] 25
-[Y] 3
+[X] 21
+[Y] 192
+[ROTATION] 0
 
 ---
 [PLACE] smoke
 [INSTANCE] smoke-1
-[X] 44
-[Y] -18
+[X] 37
+[Y] 170
+[ROTATION] 0
