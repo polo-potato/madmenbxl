@@ -176,7 +176,7 @@ function parseCurrentSource() {
     };
   }).filter(Boolean);
   if (!placements.some(item => item.instance === activePlacementId)) activePlacementId = placements[0]?.instance || "";
-  if (!catalog[selectedLibraryId]) selectedLibraryId = Object.keys(catalog)[0] || "";
+  if (selectedLibraryId && !catalog[selectedLibraryId]) selectedLibraryId = "";
 }
 
 function serializePart(part) {
@@ -281,6 +281,7 @@ function renderInspector() {
 function renderCanvas() {
   document.querySelectorAll("[data-tool]").forEach(button => button.classList.toggle("active", button.dataset.tool === activeTool));
   document.querySelector("#map-rotate").hidden = current !== "map" || !activePlacementId;
+  document.querySelector("#map-place").disabled = current === "map" && !selectedLibraryId;
   if (current === "elements") {
     const item = activeElement();
     mapCanvas.style.width = `${item?.width || 160}px`;
@@ -781,7 +782,7 @@ elementLibrary.addEventListener("click", event => {
     selectedLibraryId = activeElementId;
     selectedPartIds.clear();
     activePartId = "";
-  } else selectedLibraryId = button.dataset.libraryId;
+  } else selectedLibraryId = selectedLibraryId === button.dataset.libraryId ? "" : button.dataset.libraryId;
   renderCanvas();
 });
 
@@ -855,7 +856,7 @@ mapCanvas.addEventListener("pointerdown", event => {
   event.preventDefault();
   if (current === "map") {
     const composite = event.target.closest("[data-map-id]");
-    if (!composite) { activePlacementId = ""; renderCanvas(); return; }
+    if (!composite) { activePlacementId = ""; selectedLibraryId = ""; renderCanvas(); return; }
     activePlacementId = composite.dataset.mapId;
     const item = activePlacement();
     renderCanvas();
@@ -900,7 +901,7 @@ mapCanvas.addEventListener("pointerdown", event => {
 
 document.querySelector(".map-stage").addEventListener("pointerdown", event => {
   if (event.target !== event.currentTarget) return;
-  if (current === "map") activePlacementId = "";
+  if (current === "map") { activePlacementId = ""; selectedLibraryId = ""; }
   else {
     selectedPartIds.clear();
     activePartId = "";
