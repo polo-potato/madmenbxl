@@ -2,13 +2,14 @@
 
 ## LEGEND
 
-- `## TEXT` = what happens automatically.
-- `[EVENT] ice cream truck` = internal title used to organise the file.
-- `[CHOICE] go downstairs` = contextual player button.
-- `[EFFECT] energy +8` = consequence of that choice.
-- `[UNLOCK] take a walk` = permanently adds a HABIT after choosing.
-- `## RESULT` = automatic feedback after the choice.
 - `---` = next event.
+- `[EVENT] event title` = internal title used to organise the file.
+- `## TEXT` = what happens automatically.
+- `## CHOICE` = starts a contextual choice.
+- `[CHOICE] open the window` = contextual player button.
+- `[EFFECT] stress -4` = consequence of that choice.
+- `[UNLOCK] take a walk` = permanently adds an action after choosing.
+- `## RESULT` = automatic feedback after the choice.
 
 ---
 [EVENT] ice cream truck

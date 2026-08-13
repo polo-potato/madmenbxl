@@ -2,9 +2,10 @@
 
 ## LEGEND
 
+- `---` = next action.
 - `[ACTION] cigarette` = permanent button name.
-- `[EFFECT] stress -13` = gauge change after one click.
-- `[COOLDOWN] 18` = seconds before this action can be used again. Its room animation stays visible for the same duration.
+- `[COOLDOWN] 20` = seconds before this action can be used again. Its room animation stays visible for the same duration.
+- `[EFFECT] stress -5` = gauge change after one click.
 - `[MOVE] cigarette-1` = uses that Map instance as the player's temporary anchor.
 - `[PROP] coffee` = activates the matching element for this action's full cooldown.
 - `[ANIMATION] smoke` = activates the matching animated element for this action's full cooldown.
@@ -14,7 +15,6 @@
 - `[LUCKY EFFECT] creativity +19` = replaces the normal effects when the lucky outcome happens.
 - `## NOTE` = normal feedback pool. Each line beginning with `-` is one possible message.
 - `## LUCKY NOTE` = lucky feedback pool. Each line beginning with `-` is one possible message.
-- `---` = next action.
 
 ---
 [ACTION] cigarette

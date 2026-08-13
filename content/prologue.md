@@ -2,11 +2,12 @@
 
 ## LEGEND — READ THIS FIRST
 
+- `---` = a new screen / beat.
 - `[THOUGHT]` = **YOU WRITE** — normal text, advanced by typing.
 - `[NARRATION]` = **LIFE HAPPENS** — italic text, written automatically.
+- `## TEXT` = the copy displayed on this screen.
 - `[ACTION] check phone` = pause exactly here and wait for a click, even in the middle of text.
-- `[UNLOCK] cigarette` = that action remains permanently in the **HABITS** menu.
-- `---` = a new screen / beat.
+- `[UNLOCK] scroll` = that action remains permanently in the action menu.
 
 ## GLOBAL SETTINGS
 
@@ -34,7 +35,7 @@ too broad.
 we made something
 people actually wanted to keep?
 
-hmmmm maybe.
+maybe.
 
 ...
 
@@ -54,7 +55,7 @@ sounds smarter than it is.
 ---
 [NARRATION]
 ## TEXT
-WHAT IF... you've been reading those two words
+you've been reading those two words
 for six minutes.
 
 [ACTION] light a cigarette
@@ -66,13 +67,9 @@ first drag.
 
 just to think.
 
-oh my god
-
-what if we make a scented candle?
-
 ...
 
-nah.
+nothing.
 
 ---
 [THOUGHT]
@@ -94,11 +91,11 @@ one message.
 [ACTION] check phone
 [UNLOCK] scroll
 
-open instagram.
+instagram.
 
-totally forgot about the message notification.
+instagram again.
 
-clicked on a reel.
+a reel.
 another one.
 
 someone renovated a kitchen.
@@ -143,6 +140,17 @@ you drink it anyway.
 still cold.
 
 ---
+[THOUGHT]
+## TEXT
+we make it smaller?
+
+smaller how?
+
+...
+
+no.
+
+---
 [NARRATION]
 ## TEXT
 you open a new tab.
@@ -150,6 +158,15 @@ you open a new tab.
 you don't remember why.
 
 close tab.
+
+---
+[THOUGHT]
+## TEXT
+we just tell the truth?
+
+what truth?
+
+...
 
 ---
 [THOUGHT]
@@ -165,11 +182,9 @@ maybe.
 ---
 [NARRATION]
 ## TEXT
-you stare at your screen.
+you stare at it.
 
 ...
-
-dissociate a bit.
 
 still nothing.
 
@@ -199,8 +214,6 @@ you almost have it.
 ...
 
 gone.
-
-Now you're awake.
 
 coffee.
 

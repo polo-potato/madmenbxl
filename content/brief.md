@@ -2,15 +2,16 @@
 
 ## LEGEND
 
-- `## VISIBLE ACTIONS` = actions shown as soon as this module begins.
-- Each `- action name` must exactly match an `[ACTION]` defined in `actions.md`.
-- `[LABEL]` = small interface label.
-- `[PREFIX]` = recurring line above the thought.
-- `[PROMPT]` = text the player types.
-- `[ACTION]` = button used to attempt an idea.
-- `[METER]` = idea gauge name.
-- `[COMPLETE]` = text shown when the gauge is full.
-- `[SEND]` = final button.
+- `## VISIBLE ACTIONS` = starts the module action menu.
+- `- cigarette` = one visible action. Its name must match an `[ACTION]` in this era's Actions file.
+- `[BRIEF]` = starts the brief configuration.
+- `[LABEL] BRIEF` = small interface label.
+- `[PREFIX] WHAT IF...` = recurring line above the thought.
+- `[PROMPT] waiting felt useful?` = text the player types.
+- `[ACTION] try a direction` = button used to attempt an idea.
+- `[METER] IDEA` = idea gauge name.
+- `[COMPLETE] there it is.` = text shown when the gauge is full.
+- `[SEND] send it` = final button.
 
 ## VISIBLE ACTIONS
 

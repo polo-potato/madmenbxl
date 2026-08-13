@@ -1,5 +1,19 @@
 # PROLOGUE / GAUGES
 
+## LEGEND
+
+- `[IDEA BASE] 2` = base IDEA gain for an attempt.
+- `[IDEA MINIMUM GAIN] 9` = minimum IDEA gained by a valid attempt.
+- `---` = next gauge.
+- `[GAUGE] creativity` = gauge identifier.
+- `[START] 48` = initial value.
+- `[DRIFT] -0.025` = automatic change per second.
+- `[TRY MINIMUM] 12` = minimum value required for an attempt.
+- `[TRY COST] -12` = value consumed or added by an attempt.
+- `[IDEA SOURCE] +0.14` = direct IDEA contribution.
+- `[IDEA BOOST] +0.006` = multiplier applied to the IDEA source.
+- `## PURPOSE` = human-readable explanation.
+
 ## IDEA FORMULA
 
 [IDEA BASE] 2

@@ -3,6 +3,19 @@ import { readFile } from "node:fs/promises";
 const files = ["content/prologue.md", "content/prologue-gauges.md", "content/brief.md", "content/actions.md", "content/events.md", "content/prologue-elements.md", "content/prologue-map.md"];
 const sources = Object.fromEntries(await Promise.all(files.map(async file => [file, await readFile(file,"utf8")])));
 const errors=[];
+const clickableLegendTags = {
+  "content/prologue.md": ["---", "[THOUGHT]", "[NARRATION]", "## TEXT", "[ACTION] check phone", "[UNLOCK] scroll"],
+  "content/prologue-gauges.md": ["[IDEA BASE] 2", "[IDEA MINIMUM GAIN] 9", "---", "[GAUGE] creativity", "[START] 48", "[DRIFT] -0.025", "[TRY MINIMUM] 12", "[TRY COST] -12", "[IDEA SOURCE] +0.14", "[IDEA BOOST] +0.006", "## PURPOSE"],
+  "content/brief.md": ["## VISIBLE ACTIONS", "- cigarette", "[BRIEF]", "[LABEL] BRIEF", "[PREFIX] WHAT IF...", "[PROMPT] waiting felt useful?", "[ACTION] try a direction", "[METER] IDEA", "[COMPLETE] there it is.", "[SEND] send it"],
+  "content/actions.md": ["---", "[ACTION] cigarette", "[COOLDOWN] 20", "[EFFECT] stress -5", "[MOVE] cigarette-1", "[PROP] coffee", "[ANIMATION] smoke", "[CHANCE] 0.1", "[LUCKY EFFECT] creativity +19", "## NOTE", "## LUCKY NOTE"],
+  "content/events.md": ["---", "[EVENT] event title", "## TEXT", "## CHOICE", "[CHOICE] open the window", "[EFFECT] stress -4", "[UNLOCK] take a walk", "## RESULT"],
+  "content/prologue-elements.md": ["---", "[ELEMENT] bed", "[WIDTH] 118", "[HEIGHT] 62", "[ANCHOR X] 0", "[ANCHOR Y] 0", "[SHOW] coffee", "[ATTACH] player", "[PART] pillow", "[SHAPE] rect", "[STYLE] pure", "[X] 0", "[Y] 0", "[TEXT] ○"],
+  "content/prologue-map.md": ["[MAP WIDTH] 280", "[MAP HEIGHT] 360", "[POSITION] window 177 10", "---", "[PLACE] desk", "[INSTANCE] desk-1", "[X] 46", "[Y] 44", "[ROTATION] 45"]
+};
+for (const [file,tags] of Object.entries(clickableLegendTags)) {
+  const legend = sources[file].match(/^## LEGEND[^\n]*\n([\s\S]*?)(?=^## (?!TEXT|CHOICE|RESULT|NOTE|LUCKY NOTE|PURPOSE)|^\[MAP WIDTH\]|^---$)/m)?.[1] || "";
+  tags.forEach(tag => { if (!legend.includes(`\`${tag}\``)) errors.push(`${file}: clickable tag ${tag} is missing from its legend`); });
+}
 const requireTextBlocks=(file,marker)=>{
   const blocks=sources[file].split(/^---$/m).slice(1);
   if(!blocks.length) errors.push(`${file}: no content blocks`);

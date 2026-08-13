@@ -3,12 +3,14 @@
 ## LEGEND
 
 - `[ELEMENT] bed` = one reusable designed object.
-- `[WIDTH]` and `[HEIGHT]` = element canvas size.
-- `[ANCHOR X]` and `[ANCHOR Y]` = local MOVE destination inside the element. Moving this anchor never moves its layers.
+- `[WIDTH] 118` = element canvas or part width.
+- `[HEIGHT] 62` = element canvas or part height.
+- `[ANCHOR X] 0` = local MOVE anchor X. Moving it never moves the layers.
+- `[ANCHOR Y] 0` = local MOVE anchor Y. Moving it never moves the layers.
 - `[PART] pillow` = one visible, independently editable layer inside the element.
-- `[SHAPE]` is the fixed geometry of a part: `line`, `rect`, `circle`, `text`, `triangle`, `dot`, or `smoke`.
+- `[SHAPE] rect` is the fixed geometry of a part: `line`, `rect`, `circle`, `text`, `triangle`, `dot`, or `smoke`.
 - `[STYLE] pure` is its compatible visual effect. `pure` is the default and never changes the geometry.
-- A part also uses `[X]`, `[Y]`, `[WIDTH]`, `[HEIGHT]`, and optional `[TEXT]`.
+- A part also uses `[X] 0`, `[Y] 0`, `[WIDTH] 118`, `[HEIGHT] 62`, and optional `[TEXT] ○`.
 - Every visible piece must have its own `[PART]`. Do not hide several pieces inside one shape.
 - In the visual editor, create new layers with the line, rectangle, or circle icons.
 - `[SHOW] coffee` = element only appears while that action prop is active.
@@ -19,8 +21,8 @@
 [ELEMENT] window
 [WIDTH] 118
 [HEIGHT] 9
-[ANCHOR X] 44
-[ANCHOR Y] -21
+[ANCHOR X] 88
+[ANCHOR Y] 5
 [PART] line
 [SHAPE] line
 [STYLE] pure
@@ -33,8 +35,6 @@
 [ELEMENT] desk
 [WIDTH] 118
 [HEIGHT] 62
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [PART] surface
 [SHAPE] rect
 [STYLE] pure
@@ -47,8 +47,6 @@
 [ELEMENT] laptop
 [WIDTH] 53
 [HEIGHT] 33
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [PART] screen
 [SHAPE] rect
 [STYLE] pure
@@ -68,8 +66,6 @@
 [ELEMENT] chair
 [WIDTH] 36
 [HEIGHT] 36
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [PART] seat
 [SHAPE] circle
 [STYLE] pure
@@ -82,8 +78,6 @@
 [ELEMENT] bed
 [WIDTH] 118
 [HEIGHT] 62
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [PART] frame
 [SHAPE] rect
 [STYLE] pure
@@ -103,22 +97,18 @@
 [ELEMENT] coffee
 [WIDTH] 16
 [HEIGHT] 16
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [SHOW] coffee
 [PART] cup
 [SHAPE] text
 [STYLE] pure
+[TEXT] ○
 [X] 0
 [Y] 0
-[TEXT] ○
 
 ---
 [ELEMENT] pizza
 [WIDTH] 18
 [HEIGHT] 16
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [SHOW] pizza
 [PART] slice
 [SHAPE] triangle
@@ -132,8 +122,6 @@
 [ELEMENT] cigarette
 [WIDTH] 14
 [HEIGHT] 5
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [SHOW] cigarette
 [ATTACH] player
 [PART] cigarette
@@ -147,13 +135,11 @@
 [ELEMENT] smoke
 [WIDTH] 20
 [HEIGHT] 22
-[ANCHOR X] 0
-[ANCHOR Y] 0
 [SHOW] smoke
 [ATTACH] player
 [PART] smoke
 [SHAPE] smoke
 [STYLE] animated
+[TEXT] ∿
 [X] 0
 [Y] 0
-[TEXT] ∿
