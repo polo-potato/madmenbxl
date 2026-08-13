@@ -29,6 +29,11 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .debug-controls a { text-decoration: none; }
 .debug-controls a:hover, .debug-controls a:focus-visible { background: var(--ink); color: var(--paper); outline: 0; }
 .debug-controls:hover, .debug-controls:focus-within { opacity: 1; }
+.debug-menu { position: relative; }
+.debug-menu summary { cursor: pointer; list-style: none; }
+.debug-menu summary::-webkit-details-marker { display: none; }
+.debug-menu summary:hover, .debug-menu summary:focus-visible { background: var(--ink); color: var(--paper); outline: 0; }
+.debug-menu-panel { position: absolute; top: calc(100% + 8px); right: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; width: max-content; padding: 10px 12px; background: var(--paper); border: 1px solid var(--line); }
 
 .prologue { position: relative; width: min(860px, calc(100vw - 48px)); margin: 0 auto; padding-top: max(15vh, 86px); min-height: 100vh; }
 .prologue-output { position: relative; width: min(560px, calc(100vw - 48px)); min-height: 390px; white-space: pre-wrap; letter-spacing: .015em; }
@@ -101,13 +106,19 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .activity-log-early { width: 390px; margin-top: 80px; }
 .activity-log-agency { position: absolute; z-index: 4; left: 5%; bottom: 105px; width: min(390px,42vw); max-height: 170px; overflow: hidden; padding: 10px 12px; background: color-mix(in srgb,var(--paper) 88%,transparent); }
 
-.after-brief-screen { position: relative; width: min(1160px, calc(100vw - 48px)); min-height: 100vh; margin: 0 auto; padding-top: max(15vh, 86px); }
-.after-brief-dialogue { min-height: 650px; }
-.after-brief-screen .personal-side { left: 618px; }
-.after-brief-map { position: absolute; left: 900px; top: max(15vh, 86px); width: 260px; }
-.mini-office { position: relative; height: 330px; margin-top: 20px; border-left: 1px dotted var(--line); }
-.mini-bedroom { left: 24px; top: 30px; }
-.mini-door { right: 8px; bottom: 34px; }
+.after-brief-screen { position: relative; width: min(1500px, calc(100vw - 96px)); min-height: 100vh; margin: 0 auto; padding-top: max(15vh, 86px); }
+.after-brief-dialogue { min-height: 650px; margin-left: 360px; }
+.after-brief-screen .personal-side { left: 978px; }
+.after-brief-map { position: absolute; left: 0; top: max(15vh, 86px); width: 280px; height: 360px; color: var(--muted); }
+.room-plan { position: relative; width: 100%; height: 100%; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.plan-window { position: absolute; left: 46px; top: 0; width: 112px; border-top: 2px solid var(--ink); }
+.plan-desk { position: absolute; left: 46px; top: 44px; width: 118px; height: 62px; border: 1px solid var(--ink); }
+.plan-desk span { position: absolute; left: 9px; top: 8px; font-size: 9px; }
+.plan-you { position: absolute; left: 178px; top: 117px; display: flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 9px; }
+.plan-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+.plan-bed { position: absolute; left: 46px; bottom: 42px; width: 150px; height: 76px; border: 1px solid var(--ink); }
+.plan-bed span:last-child { position: absolute; right: 10px; bottom: 8px; font-size: 9px; }
+.plan-pillow { position: absolute; left: 9px; top: 9px; bottom: 9px; width: 31px; border: 1px solid var(--line); }
 
 .early { min-height: 100vh; padding: 8vh 7vw 60px; display: grid; grid-template-columns: minmax(450px, 1fr) 260px; gap: 8vw; align-items: start; }
 .early-copy { max-width: 390px; white-space: pre-wrap; }
@@ -178,7 +189,9 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
   .activity-log-brief { position: static; width: min(390px,100%); margin-top: 70px; }
   .activity-log-agency { width: min(390px,80vw); }
   .after-brief-screen { width: calc(100vw - 48px); }
-  .after-brief-map { position: static; width: min(420px,100%); margin-top: 42px; padding-bottom: 80px; }
+  .after-brief-dialogue { margin-left: 0; }
+  .after-brief-screen .personal-side { left: auto; }
+  .after-brief-map { position: static; width: min(280px,100%); margin: 42px 0 80px; }
 }
 
 @media (max-width: 760px) {
