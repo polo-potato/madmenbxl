@@ -6,6 +6,7 @@ export function initialState() {
   return {
     mode: "intro", beat: 0, char: 0, actionStep: 0, waiting: false, erasing: false, autoTyping: false, autoHold: false, inbox: false,
     unlockedActions: [],
+    activityLog: [],
     personal: Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.start])),
     firstBrief: { idea: 0, attempts: 0, eventIndex: 0, pendingEvent: null, eventResult: "", completed: false, promptChar: 0, promptComplete: false, ideaUnlocked: false },
     actionUses: {},
@@ -37,9 +38,12 @@ export function loadState() {
     loaded.autoTyping = false;
     loaded.autoHold = false;
     loaded.metricAnimating = false;
+    loaded.activityLogPulse = false;
     loaded.firstBrief = { ...initialState().firstBrief, ...(loaded.firstBrief || {}) };
     loaded.personal = { ...initialState().personal, ...(loaded.personal || {}) };
     loaded.unlockedMetrics = loaded.unlockedMetrics || [];
+    loaded.activityLog = (loaded.activityLog || []).slice(-10);
+    if (!["intro","inbox"].includes(loaded.mode) && !loaded.activityLog.length) loaded.activityLog = [{ type:"goal", text:"Find a direction for the brief." }];
     return loaded;
   } catch { return initialState(); }
 }
