@@ -1,4 +1,4 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js?v=3";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js?v=4";
 import { initialState, loadState, saveState, resetState } from "./state.js?v=3";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
@@ -218,7 +218,8 @@ const ideaRequirements = [
 function resolvePersonalAction(id){
   const action=personalActions[id];
   const lucky=action.chance>0&&Object.keys(action.luckyEffects||{}).length&&Math.random()<action.chance;
-  return { effects:lucky?action.luckyEffects:action, note:lucky?action.luckyNote:action.note, lucky };
+  const pool=lucky?action.luckyNotes:action.notes;
+  return { effects:lucky?action.luckyEffects:action, note:pool[Math.floor(Math.random()*pool.length)]||"", lucky };
 }
 
 function revealActionMetric(id){
