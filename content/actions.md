@@ -4,7 +4,10 @@
 
 - `[ACTION] cigarette` = permanent button name.
 - `[EFFECT] stress -13` = gauge change after one click.
+- `[CHANCE] 0.1` = optional lucky outcome probability (0.1 means roughly 1 in 10).
+- `[LUCKY EFFECT] creativity +24` = replaces the normal effects when the lucky outcome happens.
 - `## NOTE` = automatic italic feedback after the click.
+- `## LUCKY NOTE` = feedback for the lucky outcome.
 - `---` = next action.
 
 ---
@@ -22,10 +25,18 @@ the shoulders drop.
 [EFFECT] creativity -3
 [EFFECT] energy -2
 [EFFECT] stress +4
+[CHANCE] 0.1
+[LUCKY EFFECT] creativity +24
+[LUCKY EFFECT] energy -2
+[LUCKY EFFECT] stress -2
 ## NOTE
 a kitchen. a dog.
 
 an ad that was annoyingly good.
+## LUCKY NOTE
+wait.
+
+that was actually good.
 
 ---
 [ACTION] coffee
