@@ -9,7 +9,7 @@ export function bar(value, color = "fill-green", width = 12) {
 export function activityLogView(s, modifier="", animateLatest=false) {
   const entries=(s.activityLog||[]).slice(-10);
   if(!entries.length)return "";
-  return `<section class="activity-log ${modifier}" aria-label="Event log"><div class="activity-rule"><span>LOG</span></div><div class="activity-messages">${entries.map((entry,index)=>`<p class="activity-entry ${animateLatest&&index===entries.length-1?'activity-writing':''}"><span>${esc(entry.type||"event")}</span>${esc(entry.text)}</p>`).join("")}</div></section>`;
+  return `<section class="activity-log ${modifier}" aria-label="Event log"><div class="activity-rule"><span>LOG</span></div><div class="activity-messages">${entries.reverse().map((entry,index)=>`<p class="activity-entry ${animateLatest&&index===0?'activity-writing':''}">${esc(entry.text)}</p>`).join("")}</div></section>`;
 }
 
 export function officeMap() {
