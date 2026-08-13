@@ -1,7 +1,7 @@
 import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js";
 import { initialState, loadState, saveState, resetState } from "./state.js";
 import { simulate } from "./simulation.js";
-import { agencyView, bar, money } from "./ui.js";
+import { activityLogView, agencyView, bar, money } from "./ui.js";
 
 let state = loadState();
 let lastTick = Date.now();
@@ -13,7 +13,17 @@ let metricTween = null;
 let activeMetricDeltas = {};
 let activeIdeaDelta = 0;
 let metricDeltaProgress = 0;
+let activityPulseTimer = null;
 const game = document.querySelector("#game");
+
+function logActivity(type,text){
+  if(!text)return;
+  state.activityLog=[...(state.activityLog||[]),{type,text}].slice(-10);
+  state.activityLogPulse=true;
+  clearTimeout(activityPulseTimer);
+  activityPulseTimer=setTimeout(()=>{state.activityLogPulse=false;render();},900);
+  saveState(state);
+}
 
 const elapsed = Math.max(0, (Date.now() - (state.lastSaved || Date.now())) / 1000);
 if (elapsed > 12 && state.mode === "agency") {
@@ -177,12 +187,12 @@ function renderBrief() {
     const disabled=(id==="cigarette"&&p.stress<10)||(id==="coffee"&&p.energy>88)||(id==="take a walk"&&p.energy<8);
     return `<button data-personal-action="${id}" ${disabled||state.metricAnimating?'disabled':''}>[ ${id} ]</button>`;
   }).join("");
-  const eventBlock = event ? `<div class="brief-event"><span class="label warning">DISTRACTION</span><p>${event.text.replaceAll("\n","<br>")}</p>${event.choices.map((c,i)=>`<button data-event-choice="${i}" ${state.metricAnimating?'disabled':''}>[ ${c.label} ]</button>`).join("")}</div>` : brief.eventResult ? `<div class="brief-event event-result">${brief.eventResult.replaceAll("\n","<br>")}</div>` : "";
+  const eventBlock = event ? `<div class="brief-event"><span class="label warning">DISTRACTION</span><p>${event.text.replaceAll("\n","<br>")}</p>${event.choices.map((c,i)=>`<button data-event-choice="${i}" ${state.metricAnimating?'disabled':''}>[ ${c.label} ]</button>`).join("")}</div>` : "";
   const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green',metric):personalMetric('STRESS',p.stress,'fill-purple',metric)).join('');
   const ideaMeter=brief.promptComplete?`<div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${Math.floor(brief.idea)} / 100</span>${deltaBadge(activeIdeaDelta)}</div>${bar(brief.idea,'fill-yellow',20)}</div>`:'';
   const completion=briefCopy.completion.replace(' / ','<br><br>');
   const attempt=brief.promptComplete?(brief.completed?`<p class="idea-found">${completion}</p><button data-finish-brief>[ ${briefCopy.send} ]</button>`:`<button class="try-idea" data-try-idea ${state.metricAnimating?'disabled':''}>[ ${briefCopy.attempt} ]</button>`):'';
-  game.innerHTML=`<section class="brief-screen"><div class="brief-dialogue"><span class="label insight brief-label">${briefCopy.label}</span><div class="brief-thought"><span class="auto-anchor">${briefCopy.anchor}</span><br><br><span>${promptVisible}</span>${!brief.promptComplete?'<span class="cursor">|</span>':''}</div>${ideaMeter}${attempt}${eventBlock}</div>
+  game.innerHTML=`<section class="brief-screen"><div class="brief-dialogue"><span class="label insight brief-label">${briefCopy.label}</span><div class="brief-thought"><span class="auto-anchor">${briefCopy.anchor}</span><br><br><span>${promptVisible}</span>${!brief.promptComplete?'<span class="cursor">|</span>':''}</div>${ideaMeter}${attempt}${eventBlock}${activityLogView(state,"activity-log-brief",state.activityLogPulse)}</div>
   <aside class="personal-side">${metrics?`<div class="personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:''}<nav class="habit-menu"><span class="action-menu-title">HABITS</span>${actions}</nav></aside><div class="hint">${brief.promptComplete?'':'TYPE TO THINK'}</div></section>`;
 }
 
@@ -208,7 +218,7 @@ function advanceBriefTyping(){
   const b=state.firstBrief,prompt=briefCopy.prompt;
   if(b.promptComplete)return;
   b.promptChar=Math.min(prompt.length,b.promptChar+2);
-  if(b.promptChar>=prompt.length){b.promptComplete=true;saveState(state);}
+  if(b.promptChar>=prompt.length){b.promptComplete=true;logActivity("goal","Fill the IDEA gauge.");}
   render();
 }
 
@@ -243,11 +253,11 @@ function animateMetrics(effects, ideaGain=0, done=()=>{}) {
 }
 
 function renderEarly() {
-  game.innerHTML=`<section class="early"><div class="early-copy">WHAT IF...<br><br><span class="cursor">|</span><br><br><br><span class="label creative">IDEAS</span><br>${bar(state.resources.ideas,'fill-yellow',12)}<br><br>one thought survived the shower.<br><br><button data-first-brief>[ open the brief ]</button></div><div class="early-map"><div class="zone" style="left:8%;top:23%"><b>bedroom</b>\n\n      ○\n  ┌─────────┐\n  │ ▪     ☕ │\n  └─────────┘\n\n       ░░\n      bed</div></div></section>`;
+  game.innerHTML=`<section class="early"><div class="early-copy">WHAT IF...<br><br><span class="cursor">|</span><br><br><br><span class="label creative">IDEAS</span><br>${bar(state.resources.ideas,'fill-yellow',12)}<br><br>one thought survived the shower.<br><br><button data-first-brief>[ open the brief ]</button>${activityLogView(state,"activity-log-early",state.activityLogPulse)}</div><div class="early-map"><div class="zone" style="left:8%;top:23%"><b>bedroom</b>\n\n      ○\n  ┌─────────┐\n  │ ▪     ☕ │\n  └─────────┘\n\n       ░░\n      bed</div></div></section>`;
 }
 
-function skipToAgency(){ state=initialState(); state.mode="agency"; afkNote=""; saveState(state); render(); }
-function skipToBrief(){ state=initialState(); state.mode="brief"; ["cigarette","scroll","coffee","look out the window"].forEach(unlockPersonal); afkNote=""; saveState(state); render(); }
+function skipToAgency(){ state=initialState(); state.mode="agency"; state.activityLog=[{type:"goal",text:"Keep the agency alive."}]; afkNote=""; saveState(state); render(); }
+function skipToBrief(){ state=initialState(); state.mode="brief"; state.activityLog=[{type:"goal",text:"Find a direction for the brief."}]; ["cigarette","scroll","coffee","look out the window"].forEach(unlockPersonal); afkNote=""; saveState(state); render(); }
 
 document.addEventListener("keydown", e=>{ if(!e.metaKey&&!e.ctrlKey&&!e.altKey){ if(state.mode==="intro"){e.preventDefault();advanceTyping();}else if(state.mode==="brief"){e.preventDefault();advanceBriefTyping();} }});
 document.addEventListener("click", e=>{
@@ -265,39 +275,45 @@ document.addEventListener("click", e=>{
     if(phone) return startAutoDialogue();
     return render();
   }
-  if(el.hasAttribute("data-reply")){ state.mode="brief"; unlockPersonal("look out the window"); saveState(state); return render(); }
-  if(el.dataset.personalAction){ const id=el.dataset.personalAction,a=personalActions[id]; if(id==='cigarette'||id==='scroll')unlockMetric('stress');if(id==='coffee')unlockMetric('energy');if(id==='look out the window'||id==='take a walk')unlockMetric('creativity'); state.firstBrief.eventResult=a.note; state.actionUses[id]=(state.actionUses[id]||0)+1; animateMetrics(a); return render(); }
+  if(el.hasAttribute("data-reply")){ state.mode="brief"; unlockPersonal("look out the window"); logActivity("goal","Find a direction for the brief."); return render(); }
+  if(el.dataset.personalAction){ const id=el.dataset.personalAction,a=personalActions[id]; if(id==='cigarette'||id==='scroll')unlockMetric('stress');if(id==='coffee')unlockMetric('energy');if(id==='look out the window'||id==='take a walk')unlockMetric('creativity'); state.firstBrief.eventResult=a.note; state.actionUses[id]=(state.actionUses[id]||0)+1; logActivity("action",`${id}. ${a.note.replaceAll("\n"," ")}`); animateMetrics(a); return render(); }
   if(el.hasAttribute("data-try-idea")){
     const p=state.personal,b=state.firstBrief;
     const problem=ideaRequirements.find(({id})=>!state.unlockedMetrics.includes(id)||p[id]<(prologueGauges[id]?.tryMinimum||0));
-    if(problem){ b.eventResult=problem.message; saveState(state); return render(); }
+    if(problem){ b.eventResult=problem.message; logActivity("goal",problem.message.replaceAll("\n"," ")); return render(); }
     const source=Object.entries(prologueGauges).reduce((sum,[id,gauge])=>sum+p[id]*gauge.ideaSource,0);
     const boost=1+Object.entries(prologueGauges).reduce((sum,[id,gauge])=>sum+p[id]*gauge.ideaBoost,0);
     const gain=Math.max(prologueIdea.minimumGain,Math.round(prologueIdea.base+source*boost));
     const costs=Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.tryCost]));
     b.ideaUnlocked=true;
     b.eventResult="";
-    animateMetrics(costs,gain,()=>{b.attempts++;if(b.idea>=99.5){b.idea=100;b.completed=true;}else if(b.attempts%2===0&&briefEvents.length){b.pendingEvent=briefEvents[b.eventIndex%briefEvents.length];b.eventIndex++;}});
+    logActivity("action",`Tried a direction. IDEA +${gain}.`);
+    animateMetrics(costs,gain,()=>{b.attempts++;if(b.idea>=99.5){b.idea=100;b.completed=true;logActivity("goal","The direction is ready to send.");}else if(b.attempts%2===0&&briefEvents.length){b.pendingEvent=briefEvents[b.eventIndex%briefEvents.length];b.eventIndex++;logActivity("event",b.pendingEvent.text.replaceAll("\n"," "));}});
     return render();
   }
-  if(el.dataset.eventChoice!==undefined){ const b=state.firstBrief,event=b.pendingEvent,index=Number(el.dataset.eventChoice),c=event.choices[index]; b.pendingEvent=null; b.eventResult=c.result; if(c.unlock) unlockPersonal(c.unlock); animateMetrics(c.effects); return render(); }
-  if(el.hasAttribute("data-finish-brief")){ state.mode="early"; state.resources.ideas=18; saveState(state); return render(); }
-  if(el.hasAttribute("data-first-brief")){ state.mode="agency"; state.events.unshift({age:"THEN",text:"16:00.\n\nIt was an interview."}); saveState(state); return render(); }
+  if(el.dataset.eventChoice!==undefined){ const b=state.firstBrief,event=b.pendingEvent,index=Number(el.dataset.eventChoice),c=event.choices[index]; b.pendingEvent=null; b.eventResult=c.result; if(c.unlock) unlockPersonal(c.unlock); logActivity("action",`${c.label}. ${c.result.replaceAll("\n"," ")}`); animateMetrics(c.effects); return render(); }
+  if(el.hasAttribute("data-finish-brief")){ state.mode="early"; state.resources.ideas=18; logActivity("goal","Brief sent."); return render(); }
+  if(el.hasAttribute("data-first-brief")){ state.mode="agency"; state.events.unshift({age:"THEN",text:"16:00.\n\nIt was an interview."}); logActivity("goal","Keep the agency alive."); return render(); }
   if(el.dataset.tab){ state.activeTab=el.dataset.tab; return render(); }
-  if(el.dataset.staff){ const c=state.campaign; const role=el.dataset.staff; const next=Math.max(0,Math.min(3,c.staffing[role]+Number(el.dataset.delta))); const diff=next-c.staffing[role]; c.staffing[role]=next; c.margin-=diff*900; return render(); }
-  if(el.dataset.choice==="defend"){ state.campaign.decision=false; state.campaign.paused=false; state.campaign.phase="CRAFT"; state.campaign.progress=76; state.reputation=Math.min(100,state.reputation+2); state.events.unshift({age:"NOW",text:"you defended it.\n\nthe silence lasted too long.\n\nthen: \"okay.\""}); return render(); }
-  if(el.dataset.choice==="adapt"){ state.campaign.decision=false; state.campaign.paused=false; state.campaign.phase="CRAFT"; state.campaign.progress=83; state.campaign.margin-=1800; state.events.unshift({age:"NOW",text:"option 2 became option 1.\n\napproval ↑\nmargin ↓"}); return render(); }
-  if(el.dataset.choice==="award" && state.cash>=2400){ state.cash-=2400; state.awardEligible=false; state.events.unshift({age:"NOW",text:"submitted to CBA.\n\nCASE FILM\n██████░░░░░░\n\nnow we wait."}); return render(); }
+  if(el.dataset.staff){ const c=state.campaign; const role=el.dataset.staff; const next=Math.max(0,Math.min(3,c.staffing[role]+Number(el.dataset.delta))); const diff=next-c.staffing[role]; c.staffing[role]=next; c.margin-=diff*900; logActivity("action",`${diff>0?"Added":"Removed"} ${role} capacity.`); return render(); }
+  if(el.dataset.choice==="defend"){ state.campaign.decision=false; state.campaign.paused=false; state.campaign.phase="CRAFT"; state.campaign.progress=76; state.reputation=Math.min(100,state.reputation+2); state.events.unshift({age:"NOW",text:"you defended it.\n\nthe silence lasted too long.\n\nthen: \"okay.\""}); logActivity("action","Defended the idea. The client said okay."); return render(); }
+  if(el.dataset.choice==="adapt"){ state.campaign.decision=false; state.campaign.paused=false; state.campaign.phase="CRAFT"; state.campaign.progress=83; state.campaign.margin-=1800; state.events.unshift({age:"NOW",text:"option 2 became option 1.\n\napproval ↑\nmargin ↓"}); logActivity("action","Adapted the idea. Approval up, margin down."); return render(); }
+  if(el.dataset.choice==="award" && state.cash>=2400){ state.cash-=2400; state.awardEligible=false; state.events.unshift({age:"NOW",text:"submitted to CBA.\n\nCASE FILM\n██████░░░░░░\n\nnow we wait."}); logActivity("action","Submitted the work to CBA."); return render(); }
 });
 
 setInterval(()=>{
-  const now=Date.now(); simulate(state,(now-lastTick)/1000); lastTick=now;
+  const now=Date.now(),delta=(now-lastTick)/1000;
+  const previousEvent=state.events[0]?.text;
+  simulate(state,delta); lastTick=now;
   if(state.mode==="brief"&&!state.metricAnimating){
     const drift={};
     state.unlockedMetrics.forEach(id=>drift[id]=prologueGauges[id]?.drift||0);
     adjustPersonal(drift);
     render();
-  } else if(state.mode==="agency") render();
+  } else if(state.mode==="agency") {
+    if(state.events[0]?.text&&state.events[0].text!==previousEvent) logActivity("event",state.events[0].text.replaceAll("\n"," "));
+    render();
+  }
 },1000);
 setInterval(()=>saveState(state),5000);
 window.addEventListener("beforeunload",()=>saveState(state));
