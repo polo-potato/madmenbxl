@@ -1,0 +1,35 @@
+.save-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.save .save-meta {
+  font-size: 8px;
+  letter-spacing: .09em;
+}
+
+.leave-file-modal small {
+  display: block;
+  margin: -14px 0 24px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.leave-file-modal form > div {
+  flex-wrap: wrap;
+}
+
+.leave-file-modal #leave-discard {
+  border: 1px solid var(--line);
+}
+
+.leave-file-modal #leave-save {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+@media (max-width: 760px) {
+  .save .save-meta { display: block; }
+}

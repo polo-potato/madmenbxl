@@ -6,6 +6,8 @@ const mapCanvas = document.querySelector("#map-canvas");
 const mapInspector = document.querySelector("#map-inspector");
 const elementLibrary = document.querySelector("#element-library");
 const deleteModal = document.querySelector("#delete-element-modal");
+const leaveFileModal = document.querySelector("#leave-file-modal");
+const saveIndicator = document.querySelector("#save-indicator");
 
 let current = "story";
 let historyStates = [];
@@ -22,6 +24,13 @@ let selectedPartIds = new Set();
 let activePartId = "";
 let activeTool = "select";
 let pendingElementDelete = "";
+let loadedSource = "";
+let isDirty = false;
+let pendingNavigation = null;
+
+const saveClickStorageKey = "what-if-writer-save-clicks";
+let saveClicks = {};
+try { saveClicks = JSON.parse(localStorage.getItem(saveClickStorageKey) || "{}"); } catch { saveClicks = {}; }
 
 const shapeTypes = [
   ["hline", "Line"],
@@ -278,11 +287,50 @@ function message(text) {
   message.timer = setTimeout(() => toast.classList.remove("show"), 2800);
 }
 
+function formatSaveClick(timestamp) {
+  if (!timestamp) return "LAST SAVE CLICK · NEVER";
+  const formatted = new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(timestamp));
+  return `LAST SAVE CLICK · ${formatted}`;
+}
+
+function updateSaveIndicator() {
+  saveIndicator.textContent = formatSaveClick(saveClicks[modules[current].file]);
+}
+
+function recordSaveClick() {
+  saveClicks[modules[current].file] = Date.now();
+  localStorage.setItem(saveClickStorageKey, JSON.stringify(saveClicks));
+  updateSaveIndicator();
+}
+
+async function publishCurrent() {
+  await navigator.clipboard.writeText(editor.value);
+  recordSaveClick();
+  message("MODULE COPIED — FINISH THE COMMIT IN GITHUB");
+  window.open(editRoot + "content/" + modules[current].file, "_blank", "noopener");
+}
+
+function requestNavigation(action, destination) {
+  if (!isDirty) {
+    action();
+    return;
+  }
+  pendingNavigation = action;
+  document.querySelector("#leave-file-copy").textContent = `${modules[current].file} has changes that only exist in this tab. ${destination} will discard them.`;
+  leaveFileModal.showModal();
+}
+
 function check() {
   const module = modules[current];
   const source = editor.value;
   document.querySelector("#detected").innerHTML = `<span>LIVE CHECK</span>` + module.counts(source).map(([name, expression]) => `<b>${(source.match(expression) || []).length}</b><small>${name}</small>`).join("");
-  document.querySelector("#state").textContent = "UNSAVED CHANGES";
+  isDirty = source !== loadedSource;
+  document.querySelector("#state").textContent = isDirty ? "UNSAVED CHANGES" : "LOADED FROM GITHUB";
 }
 
 function setVisualMode(enabled) {
@@ -311,6 +359,7 @@ async function load() {
   document.querySelector("#path").textContent = `content/${module.file}`;
   document.querySelectorAll("[data-module]").forEach(button => button.classList.toggle("active", button.dataset.module === current));
   editor.value = await fetch(`../content/${module.file}?v=${Date.now()}`).then(response => response.text());
+  loadedSource = editor.value;
   if (current === "map") {
     const catalogSource = await fetch(`../content/prologue-elements.md?v=${Date.now()}`).then(response => response.text());
     catalog = Object.fromEntries(parseElementCatalog(catalogSource).elements.map(item => [item.id, item]));
@@ -318,7 +367,7 @@ async function load() {
   setVisualMode(current === "map" || current === "elements");
   resetHistory();
   check();
-  document.querySelector("#state").textContent = "LOADED FROM GITHUB";
+  updateSaveIndicator();
 }
 
 function renderNavigation(manifest) {
@@ -565,14 +614,33 @@ editor.addEventListener("input", () => { check(); scheduleHistory(); });
 document.querySelector(".modules").addEventListener("click", event => {
   const button = event.target.closest("[data-module]");
   if (!button) return;
-  current = button.dataset.module;
-  load().catch(() => message("COULD NOT LOAD MODULE"));
+  const nextModule = button.dataset.module;
+  if (nextModule === current) return;
+  requestNavigation(() => {
+    current = nextModule;
+    load().catch(() => message("COULD NOT LOAD MODULE"));
+  }, `Opening ${modules[nextModule].file}`);
 });
-document.querySelector("#reload").addEventListener("click", load);
-document.querySelector("#publish").addEventListener("click", async () => {
-  await navigator.clipboard.writeText(editor.value);
-  message("MODULE COPIED — PASTE IT IN GITHUB");
-  window.open(editRoot + "content/" + modules[current].file, "_blank", "noopener");
+document.querySelector("#reload").addEventListener("click", () => requestNavigation(
+  () => load().catch(() => message("COULD NOT RELOAD FILE")),
+  "Reloading from GitHub"
+));
+document.querySelector("#publish").addEventListener("click", () => publishCurrent().catch(() => message("COULD NOT COPY MODULE")));
+document.querySelector("#leave-save").addEventListener("click", () => {
+  publishCurrent().then(() => leaveFileModal.close("copied")).catch(() => message("COULD NOT COPY MODULE"));
+});
+document.querySelector("#leave-discard").addEventListener("click", () => {
+  const action = pendingNavigation;
+  pendingNavigation = null;
+  if (action) action();
+});
+leaveFileModal.addEventListener("close", () => {
+  if (leaveFileModal.returnValue !== "discard") pendingNavigation = null;
+});
+window.addEventListener("beforeunload", event => {
+  if (!isDirty) return;
+  event.preventDefault();
+  event.returnValue = "";
 });
 
 document.querySelectorAll("[data-tool]").forEach(button => button.addEventListener("click", () => {
