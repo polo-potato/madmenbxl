@@ -10,7 +10,13 @@ const meta = source => Object.fromEntries(source.split("\n").map(line => {
   return colon < 0 ? null : [line.slice(0, colon).trim(), line.slice(colon + 1).trim()];
 }).filter(Boolean));
 
-const blocks = source => source.split(/^---$/m).map(s => s.trim()).filter(s => /^## (TEXT|NOTE)$/m.test(s));
+const splitBlocks = source => source.split(/^---$/m).map(block => block.trim()).filter(Boolean);
+const blocks = source => splitBlocks(source).filter(block => /^## (TEXT|NOTE)$/m.test(block));
+const tagValue = (source, name, fallback = "") => source.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`, "m"))?.[1]?.trim() || fallback;
+const tagValues = (source, name) => [...source.matchAll(new RegExp(`^\\[${name}\\]\\s+(.+)$`, "gm"))].map(match => match[1].trim()).filter(Boolean);
+const numberTag = (source, name, fallback = 0) => Number(source.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`, "m"))?.[1] ?? fallback);
+const taggedEffects = (source, prefix = "") => Object.fromEntries([...source.matchAll(new RegExp(`^\\[${prefix}EFFECT\\]\\s+(creativity|energy|stress)\\s+([+-]?\\d+)$`, "gm"))].map(match => [match[1], Number(match[2])]));
+const normalizeRotation = value => ((Number(value || 0) % 360) + 360) % 360;
 const effects = source => Object.fromEntries((source || "").split(",").map(item => {
   const [key, value] = item.trim().split(/\s+/);
   return key && value ? [key, Number(value)] : null;
@@ -54,13 +60,13 @@ function parseActions(source) {
     const [head, note = ""] = normalBlock.split("## NOTE");
     const data = meta(head);
     const id = head.match(/^\[ACTION\]\s+(.+)$/m)?.[1]?.trim() || data.id;
-    const tagged = Object.fromEntries([...head.matchAll(/^\[EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
-    const lucky = Object.fromEntries([...head.matchAll(/^\[LUCKY EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
+    const tagged = taggedEffects(head);
+    const lucky = taggedEffects(head, "LUCKY ");
     const chance = Number(head.match(/^\[CHANCE\]\s+([\d.]+)$/m)?.[1] || 0);
     const cooldown = Math.max(0, Number(head.match(/^\[COOLDOWN\]\s+([\d.]+)$/m)?.[1] || 0));
-    const move = head.match(/^\[MOVE\]\s+(.+)$/m)?.[1]?.trim() || "desk";
-    const props = [...head.matchAll(/^\[PROP\]\s+(.+)$/gm)].map(match=>match[1].trim()).filter(Boolean);
-    const animation = head.match(/^\[ANIMATION\]\s+(.+)$/m)?.[1]?.trim() || "";
+    const move = tagValue(head, "MOVE", "desk");
+    const props = tagValues(head, "PROP");
+    const animation = tagValue(head, "ANIMATION");
     return [id, { creativity: tagged.creativity ?? Number(data.creativity || 0), energy: tagged.energy ?? Number(data.energy || 0), stress: tagged.stress ?? Number(data.stress || 0), cooldown, room:{move,props,animation}, notes: notePool(note), chance, luckyEffects: lucky, luckyNotes: notePool(luckyNote) }];
   }));
 }
@@ -74,9 +80,9 @@ function parseEvents(source) {
       const [choiceHead, result] = part.split("## RESULT");
       const choice = meta(choiceHead);
       const label = choiceHead.match(/^\s*(?:\[CHOICE\]\s+(.+)|label:\s*(.+))$/m);
-      const taggedEffects = Object.fromEntries([...choiceHead.matchAll(/^\[EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
+      const choiceEffects = taggedEffects(choiceHead);
       const unlock = choiceHead.match(/^\[UNLOCK\]\s+(.+)$/m)?.[1]?.trim();
-      return { label: label?.[1]?.trim() || label?.[2]?.trim() || choice.label, effects: Object.keys(taggedEffects).length ? taggedEffects : effects(choice.effects), result: result.trim(), ...(unlock ? { unlock } : {}) };
+      return { label: label?.[1]?.trim() || label?.[2]?.trim() || choice.label, effects: Object.keys(choiceEffects).length ? choiceEffects : effects(choice.effects), result: result.trim(), ...(unlock ? { unlock } : {}) };
     });
     return { text: eventText.trim(), choices };
   });
@@ -84,14 +90,12 @@ function parseEvents(source) {
 
 function parseBrief(source) {
   const legacy = meta(source);
-  const tag = name => source.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`, "m"))?.[1]?.trim();
   const visibleSource=source.match(/^## VISIBLE ACTIONS\s*\n([\s\S]*?)(?=^\[BRIEF\])/m)?.[1]||"";
   const visibleActions=[...visibleSource.matchAll(/^\s*-\s+(.+)$/gm)].map(match=>match[1].trim()).filter(Boolean);
-  return { label: tag("LABEL") || legacy.label, anchor: tag("PREFIX") || legacy.anchor, prompt: tag("PROMPT") || legacy.prompt, attempt: tag("ACTION") || legacy.attempt, idea: tag("METER") || legacy.idea, completion: tag("COMPLETE") || legacy.completion, send: tag("SEND") || legacy.send, visibleActions };
+  return { label: tagValue(source,"LABEL",legacy.label), anchor: tagValue(source,"PREFIX",legacy.anchor), prompt: tagValue(source,"PROMPT",legacy.prompt), attempt: tagValue(source,"ACTION",legacy.attempt), idea: tagValue(source,"METER",legacy.idea), completion: tagValue(source,"COMPLETE",legacy.completion), send: tagValue(source,"SEND",legacy.send), visibleActions };
 }
 
 function parseGauges(source) {
-  const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
   const gauges=Object.fromEntries(source.split(/^---$/m).slice(1).map(block=>{
     const id=block.match(/^\[GAUGE\]\s+(.+)$/m)?.[1]?.trim();
     return [id,{start:numberTag(block,"START"),drift:numberTag(block,"DRIFT"),tryMinimum:numberTag(block,"TRY MINIMUM"),tryCost:numberTag(block,"TRY COST"),ideaSource:numberTag(block,"IDEA SOURCE"),ideaBoost:numberTag(block,"IDEA BOOST"),purpose:block.split("## PURPOSE")[1]?.trim()||""}];
@@ -100,7 +104,6 @@ function parseGauges(source) {
 }
 
 function parseElements(source) {
-  const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
   const normalizeVisual=(shape,style)=>{
     const legacy={hline:["line","pure"],"hline-muted":["line","muted"],"vline-muted":["line","vertical-muted"],"rect-muted":["rect","muted"]}[shape];
     if(legacy)return{shape:legacy[0],style:style||legacy[1]};
@@ -109,23 +112,20 @@ function parseElements(source) {
   return Object.fromEntries(source.split(/^---$/m).slice(1).map(block=>{
     const id=block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim();
     if(!id)return null;
-    const tag=name=>block.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";
     const firstPart=block.search(/^\[PART\]/m),head=firstPart<0?block:block.slice(0,firstPart);
-    const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match=>{const body=match[2];const partTag=name=>body.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";return{id:match[1].trim(),...normalizeVisual(partTag("SHAPE")||"rect",partTag("STYLE")),x:numberTag(body,"X"),y:numberTag(body,"Y"),width:numberTag(body,"WIDTH"),height:numberTag(body,"HEIGHT"),text:partTag("TEXT")};});
+    const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match=>{const body=match[2];return{id:match[1].trim(),...normalizeVisual(tagValue(body,"SHAPE","rect"),tagValue(body,"STYLE")),x:numberTag(body,"X"),y:numberTag(body,"Y"),width:numberTag(body,"WIDTH"),height:numberTag(body,"HEIGHT"),text:tagValue(body,"TEXT")};});
     parts.forEach(part=>{if(part.shape==="circle"){const diameter=part.width||part.height;part.width=diameter;part.height=diameter;}});
-    return [id,{id,width:numberTag(head,"WIDTH"),height:numberTag(head,"HEIGHT"),anchorX:numberTag(head,"ANCHOR X"),anchorY:numberTag(head,"ANCHOR Y"),show:tag("SHOW"),attach:tag("ATTACH"),parts}];
+    return [id,{id,width:numberTag(head,"WIDTH"),height:numberTag(head,"HEIGHT"),anchorX:numberTag(head,"ANCHOR X"),anchorY:numberTag(head,"ANCHOR Y"),show:tagValue(block,"SHOW"),attach:tagValue(block,"ATTACH"),parts}];
   }).filter(Boolean));
 }
 
 function parseMap(source,definitions) {
-  const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
-  const rotation=value=>((Number(value||0)%360)+360)%360;
   const first=source.split(/^---$/m)[0];
   const positions=Object.fromEntries([...first.matchAll(/^\[POSITION\]\s+(\S+)\s+([+-]?[\d.]+)\s+([+-]?[\d.]+)$/gm)].map(match=>[match[1],{x:Number(match[2]),y:Number(match[3])}]));
   const elements=source.split(/^---$/m).slice(1).map(block=>{
     const id=block.match(/^\[PLACE\]\s+(.+)$/m)?.[1]?.trim();
     if(!id)return null;
-    return {...definitions[id],id,instance:block.match(/^\[INSTANCE\]\s+(.+)$/m)?.[1]?.trim()||id,x:numberTag(block,"X"),y:numberTag(block,"Y"),rotation:rotation(numberTag(block,"ROTATION"))};
+    return {...definitions[id],id,instance:tagValue(block,"INSTANCE",id),x:numberTag(block,"X"),y:numberTag(block,"Y"),rotation:normalizeRotation(numberTag(block,"ROTATION"))};
   }).filter(Boolean);
   const instancePositions={};
   elements.forEach(element=>{

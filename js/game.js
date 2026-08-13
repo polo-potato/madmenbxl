@@ -1,4 +1,4 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=15";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=16";
 import { initialState, loadState, saveState, resetState } from "./state.js?v=7";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
@@ -15,6 +15,16 @@ let activeIdeaDelta = 0;
 let metricDeltaProgress = 0;
 let activityPulseTimer = null;
 const game = document.querySelector("#game");
+const metricDefinitions = {
+  creativity: { label:"CREATIVITY", color:"fill-yellow", revealedBy:["scroll","look out the window","take a walk"] },
+  energy: { label:"ENERGY", color:"fill-green", revealedBy:["coffee"] },
+  stress: { label:"STRESS", color:"fill-purple", revealedBy:["cigarette"] }
+};
+const actionLimits = {
+  cigarette: personal => personal.stress < 10,
+  coffee: personal => personal.energy > 88,
+  "take a walk": personal => personal.energy < 8
+};
 
 function logActivity(type,text){
   if(!text)return;
@@ -61,7 +71,7 @@ function renderIntro() {
   const cursor = b.kind !== "narration" && !atAction ? `<span class="cursor ${cursorMoving?'':'cursor-still'}">|</span>` : '';
   const hint = acceptingInput ? (state.beat === 0 ? 'TYPE TO THINK' : 'KEEP TYPING') : '';
   const menu = renderActionMenu(currentAction);
-  const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',state.personal.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',state.personal.energy,'fill-green',metric):personalMetric('STRESS',state.personal.stress,'fill-purple',metric)).join('');
+  const metrics=renderPersonalMetrics(state.personal);
   const voiceClass = b.kind === "narration" ? "narration" : "typed";
   const side = metrics || menu ? `<aside class="prologue-side">${metrics?`<div class="prologue-metrics personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:""}${menu}</aside>` : "";
   game.innerHTML = `<section class="prologue"><div class="prologue-output">${anchor}<span class="${voiceClass}">${visible}</span>${cursor}${state.introActionNote?`<span class="intro-action-note narration">${state.introActionNote.replaceAll("\n","<br>")}</span>`:""}</div>${side}<div class="hint">${hint}</div></section>`;
@@ -188,11 +198,11 @@ function renderBrief() {
   const event = brief.pendingEvent;
   const actions = state.unlockedActions.map(id => {
     const a=personalActions[id]; if(!a) return "";
-    const disabled=(id==="cigarette"&&p.stress<10)||(id==="coffee"&&p.energy>88)||(id==="take a walk"&&p.energy<8);
+    const disabled=actionLimits[id]?.(p) || false;
     return actionButton(id,disabled);
   }).join("");
   const eventBlock = event ? `<div class="brief-event"><span class="label warning">DISTRACTION</span><p>${event.text.replaceAll("\n","<br>")}</p>${event.choices.map((c,i)=>`<button data-event-choice="${i}" ${state.metricAnimating?'disabled':''}>[ ${c.label} ]</button>`).join("")}</div>` : "";
-  const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green',metric):personalMetric('STRESS',p.stress,'fill-purple',metric)).join('');
+  const metrics=renderPersonalMetrics(p);
   const ideaMeter=brief.promptComplete?`<div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${Math.floor(brief.idea)} / 100</span>${deltaBadge(activeIdeaDelta)}</div>${bar(brief.idea,'fill-yellow',20)}</div>`:'';
   const completion=briefCopy.completion.replace(' / ','<br><br>');
   const attempt=brief.promptComplete?(brief.completed?`<p class="idea-found">${completion}</p><button data-finish-brief>[ ${briefCopy.send} ]</button>`:`<button class="try-idea" data-try-idea ${state.metricAnimating?'disabled':''}>[ ${briefCopy.attempt} ]</button>`):'';
@@ -201,6 +211,7 @@ function renderBrief() {
 }
 
 function personalMetric(name,value,color,id){return `<div class="personal-metric"><div class="row-head"><span>${name}</span><span>${Math.round(value)}</span>${deltaBadge(activeMetricDeltas[id])}</div>${bar(value,color,12)}</div>`;}
+function renderPersonalMetrics(personal){return state.unlockedMetrics.map(id=>{const metric=metricDefinitions[id];return metric?personalMetric(metric.label,personal[id],metric.color,id):"";}).join("");}
 
 function unlockPersonal(id){ if(!state.unlockedActions.includes(id)) state.unlockedActions.push(id); }
 function unlockMetric(id){ if(!state.unlockedMetrics.includes(id)) state.unlockedMetrics.push(id); }
@@ -226,9 +237,7 @@ function resolvePersonalAction(id){
 }
 
 function revealActionMetric(id){
-  if(id==='cigarette')unlockMetric('stress');
-  if(id==='coffee')unlockMetric('energy');
-  if(id==='scroll'||id==='look out the window'||id==='take a walk')unlockMetric('creativity');
+  Object.entries(metricDefinitions).filter(([,metric])=>metric.revealedBy.includes(id)).forEach(([metric])=>unlockMetric(metric));
 }
 
 function cooldownRemaining(id){ return Math.max(0,Math.ceil(((state.actionCooldowns||{})[id]-Date.now())/1000)); }
@@ -316,7 +325,7 @@ function animateMetrics(effects, ideaGain=0, done=()=>{}) {
 
 function renderEarly() {
   const p=state.personal;
-  const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green',metric):personalMetric('STRESS',p.stress,'fill-purple',metric)).join('');
+  const metrics=renderPersonalMetrics(p);
   const actions=state.unlockedActions.map(id=>personalActions[id]?actionButton(id):'').join('');
   const room=activeRoomState();
   game.innerHTML=`<section class="after-brief-screen"><div class="brief-dialogue after-brief-dialogue"><span class="label insight brief-label">BRIEF SENT</span><div class="brief-thought"><span class="auto-anchor">WHAT IF...</span><br><br><span>one thought survived.</span></div><div class="idea-meter"><div class="row-head"><span>IDEA</span><span>100 / 100</span></div>${bar(100,'fill-yellow',20)}</div><button class="try-idea" data-first-brief>[ enter the office ]</button>${activityLogView(state,"activity-log-brief",state.activityLogPulse)}</div>

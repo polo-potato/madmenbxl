@@ -510,6 +510,16 @@ function canvasPoint(event) {
   return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
 }
 
+function trackPointer(move, finish = commitHistory) {
+  const up = () => {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    finish();
+  };
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+
 function beginPartMove(event, item) {
   const start = canvasPoint(event);
   const moving = item.parts.filter(part => selectedPartIds.has(part.id));
@@ -527,13 +537,7 @@ function beginPartMove(event, item) {
     renderCanvas();
     check();
   };
-  const up = () => {
-    window.removeEventListener("pointermove", move);
-    window.removeEventListener("pointerup", up);
-    commitHistory();
-  };
-  window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", up);
+  trackPointer(move);
 }
 
 function beginAnchorMove(event, item) {
@@ -545,13 +549,7 @@ function beginAnchorMove(event, item) {
     renderCanvas();
     check();
   };
-  const up = () => {
-    window.removeEventListener("pointermove", move);
-    window.removeEventListener("pointerup", up);
-    commitHistory();
-  };
-  window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", up);
+  trackPointer(move);
 }
 
 function beginResize(event, item, part, corner) {
@@ -585,13 +583,7 @@ function beginResize(event, item, part, corner) {
     renderCanvas();
     check();
   };
-  const up = () => {
-    window.removeEventListener("pointermove", move);
-    window.removeEventListener("pointerup", up);
-    commitHistory();
-  };
-  window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", up);
+  trackPointer(move);
 }
 
 function beginMarquee(event, item) {
@@ -621,13 +613,7 @@ function beginMarquee(event, item) {
     activePartId = [...selectedPartIds].at(-1) || "";
     mapCanvas.querySelectorAll("[data-part-id]").forEach(node => node.classList.toggle("selected", selectedPartIds.has(node.dataset.partId)));
   };
-  const up = () => {
-    window.removeEventListener("pointermove", move);
-    window.removeEventListener("pointerup", up);
-    renderCanvas();
-  };
-  window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", up);
+  trackPointer(move, renderCanvas);
 }
 
 function beginPlacementMove(event, item) {
@@ -641,13 +627,7 @@ function beginPlacementMove(event, item) {
     renderCanvas();
     check();
   };
-  const up = () => {
-    window.removeEventListener("pointermove", move);
-    window.removeEventListener("pointerup", up);
-    commitHistory();
-  };
-  window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", up);
+  trackPointer(move);
 }
 
 document.querySelector("#guide").addEventListener("mousedown", event => {
