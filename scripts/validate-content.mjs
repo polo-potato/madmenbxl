@@ -34,8 +34,15 @@ placedIds.forEach(id=>{if(!elementIds.includes(id))errors.push(`content/prologue
 const instances=[...sources["content/prologue-map.md"].matchAll(/^\[INSTANCE\]\s+(.+)$/gm)].map(match=>match[1].trim());
 if(instances.length!==placedIds.length)errors.push("content/prologue-map.md: every [PLACE] needs one [INSTANCE]");
 instances.filter((id,index)=>instances.indexOf(id)!==index).forEach(id=>errors.push(`content/prologue-map.md: duplicate instance ${id}`));
+const namedPositions=[...sources["content/prologue-map.md"].matchAll(/^\[POSITION\]\s+(\S+)\s+/gm)].map(match=>match[1].trim());
+const moveIds=[...sources["content/actions.md"].matchAll(/^\[MOVE\]\s+(.+)$/gm)].map(match=>match[1].trim());
+moveIds.forEach(id=>{if(!instances.includes(id)&&!namedPositions.includes(id))errors.push(`content/actions.md: [MOVE] ${id} has no matching Map instance or named position`);});
 for(const block of sources["content/prologue-elements.md"].split(/^---$/m).slice(1)){if(/^\[ELEMENT\]/m.test(block)&&!/^\[PART\]/m.test(block))errors.push(`content/prologue-elements.md: ${block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]} has no [PART]`);}
 const propIds=[...sources["content/actions.md"].matchAll(/^\[PROP\]\s+(.+)$/gm)].map(match=>match[1].trim());
 propIds.forEach(id=>{if(!elementIds.includes(id))errors.push(`content/actions.md: [PROP] ${id} has no matching element`);});
+const animationIds=[...sources["content/actions.md"].matchAll(/^\[ANIMATION\]\s+(.+)$/gm)].map(match=>match[1].trim());
+animationIds.forEach(id=>{if(!elementIds.includes(id))errors.push(`content/actions.md: [ANIMATION] ${id} has no matching element`);});
+const attachedIds=sources["content/prologue-elements.md"].split(/^---$/m).slice(1).filter(block=>/^\[ATTACH\]\s+player$/m.test(block)).map(block=>block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim()).filter(Boolean);
+attachedIds.forEach(id=>{if(!placedIds.includes(id))errors.push(`content/prologue-elements.md: attached element ${id} must have a Map placement to define its relative offset`);});
 if(errors.length){console.error(errors.join("\n"));process.exit(1);}
 console.log("Content looks good.");

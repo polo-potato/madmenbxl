@@ -249,11 +249,12 @@ function activeRoomState(){
 function renderRoomMap(room){
   const visible=element=>!element.show||room.props.has(element.show)||room.animations.has(element.show);
   const drawPart=part=>`<span class="map-element shape-${part.shape} style-${part.style||'pure'}" style="left:${part.x}px;top:${part.y}px;${part.width?`width:${part.width}px;`:''}${part.height?`height:${part.height}px;`:''}">${part.text||''}</span>`;
-  const draw=(element,attached=false)=>`<span class="map-composite" style="left:${attached?0:element.x}px;top:${attached?0:element.y}px;width:${element.width||1}px;height:${element.height||1}px;transform:rotate(${element.rotation||0}deg)">${(element.parts||[]).map(drawPart).join('')}</span>`;
-  const fixed=prologueMap.elements.filter(element=>!element.attach&&visible(element)).map(element=>draw(element)).join('');
-  const attached=prologueMap.elements.filter(element=>element.attach==='player'&&visible(element)).map(element=>draw(element,true)).join('');
   const position=prologueMap.positions[room.move]||prologueMap.positions.desk||{x:0,y:0};
-  return `<div class="room-plan" style="width:${prologueMap.width}px;height:${prologueMap.height}px">${fixed}<div class="plan-you" style="left:${position.x}px;top:${position.y}px"><span class="plan-dot"></span><span class="plan-arrow">← you</span>${attached}</div></div>`;
+  const draw=(element,anchor=null)=>`<span class="map-composite" style="left:${anchor?element.x-anchor.x:element.x}px;top:${anchor?element.y-anchor.y:element.y}px;width:${element.width||1}px;height:${element.height||1}px;transform:rotate(${element.rotation||0}deg)">${(element.parts||[]).map(drawPart).join('')}</span>`;
+  const fixed=prologueMap.elements.filter(element=>!element.attach&&visible(element)).map(element=>draw(element)).join('');
+  const attachedElements=prologueMap.elements.filter(element=>element.attach==='player'&&visible(element));
+  const attached=attachedElements.map(element=>draw(element,position)).join('');
+  return `<div class="room-plan" style="width:${prologueMap.width}px;height:${prologueMap.height}px">${fixed}<div class="plan-you${attachedElements.length?' has-attachments':''}" style="left:${position.x}px;top:${position.y}px"><span class="plan-dot"></span><span class="plan-arrow">← you</span>${attached}</div></div>`;
 }
 
 function usePersonalAction(id,{inIntro=false,resume=false}={}){

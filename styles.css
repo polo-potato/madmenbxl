@@ -144,6 +144,7 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .plan-you.at-desk { left: 101px; top: 154px; }
 .plan-you.at-window { left: 177px; top: 10px; }
 .plan-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+.plan-you.has-attachments .plan-dot { transform: translateX(-12px); }
 .plan-cigarette { width: 12px; border-top: 2px solid var(--ink); transform: rotate(-16deg); }
 .plan-smoke { position: absolute; left: 50px; top: -17px; color: var(--muted); font-size: 16px; animation: room-smoke 1.8s ease-out infinite; }
 .plan-bed { position: absolute; left: 46px; bottom: 42px; width: 118px; height: 62px; border: 1px solid var(--ink); }

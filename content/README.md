@@ -2,7 +2,15 @@
 
 `manifest.json` defines the hierarchy. `actions.md` is global. The active era is Prologue, composed of story, gauges, brief, events, reusable elements, and map placement. Agency is reserved for later.
 
-`prologue-elements.md` defines reusable objects as canvases composed from one or more `[PART]` shapes. `prologue-map.md` only places finished elements as uniquely named `[INSTANCE]` copies. Action `[PROP]` tags reference element names, while `[MOVE]` tags reference player positions defined by the map.
+`prologue-elements.md` defines reusable objects as canvases composed from one or more `[PART]` shapes. `prologue-map.md` only places finished elements as uniquely named `[INSTANCE]` copies.
+
+Map anchoring is a shared engine rule:
+
+- `[MOVE] cigarette-1` moves the player to that exact Map instance.
+- `[PROP] cigarette` and `[ANIMATION] smoke` activate matching elements.
+- Elements tagged `[ATTACH] player` keep the same relative spacing they have in Map, using the current `[MOVE]` instance as their anchor.
+- Moving the instances in the visual Map editor therefore changes both their preview composition and their in-game composition without code changes.
+- The content validator rejects missing movement targets, props, animations, and unplaced player-attached elements.
 
 ## Prologue story
 
