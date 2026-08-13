@@ -1,4 +1,4 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=8";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=9";
 import { initialState, loadState, saveState, resetState } from "./state.js?v=7";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
@@ -248,7 +248,8 @@ function activeRoomState(){
 }
 function renderRoomMap(room){
   const visible=element=>!element.show||room.props.has(element.show)||room.animations.has(element.show);
-  const draw=element=>`<span class="map-element shape-${element.shape}" style="left:${element.x}px;top:${element.y}px;${element.width?`width:${element.width}px;`:''}${element.height?`height:${element.height}px;`:''}">${element.text||''}</span>`;
+  const drawPart=part=>`<span class="map-element shape-${part.shape}" style="left:${part.x}px;top:${part.y}px;${part.width?`width:${part.width}px;`:''}${part.height?`height:${part.height}px;`:''}">${part.text||''}</span>`;
+  const draw=element=>`<span class="map-composite" style="left:${element.x}px;top:${element.y}px;width:${element.width||1}px;height:${element.height||1}px">${(element.parts||[]).map(drawPart).join('')}</span>`;
   const fixed=prologueMap.elements.filter(element=>!element.attach&&visible(element)).map(draw).join('');
   const attached=prologueMap.elements.filter(element=>element.attach==='player'&&visible(element)).map(draw).join('');
   const position=prologueMap.positions[room.move]||prologueMap.positions.desk||{x:0,y:0};
