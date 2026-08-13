@@ -1,10 +1,11 @@
 {
-  "globals": [{ "id": "actions", "label": "Actions", "file": "actions.md" }],
+  "globals": [],
   "eras": [
     { "id": "prologue", "label": "Prologue", "status": "active", "modules": [
-      { "id": "story", "label": "Story", "file": "prologue.md" },
-      { "id": "elements", "label": "Elements", "file": "prologue-elements.md" },
+      { "id": "actions", "label": "Actions", "file": "actions.md" },
       { "id": "map", "label": "Map", "file": "prologue-map.md" },
+      { "id": "elements", "label": "Elements", "file": "prologue-elements.md" },
+      { "id": "story", "label": "Story", "file": "prologue.md" },
       { "id": "gauges", "label": "Gauges", "file": "prologue-gauges.md" },
       { "id": "brief", "label": "First brief", "file": "brief.md" },
       { "id": "events", "label": "Events", "file": "events.md" }

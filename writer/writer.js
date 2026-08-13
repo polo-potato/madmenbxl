@@ -407,7 +407,7 @@ async function load() {
 }
 
 function renderNavigation(manifest) {
-  const globals = `<p class="nav-label">GLOBAL</p>${manifest.globals.map(item => `<button data-module="${item.id}">${item.label}</button>`).join("")}`;
+  const globals = manifest.globals?.length ? `<p class="nav-label">GLOBAL</p>${manifest.globals.map(item => `<button data-module="${item.id}">${item.label}</button>`).join("")}` : "";
   const eras = `<p class="nav-label">ERAS</p>${manifest.eras.map(era => `<div class="era ${era.status}"><div class="era-title"><b>${era.label}</b><small>${era.status}</small></div>${era.modules.map(item => `<button data-module="${item.id}">↳ ${item.label}</button>`).join("")}</div>`).join("")}`;
   document.querySelector(".modules").innerHTML = globals + eras;
 }
