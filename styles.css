@@ -106,10 +106,10 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .activity-log-early { width: 390px; margin-top: 80px; }
 .activity-log-agency { position: absolute; z-index: 4; left: 5%; bottom: 105px; width: min(390px,42vw); max-height: 170px; overflow: hidden; padding: 10px 12px; background: color-mix(in srgb,var(--paper) 88%,transparent); }
 
-.after-brief-screen { position: relative; width: min(1500px, calc(100vw - 96px)); min-height: 100vh; margin: 0 auto; padding-top: max(15vh, 86px); }
-.after-brief-dialogue { min-height: 650px; margin-left: 360px; }
-.after-brief-screen .personal-side { left: 978px; }
-.after-brief-map { position: absolute; left: 0; top: max(15vh, 86px); width: 280px; height: 360px; color: var(--muted); }
+.after-brief-screen { position: relative; display: grid; grid-template-columns: 280px minmax(390px,1fr) 242px; column-gap: clamp(40px,5vw,88px); width: min(1320px,calc(100vw - 64px)); height: 100dvh; min-height: 0; margin: 0 auto; padding-top: clamp(78px,10dvh,112px); overflow: hidden; }
+.after-brief-dialogue { position: relative; grid-column: 2; width: min(560px,100%); min-height: 0; margin-left: 0; }
+.after-brief-screen .personal-side { position: static; grid-column: 3; width: 242px; }
+.after-brief-map { position: relative; grid-column: 1; grid-row: 1; left: auto; top: auto; width: 280px; height: 360px; color: var(--muted); }
 .room-plan { position: relative; width: 100%; height: 100%; }
 .map-element { position: absolute; display: block; }
 .map-composite { position: absolute; display: block; }
@@ -218,7 +218,7 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
   .metric-delta { right: 0; top: -18px; }
   .activity-log-brief { position: static; width: min(390px,100%); margin-top: 70px; }
   .activity-log-agency { width: min(390px,80vw); }
-  .after-brief-screen { width: calc(100vw - 48px); }
+  .after-brief-screen { display: block; width: calc(100vw - 48px); height: auto; min-height: 100dvh; padding-top: 86px; overflow: visible; }
   .after-brief-dialogue { margin-left: 0; }
   .after-brief-screen .personal-side { left: auto; }
   .after-brief-map { position: static; width: min(280px,100%); margin: 42px 0 80px; }
