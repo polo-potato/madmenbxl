@@ -1,5 +1,5 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
-const loadText = name => fetch(new URL(`../content/${name}?v=8`, import.meta.url)).then(r => {
+const loadText = name => fetch(new URL(`../content/${name}?v=9`, import.meta.url)).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.text();
 });
@@ -104,7 +104,9 @@ function parseElements(source) {
     const id=block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim();
     if(!id)return null;
     const tag=name=>block.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";
-    return [id,{id,shape:tag("SHAPE")||"rect",width:numberTag(block,"WIDTH"),height:numberTag(block,"HEIGHT"),text:tag("TEXT"),show:tag("SHOW"),attach:tag("ATTACH")}];
+    const firstPart=block.search(/^\[PART\]/m),head=firstPart<0?block:block.slice(0,firstPart);
+    const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|$)/gm)].map(match=>{const body=match[2];const partTag=name=>body.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";return{id:match[1].trim(),shape:partTag("SHAPE")||"rect",x:numberTag(body,"X"),y:numberTag(body,"Y"),width:numberTag(body,"WIDTH"),height:numberTag(body,"HEIGHT"),text:partTag("TEXT")};});
+    return [id,{id,width:numberTag(head,"WIDTH"),height:numberTag(head,"HEIGHT"),show:tag("SHOW"),attach:tag("ATTACH"),parts}];
   }).filter(Boolean));
 }
 
@@ -115,7 +117,7 @@ function parseMap(source,definitions) {
   const elements=source.split(/^---$/m).slice(1).map(block=>{
     const id=block.match(/^\[PLACE\]\s+(.+)$/m)?.[1]?.trim();
     if(!id)return null;
-    return {...definitions[id],id,x:numberTag(block,"X"),y:numberTag(block,"Y")};
+    return {...definitions[id],id,instance:block.match(/^\[INSTANCE\]\s+(.+)$/m)?.[1]?.trim()||id,x:numberTag(block,"X"),y:numberTag(block,"Y")};
   }).filter(Boolean);
   return {width:numberTag(first,"MAP WIDTH",280),height:numberTag(first,"MAP HEIGHT",360),positions,elements};
 }
