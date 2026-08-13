@@ -1,4 +1,4 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=14";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=15";
 import { initialState, loadState, saveState, resetState } from "./state.js?v=7";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
@@ -244,7 +244,13 @@ function clearExpiredCooldowns(){
 function activeRoomState(){
   const active=Object.keys(state.actionCooldowns||{}).filter(id=>cooldownRemaining(id)>0).map(id=>personalActions[id]?.room).filter(Boolean);
   const moving=[...active].reverse().find(room=>room.move&&room.move!=="desk");
-  return { move:moving?.move||"desk", props:new Set(active.flatMap(room=>room.props||[])), animations:new Set(active.map(room=>room.animation).filter(Boolean)) };
+  const attachmentAnchors=new Map();
+  active.forEach(room=>{
+    const source=prologueMap.positions[room.move]||null;
+    (room.props||[]).forEach(id=>attachmentAnchors.set(id,source));
+    if(room.animation)attachmentAnchors.set(room.animation,source);
+  });
+  return { move:moving?.move||"desk", props:new Set(active.flatMap(room=>room.props||[])), animations:new Set(active.map(room=>room.animation).filter(Boolean)), attachmentAnchors };
 }
 function renderRoomMap(room){
   const visible=element=>!element.show||room.props.has(element.show)||room.animations.has(element.show);
@@ -253,7 +259,7 @@ function renderRoomMap(room){
   const draw=(element,anchor=null)=>`<span class="map-composite" style="left:${anchor?element.x-anchor.x:element.x}px;top:${anchor?element.y-anchor.y:element.y}px;width:${element.width||1}px;height:${element.height||1}px;transform:rotate(${element.rotation||0}deg)">${(element.parts||[]).map(drawPart).join('')}</span>`;
   const fixed=prologueMap.elements.filter(element=>!element.attach&&visible(element)).map(element=>draw(element)).join('');
   const attachedElements=prologueMap.elements.filter(element=>element.attach==='player'&&visible(element));
-  const attached=attachedElements.map(element=>draw(element,position)).join('');
+  const attached=attachedElements.map(element=>draw(element,room.attachmentAnchors.get(element.show)||position)).join('');
   return `<div class="room-plan" style="width:${prologueMap.width}px;height:${prologueMap.height}px">${fixed}<div class="plan-you${attachedElements.length?' has-attachments':''}" style="left:${position.x}px;top:${position.y}px"><span class="plan-dot"></span><span class="plan-arrow">← you</span>${attached}</div></div>`;
 }
 

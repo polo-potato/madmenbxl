@@ -81,7 +81,7 @@ const modules = {
   },
   actions: {
     file: "actions.md",
-    legend: makeLegend("ACTION TAGS", [["---", "NEW ACTION"], ["[ACTION] cigarette", "GLOBAL ACTION", "Unlocks refer to this name.", "unlock"], ["[COOLDOWN] 20", "WAIT TIME"], ["[EFFECT] stress -5", "GAUGE CHANGE"], ["[MOVE] cigarette-1", "PLAYER ANCHOR", "Exact Map instance or position."], ["[PROP] coffee", "ACTIVE ELEMENT"], ["[ANIMATION] smoke", "ACTIVE ANIMATION"], ["[CHANCE] 0.1", "LUCKY CHANCE"], ["[LUCKY EFFECT] creativity +19", "LUCKY GAUGE CHANGE"], ["## NOTE", "MESSAGE POOL", "One option per dash line.", "narration"], ["## LUCKY NOTE", "LUCKY MESSAGE POOL", "One option per dash line.", "narration"]], "MOVE is the anchor. Player-attached elements keep their Map spacing around it."),
+    legend: makeLegend("ACTION TAGS", [["---", "NEW ACTION"], ["[ACTION] cigarette", "GLOBAL ACTION", "Unlocks refer to this name.", "unlock"], ["[COOLDOWN] 20", "WAIT TIME"], ["[EFFECT] stress -5", "GAUGE CHANGE"], ["[MOVE] cigarette-1", "PLAYER ANCHOR", "Uses that instance's element anchor."], ["[PROP] coffee", "ACTIVE ELEMENT", "Lasts for the full cooldown."], ["[ANIMATION] smoke", "ACTIVE ANIMATION", "Lasts for the full cooldown."], ["[CHANCE] 0.1", "LUCKY CHANCE"], ["[LUCKY EFFECT] creativity +19", "LUCKY GAUGE CHANGE"], ["## NOTE", "MESSAGE POOL", "One option per dash line.", "narration"], ["## LUCKY NOTE", "LUCKY MESSAGE POOL", "One option per dash line.", "narration"]], "MOVE uses the editable Element anchor after Map rotation. Attached props follow later movements until their own cooldown ends."),
     counts: source => [["ACTIONS", /^\[ACTION\]/gm], ["EFFECTS", /^\[(?:EFFECT|LUCKY EFFECT)\]/gm], ["MESSAGES", /^\s*-\s+.+$/gm]]
   },
   events: {
@@ -91,7 +91,7 @@ const modules = {
   },
   elements: {
     file: "prologue-elements.md",
-    legend: makeLegend("ELEMENT TAGS", [["---", "NEW ELEMENT"], ["[ELEMENT] bed", "REUSABLE ELEMENT"], ["[WIDTH] 118", "CANVAS / PART WIDTH"], ["[HEIGHT] 62", "CANVAS / PART HEIGHT"], ["[SHOW] coffee", "ACTIVE WITH PROP"], ["[ATTACH] player", "FOLLOW PLAYER", "Keeps Map-relative spacing."], ["[PART] pillow", "NEW LAYER", "Maximum five."], ["[SHAPE] rect", "FIXED GEOMETRY"], ["[STYLE] pure", "VISUAL EFFECT", "Pure is the default."], ["[X] 0", "LAYER X"], ["[Y] 0", "LAYER Y"], ["[TEXT] ○", "TEXT CONTENT"]], "Design an element here, then place instances in Map."),
+    legend: makeLegend("ELEMENT TAGS", [["---", "NEW ELEMENT"], ["[ELEMENT] bed", "REUSABLE ELEMENT"], ["[WIDTH] 118", "CANVAS / PART WIDTH"], ["[HEIGHT] 62", "CANVAS / PART HEIGHT"], ["[ANCHOR X] 0", "MOVE ANCHOR X"], ["[ANCHOR Y] 0", "MOVE ANCHOR Y"], ["[SHOW] coffee", "ACTIVE WITH PROP"], ["[ATTACH] player", "FOLLOW PLAYER", "Keeps Map-relative spacing."], ["[PART] pillow", "NEW LAYER", "Maximum five."], ["[SHAPE] rect", "FIXED GEOMETRY"], ["[STYLE] pure", "VISUAL EFFECT", "Pure is the default."], ["[X] 0", "LAYER X"], ["[Y] 0", "LAYER Y"], ["[TEXT] ○", "TEXT CONTENT"]], "The MOVE anchor is independent: dragging it never moves the element's layers."),
     counts: source => [["ELEMENTS", /^\[ELEMENT\]/gm], ["LAYERS", /^\[PART\]/gm], ["ACTION LINKS", /^\[(?:SHOW|ATTACH)\]/gm]]
   },
   map: {
@@ -141,6 +141,8 @@ function parseElementCatalog(source) {
       id,
       width: numberTag(head, "WIDTH", 100),
       height: numberTag(head, "HEIGHT", 70),
+      anchorX: numberTag(head, "ANCHOR X"),
+      anchorY: numberTag(head, "ANCHOR Y"),
       show: tag(head, "SHOW"),
       attach: tag(head, "ATTACH"),
       parts
@@ -197,6 +199,8 @@ function serializeCurrentSource() {
       `[ELEMENT] ${item.id}`,
       `[WIDTH] ${Math.round(item.width)}`,
       `[HEIGHT] ${Math.round(item.height)}`,
+      `[ANCHOR X] ${Math.round(item.anchorX || 0)}`,
+      `[ANCHOR Y] ${Math.round(item.anchorY || 0)}`,
       item.show ? `[SHOW] ${item.show}` : "",
       item.attach ? `[ATTACH] ${item.attach}` : "",
       ...item.parts.map(serializePart)
@@ -262,7 +266,7 @@ function renderInspector() {
     return;
   }
   const chosen = item.parts.find(part => part.id === activePartId);
-  const metadata = `<p class="kicker">ELEMENT</p><label>NAME<input name="id" value="${escapeHtml(item.id)}"></label><div class="inspector-grid"><label>CANVAS WIDTH<input name="element-width" type="number" min="20" value="${item.width}"></label><label>CANVAS HEIGHT<input name="element-height" type="number" min="20" value="${item.height}"></label></div><label>SHOW WHEN<input name="show" value="${escapeHtml(item.show)}"></label><label>ATTACH TO<input name="attach" value="${escapeHtml(item.attach)}"></label>`;
+  const metadata = `<p class="kicker">ELEMENT</p><label>NAME<input name="id" value="${escapeHtml(item.id)}"></label><div class="inspector-grid"><label>CANVAS WIDTH<input name="element-width" type="number" min="20" value="${item.width}"></label><label>CANVAS HEIGHT<input name="element-height" type="number" min="20" value="${item.height}"></label></div><section class="anchor-fields"><p class="kicker">MOVE ANCHOR</p><div class="inspector-grid"><label>X<input name="anchor-x" type="number" value="${item.anchorX || 0}"></label><label>Y<input name="anchor-y" type="number" value="${item.anchorY || 0}"></label></div><p class="inspector-help">Drag the anchor point in the canvas. Layers stay still.</p></section><label>SHOW WHEN<input name="show" value="${escapeHtml(item.show)}"></label><label>ATTACH TO<input name="attach" value="${escapeHtml(item.attach)}"></label>`;
   let selection = "";
   if (selectedPartIds.size > 1) {
     selection = `<section class="selection-summary"><p class="kicker">SELECTION</p><b>${selectedPartIds.size} LAYERS SELECTED</b><p>Use Move to drag them together, or Delete Selected to remove them.</p></section>`;
@@ -282,7 +286,7 @@ function renderCanvas() {
     mapCanvas.style.width = `${item?.width || 160}px`;
     mapCanvas.style.height = `${item?.height || 120}px`;
     mapCanvas.dataset.tool = activeTool;
-    mapCanvas.innerHTML = (item?.parts || []).map(part => drawPart(part)).join("");
+    mapCanvas.innerHTML = (item?.parts || []).map(part => drawPart(part)).join("") + (item ? `<button type="button" class="element-anchor" data-element-anchor style="left:${item.anchorX || 0}px;top:${item.anchorY || 0}px" title="MOVE anchor · drag to reposition" aria-label="MOVE anchor"><i></i><small>MOVE</small></button>` : "");
   } else {
     const width = numberTag(sourceHeader, "MAP WIDTH", 280);
     const height = numberTag(sourceHeader, "MAP HEIGHT", 360);
@@ -374,6 +378,8 @@ function setVisualMode(enabled) {
   document.querySelector("#map-duplicate").hidden = current !== "map";
   document.querySelector("#map-delete").hidden = current !== "map";
   document.querySelectorAll("[data-add-shape]").forEach(button => button.hidden = current !== "elements");
+  document.querySelector('[data-tool="anchor"]').hidden = current !== "elements";
+  if (current !== "elements" && activeTool === "anchor") activeTool = "select";
   document.querySelector("#map-raw").textContent = "[ RAW MARKDOWN ]";
   document.querySelector("#visual-return").hidden = true;
   if (enabled) {
@@ -513,6 +519,24 @@ function beginPartMove(event, item) {
       part.x = origin.x + dx;
       part.y = origin.y + dy;
     });
+    serializeCurrentSource();
+    renderCanvas();
+    check();
+  };
+  const up = () => {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    commitHistory();
+  };
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+}
+
+function beginAnchorMove(event, item) {
+  const move = next => {
+    const point = canvasPoint(next);
+    item.anchorX = Math.round(point.x);
+    item.anchorY = Math.round(point.y);
     serializeCurrentSource();
     renderCanvas();
     check();
@@ -686,13 +710,13 @@ window.addEventListener("beforeunload", event => {
 });
 
 document.querySelectorAll("[data-tool]").forEach(button => button.addEventListener("click", () => {
-  activeTool = button.dataset.tool;
+  activeTool = button.dataset.tool === "anchor" && activeTool === "anchor" ? "select" : button.dataset.tool;
   renderCanvas();
 }));
 
 document.querySelector("#element-add").addEventListener("click", () => {
   const id = uniqueName("element", elements.map(item => item.id));
-  elements.push({ id, width: 100, height: 70, show: "", attach: "", parts: [] });
+  elements.push({ id, width: 100, height: 70, anchorX: 0, anchorY: 0, show: "", attach: "", parts: [] });
   activeElementId = id;
   selectedLibraryId = id;
   selectedPartIds.clear();
@@ -783,7 +807,7 @@ mapInspector.addEventListener("click", event => {
 mapInspector.addEventListener("input", event => {
   const name = event.target.name;
   if (!name) return;
-  const numeric = ["x", "y", "rotation", "width", "height", "diameter", "element-width", "element-height"].includes(name);
+  const numeric = ["x", "y", "rotation", "width", "height", "diameter", "element-width", "element-height", "anchor-x", "anchor-y"].includes(name);
   const value = numeric ? Number(event.target.value || 0) : event.target.value.trim();
   if (current === "map") {
     const item = activePlacement();
@@ -807,6 +831,8 @@ mapInspector.addEventListener("input", event => {
     selectedLibraryId = item.id;
   } else if (name === "element-width") item.width = Math.max(20, value);
   else if (name === "element-height") item.height = Math.max(20, value);
+  else if (name === "anchor-x") item.anchorX = value;
+  else if (name === "anchor-y") item.anchorY = value;
   else if (["show", "attach"].includes(name)) item[name] = value;
   else if (part) {
     if (name === "part-id") {
@@ -838,6 +864,16 @@ mapCanvas.addEventListener("pointerdown", event => {
   }
   const item = activeElement();
   if (!item) return;
+  if (activeTool === "anchor") {
+    const point = canvasPoint(event);
+    item.anchorX = Math.round(point.x);
+    item.anchorY = Math.round(point.y);
+    serializeCurrentSource();
+    renderCanvas();
+    check();
+    beginAnchorMove(event, item);
+    return;
+  }
   const partNode = event.target.closest("[data-part-id]");
   const handle = event.target.closest("[data-resize]");
   if (handle && partNode) {
@@ -892,7 +928,7 @@ window.addEventListener("keydown", event => {
     deleteSelected();
     return;
   }
-  const tool = { v: "move", s: "select", r: "resize" }[event.key.toLowerCase()];
+  const tool = { v: "move", s: "select", r: "resize", a: "anchor" }[event.key.toLowerCase()];
   if (tool && (current === "map" || current === "elements")) {
     activeTool = tool;
     renderCanvas();

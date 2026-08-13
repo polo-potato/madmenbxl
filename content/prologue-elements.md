@@ -4,6 +4,7 @@
 
 - `[ELEMENT] bed` = one reusable designed object.
 - `[WIDTH]` and `[HEIGHT]` = element canvas size.
+- `[ANCHOR X]` and `[ANCHOR Y]` = local MOVE destination inside the element. Moving this anchor never moves its layers.
 - `[PART] pillow` = one visible, independently editable layer inside the element.
 - `[SHAPE]` is the fixed geometry of a part: `line`, `rect`, `circle`, `text`, `triangle`, `dot`, or `smoke`.
 - `[STYLE] pure` is its compatible visual effect. `pure` is the default and never changes the geometry.
@@ -18,6 +19,8 @@
 [ELEMENT] window
 [WIDTH] 118
 [HEIGHT] 9
+[ANCHOR X] 88
+[ANCHOR Y] 5
 [PART] line
 [SHAPE] line
 [STYLE] pure

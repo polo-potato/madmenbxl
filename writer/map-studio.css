@@ -23,6 +23,7 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .map-studio[data-mode="elements"] .map-canvas{border-color:transparent;background:transparent;box-shadow:none}
 .map-canvas[data-tool="move"]{cursor:grab}.map-canvas[data-tool="move"]:active{cursor:grabbing}
 .map-canvas[data-tool="select"]{cursor:crosshair}.map-canvas[data-tool="resize"]{cursor:default}
+.map-canvas[data-tool="anchor"]{cursor:crosshair}.map-canvas[data-tool="anchor"] .studio-element{pointer-events:none}.map-canvas:not([data-tool="anchor"]) .element-anchor{display:none}
 
 .tool-palette{position:absolute;z-index:20;bottom:18px;left:50%;display:flex;gap:3px;padding:5px;border:1px solid var(--ink);background:var(--white);box-shadow:4px 4px 0 color-mix(in srgb,var(--ink) 18%,transparent);transform:translateX(-50%)}
 .tool-palette button{position:relative;display:grid;width:35px;height:32px;padding:7px;place-items:center}
@@ -63,6 +64,7 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .resize-handle{position:absolute;z-index:5;width:8px;height:8px;border:1px solid var(--ink);background:var(--white)}
 .resize-handle.nw{top:-8px;left:-8px;cursor:nwse-resize}.resize-handle.ne{top:-8px;right:-8px;cursor:nesw-resize}.resize-handle.se{right:-8px;bottom:-8px;cursor:nwse-resize}.resize-handle.sw{bottom:-8px;left:-8px;cursor:nesw-resize}
 .selection-marquee{position:absolute;z-index:10;border:1px dashed var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);pointer-events:none}
+.element-anchor{position:absolute;z-index:15;width:15px;height:15px;padding:0;border:1px solid var(--ink);border-radius:50%;background:var(--white);transform:translate(-50%,-50%);cursor:grab}.element-anchor:active{cursor:grabbing}.element-anchor i{position:absolute;inset:3px;border-radius:50%;background:var(--ink)}.element-anchor:before,.element-anchor:after{position:absolute;background:var(--ink);content:"";pointer-events:none}.element-anchor:before{top:6px;right:-5px;left:-5px;height:1px}.element-anchor:after{top:-5px;bottom:-5px;left:6px;width:1px}.element-anchor small{position:absolute;top:17px;left:50%;color:var(--muted);font-size:7px;letter-spacing:.08em;transform:translateX(-50%);white-space:nowrap}.anchor-fields{margin:14px 0;padding:12px 0 2px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 
 .studio-composite{position:absolute;display:block;cursor:default}
 .map-canvas[data-tool="move"] .studio-composite{cursor:grab}

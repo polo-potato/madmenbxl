@@ -113,7 +113,7 @@ function parseElements(source) {
     const firstPart=block.search(/^\[PART\]/m),head=firstPart<0?block:block.slice(0,firstPart);
     const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match=>{const body=match[2];const partTag=name=>body.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";return{id:match[1].trim(),...normalizeVisual(partTag("SHAPE")||"rect",partTag("STYLE")),x:numberTag(body,"X"),y:numberTag(body,"Y"),width:numberTag(body,"WIDTH"),height:numberTag(body,"HEIGHT"),text:partTag("TEXT")};});
     parts.forEach(part=>{if(part.shape==="circle"){const diameter=part.width||part.height;part.width=diameter;part.height=diameter;}});
-    return [id,{id,width:numberTag(head,"WIDTH"),height:numberTag(head,"HEIGHT"),show:tag("SHOW"),attach:tag("ATTACH"),parts}];
+    return [id,{id,width:numberTag(head,"WIDTH"),height:numberTag(head,"HEIGHT"),anchorX:numberTag(head,"ANCHOR X"),anchorY:numberTag(head,"ANCHOR Y"),show:tag("SHOW"),attach:tag("ATTACH"),parts}];
   }).filter(Boolean));
 }
 
@@ -129,8 +129,12 @@ function parseMap(source,definitions) {
   }).filter(Boolean);
   const instancePositions={};
   elements.forEach(element=>{
-    instancePositions[element.instance]={x:element.x,y:element.y};
-    if(!instancePositions[element.id])instancePositions[element.id]={x:element.x,y:element.y};
+    const radians=element.rotation*Math.PI/180;
+    const centerX=(element.width||0)/2,centerY=(element.height||0)/2;
+    const localX=(element.anchorX||0)-centerX,localY=(element.anchorY||0)-centerY;
+    const anchor={x:element.x+centerX+localX*Math.cos(radians)-localY*Math.sin(radians),y:element.y+centerY+localX*Math.sin(radians)+localY*Math.cos(radians)};
+    instancePositions[element.instance]=anchor;
+    if(!instancePositions[element.id])instancePositions[element.id]=anchor;
   });
   return {width:numberTag(first,"MAP WIDTH",280),height:numberTag(first,"MAP HEIGHT",360),positions:{...instancePositions,...positions},elements};
 }

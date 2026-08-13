@@ -6,9 +6,10 @@
 
 Map anchoring is a shared engine rule:
 
-- `[MOVE] cigarette-1` moves the player to that exact Map instance.
+- `[MOVE] window-1` moves the player to that instance's element anchor, including its Map rotation.
 - `[PROP] cigarette` and `[ANIMATION] smoke` activate matching elements.
 - Elements tagged `[ATTACH] player` keep the same relative spacing they have in Map, using the current `[MOVE]` instance as their anchor.
+- Props and animations remain active for their own action cooldown and follow later player movements.
 - Moving the instances in the visual Map editor therefore changes both their preview composition and their in-game composition without code changes.
 - The content validator rejects missing movement targets, props, animations, and unplaced player-attached elements.
 

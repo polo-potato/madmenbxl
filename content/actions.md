@@ -6,9 +6,10 @@
 - `[EFFECT] stress -13` = gauge change after one click.
 - `[COOLDOWN] 18` = seconds before this action can be used again. Its room animation stays visible for the same duration.
 - `[MOVE] cigarette-1` = uses that Map instance as the player's temporary anchor.
-- `[PROP] coffee` = temporarily activates the matching element.
-- `[ANIMATION] smoke` = temporarily activates the matching animated element.
+- `[PROP] coffee` = activates the matching element for this action's full cooldown.
+- `[ANIMATION] smoke` = activates the matching animated element for this action's full cooldown.
 - Elements using `[ATTACH] player` keep the exact spacing they have around the `[MOVE]` anchor in Map.
+- Attached props keep following the player when another action changes the current `[MOVE]` destination.
 - `[CHANCE] 0.1` = optional lucky outcome probability (0.1 means roughly 1 in 10).
 - `[LUCKY EFFECT] creativity +19` = replaces the normal effects when the lucky outcome happens.
 - `## NOTE` = normal feedback pool. Each line beginning with `-` is one possible message.
