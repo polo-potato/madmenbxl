@@ -1,4 +1,4 @@
-import { peopleSeed, personalActions, prologueGauges } from "./content.js?v=7";
+import { peopleSeed, personalActions, prologueGauges } from "./content.js?v=8";
 
 export const SAVE_KEY = "what-if-prototype-v1";
 
