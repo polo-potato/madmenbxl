@@ -22,15 +22,19 @@ the shoulders drop.
 
 ---
 [ACTION] scroll
-[EFFECT] creativity -3
-[EFFECT] energy -2
-[EFFECT] stress +4
+[EFFECT] creativity -5
+[EFFECT] energy -5
+[EFFECT] stress +5
 [CHANCE] 0.1
-[LUCKY EFFECT] creativity +24
-[LUCKY EFFECT] energy -2
-[LUCKY EFFECT] stress -2
+[LUCKY EFFECT] creativity +19
+[LUCKY EFFECT] energy +10
+[LUCKY EFFECT] stress -5
 ## NOTE
-a kitchen. a dog.
+a boring TikTok.
+
+someone showing off an award.
+
+a fucking sunset.
 
 an ad that was annoyingly good.
 ## LUCKY NOTE
