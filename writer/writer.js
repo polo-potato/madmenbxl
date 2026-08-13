@@ -254,10 +254,14 @@ function layerList(item) {
   return `<section class="layers"><div><p class="kicker">LAYERS · ${item.parts.length}/5</p></div>${item.parts.map((part, index) => `<div class="layer-row${selectedPartIds.has(part.id) ? " active" : ""}"><button type="button" data-layer-id="${escapeHtml(part.id)}"><span>${index + 1}</span>${escapeHtml(part.id)}<small>${escapeHtml(part.shape)}</small></button><button type="button" class="layer-remove" data-remove-layer="${escapeHtml(part.id)}" title="Delete ${escapeHtml(part.id)}" aria-label="Delete ${escapeHtml(part.id)}">×</button></div>`).join("") || `<small>NO SHAPES YET</small>`}</section>`;
 }
 
+function mapLayerList() {
+  return `<section class="map-layers"><p class="kicker">MAP LAYERS · ${placements.length}</p>${placements.map((item, index) => `<button type="button" class="map-layer-row" data-map-layer="${escapeHtml(item.instance)}"><span>${index + 1}</span><b>${escapeHtml(item.id)}</b><small>${escapeHtml(item.instance)}</small></button>`).join("") || `<small>NO ELEMENTS ON MAP</small>`}</section>`;
+}
+
 function renderInspector() {
   if (current === "map") {
     const item = activePlacement();
-    mapInspector.innerHTML = item ? `<p class="kicker">PLACED COPY</p><b>${escapeHtml(item.id)}</b><label>INSTANCE<input name="instance" value="${escapeHtml(item.instance)}"></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${item.x}"></label><label>Y<input name="y" type="number" value="${item.y}"></label></div><label>ROTATION (°)<input name="rotation" type="number" min="0" max="359" step="45" value="${normalizeRotation(item.rotation)}"></label>` : `<p class="kicker">PLACE AN ELEMENT</p><p class="inspector-help">Choose an element in the library, then use + or PLACE SELECTED.</p>`;
+    mapInspector.innerHTML = item ? `<p class="kicker">PLACED COPY</p><b>${escapeHtml(item.id)}</b><label>INSTANCE<input name="instance" value="${escapeHtml(item.instance)}"></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${item.x}"></label><label>Y<input name="y" type="number" value="${item.y}"></label></div><label>ROTATION (°)<input name="rotation" type="number" min="0" max="359" step="45" value="${normalizeRotation(item.rotation)}"></label>` : mapLayerList();
     return;
   }
   const item = activeElement();
@@ -787,6 +791,12 @@ elementLibrary.addEventListener("click", event => {
 
 mapInspector.addEventListener("submit", event => event.preventDefault());
 mapInspector.addEventListener("click", event => {
+  const mapLayer = event.target.closest("[data-map-layer]");
+  if (mapLayer) {
+    activePlacementId = mapLayer.dataset.mapLayer;
+    renderCanvas();
+    return;
+  }
   const remove = event.target.closest("[data-remove-layer]");
   if (remove) {
     const item = activeElement();
@@ -802,6 +812,18 @@ mapInspector.addEventListener("click", event => {
   if (!layer) return;
   selectPart(layer.dataset.layerId, event.shiftKey || event.metaKey || event.ctrlKey);
   renderCanvas();
+});
+
+mapInspector.addEventListener("pointerover", event => {
+  const mapLayer = event.target.closest("[data-map-layer]");
+  if (!mapLayer) return;
+  mapCanvas.querySelector(`[data-map-id="${CSS.escape(mapLayer.dataset.mapLayer)}"]`)?.classList.add("layer-hover");
+});
+
+mapInspector.addEventListener("pointerout", event => {
+  const mapLayer = event.target.closest("[data-map-layer]");
+  if (!mapLayer || mapLayer.contains(event.relatedTarget)) return;
+  mapCanvas.querySelector(`[data-map-id="${CSS.escape(mapLayer.dataset.mapLayer)}"]`)?.classList.remove("layer-hover");
 });
 
 mapInspector.addEventListener("input", event => {
