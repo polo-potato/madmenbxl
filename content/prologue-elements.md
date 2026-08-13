@@ -19,8 +19,8 @@
 [ELEMENT] window
 [WIDTH] 118
 [HEIGHT] 9
-[ANCHOR X] 88
-[ANCHOR Y] 5
+[ANCHOR X] 68
+[ANCHOR Y] 32
 [PART] line
 [SHAPE] line
 [STYLE] pure
@@ -33,6 +33,8 @@
 [ELEMENT] desk
 [WIDTH] 118
 [HEIGHT] 62
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [PART] surface
 [SHAPE] rect
 [STYLE] pure
@@ -45,6 +47,8 @@
 [ELEMENT] laptop
 [WIDTH] 53
 [HEIGHT] 33
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [PART] screen
 [SHAPE] rect
 [STYLE] pure
@@ -64,6 +68,8 @@
 [ELEMENT] chair
 [WIDTH] 36
 [HEIGHT] 36
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [PART] seat
 [SHAPE] circle
 [STYLE] pure
@@ -76,6 +82,8 @@
 [ELEMENT] bed
 [WIDTH] 118
 [HEIGHT] 62
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [PART] frame
 [SHAPE] rect
 [STYLE] pure
@@ -95,18 +103,22 @@
 [ELEMENT] coffee
 [WIDTH] 16
 [HEIGHT] 16
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [SHOW] coffee
 [PART] cup
 [SHAPE] text
 [STYLE] pure
-[TEXT] ○
 [X] 0
 [Y] 0
+[TEXT] ○
 
 ---
 [ELEMENT] pizza
 [WIDTH] 18
 [HEIGHT] 16
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [SHOW] pizza
 [PART] slice
 [SHAPE] triangle
@@ -120,6 +132,8 @@
 [ELEMENT] cigarette
 [WIDTH] 14
 [HEIGHT] 5
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [SHOW] cigarette
 [ATTACH] player
 [PART] cigarette
@@ -133,11 +147,13 @@
 [ELEMENT] smoke
 [WIDTH] 20
 [HEIGHT] 22
+[ANCHOR X] 0
+[ANCHOR Y] 0
 [SHOW] smoke
 [ATTACH] player
 [PART] smoke
 [SHAPE] smoke
 [STYLE] animated
-[TEXT] ∿
 [X] 0
 [Y] 0
+[TEXT] ∿
