@@ -280,16 +280,34 @@ function animateMetrics(effects, ideaGain=0, done=()=>{}) {
 }
 
 function renderEarly() {
-  game.innerHTML=`<section class="early"><div class="early-copy">WHAT IF...<br><br><span class="cursor">|</span><br><br><br><span class="label creative">IDEAS</span><br>${bar(state.resources.ideas,'fill-yellow',12)}<br><br>one thought survived the shower.<br><br><button data-first-brief>[ open the brief ]</button>${activityLogView(state,"activity-log-early",state.activityLogPulse)}</div><div class="early-map"><div class="zone" style="left:8%;top:23%"><b>bedroom</b>\n\n      ○\n  ┌─────────┐\n  │ ▪     ☕ │\n  └─────────┘\n\n       ░░\n      bed</div></div></section>`;
+  const p=state.personal;
+  const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green',metric):personalMetric('STRESS',p.stress,'fill-purple',metric)).join('');
+  const actions=state.unlockedActions.map(id=>personalActions[id]?`<button data-personal-action="${id}" ${state.metricAnimating?'disabled':''}>[ ${id} ]</button>`:'').join('');
+  game.innerHTML=`<section class="after-brief-screen"><div class="brief-dialogue after-brief-dialogue"><span class="label insight brief-label">BRIEF SENT</span><div class="brief-thought"><span class="auto-anchor">WHAT IF...</span><br><br><span>one thought survived.</span></div><div class="idea-meter"><div class="row-head"><span>IDEA</span><span>100 / 100</span></div>${bar(100,'fill-yellow',20)}</div><button class="try-idea" data-first-brief>[ enter the office ]</button>${activityLogView(state,"activity-log-brief",state.activityLogPulse)}</div>
+  <aside class="personal-side">${metrics?`<div class="personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:''}<nav class="habit-menu"><span class="action-menu-title">HABITS</span>${actions}</nav></aside>
+  <aside class="after-brief-map" aria-label="office map"><span class="section-title">THE OFFICE, APPARENTLY</span><div class="mini-office"><div class="zone mini-bedroom"><b>your desk</b>\n\n      ○\n  ┌─────────┐\n  │ ▪     ☕ │\n  └─────────┘</div><div class="zone mini-door">door →</div></div></aside></section>`;
 }
 
 function skipToAgency(){ state=initialState(); state.mode="agency"; state.activityLog=[{type:"goal",text:"Keep the agency alive."}]; afkNote=""; saveState(state); render(); }
 function skipToBrief(){ state=initialState(); state.mode="brief"; state.activityLog=[{type:"goal",text:"Find a direction for the brief."}]; briefCopy.visibleActions.forEach(unlockPersonal); afkNote=""; saveState(state); render(); }
+function skipToAfterBrief(){
+  state=initialState();
+  state.mode="early";
+  state.firstBrief.idea=100;
+  state.firstBrief.completed=true;
+  state.unlockedMetrics=Object.keys(prologueGauges);
+  briefCopy.visibleActions.forEach(unlockPersonal);
+  state.activityLog=[{type:"goal",text:"Brief sent."},{type:"action",text:"The direction survived."}];
+  afkNote="";
+  saveState(state);
+  render();
+}
 
 document.addEventListener("keydown", e=>{ if(!e.metaKey&&!e.ctrlKey&&!e.altKey){ if(state.mode==="intro"){e.preventDefault();advanceTyping();}else if(state.mode==="brief"){e.preventDefault();advanceBriefTyping();} }});
 document.addEventListener("click", e=>{
   const el=e.target.closest("button"); if(!el)return;
   if(el.dataset.action==="brief") return skipToBrief();
+  if(el.dataset.action==="after-brief") return skipToAfterBrief();
   if(el.dataset.action==="skip") return skipToAgency();
   if(el.dataset.action==="reset"){ resetState(); state=initialState(); afkNote=""; return render(); }
   if(el.hasAttribute("data-intro-action")) return nextThought(el.textContent.includes("cigarette"));
