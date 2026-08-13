@@ -1,7 +1,7 @@
 import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js";
-import { initialState, loadState, saveState, resetState } from "./state.js";
+import { initialState, loadState, saveState, resetState } from "./state.js?v=2";
 import { simulate } from "./simulation.js";
-import { activityLogView, agencyView, bar, money } from "./ui.js";
+import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
 
 let state = loadState();
 let lastTick = Date.now();
