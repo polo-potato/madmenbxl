@@ -2,12 +2,14 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .map-studio{min-height:0;border:1px solid var(--line);background:var(--white);overflow:hidden}
 .map-toolbar{height:46px;padding:9px 12px;display:flex;gap:10px;border-bottom:1px solid var(--line)}
 .map-toolbar button{padding:3px 6px}
-.map-workspace{height:calc(100% - 46px);display:grid;grid-template-columns:minmax(360px,1fr) 250px;overflow:hidden}
+.map-workspace{height:calc(100% - 46px);display:grid;grid-template-columns:150px minmax(360px,1fr) 250px;overflow:hidden}
+.element-library{padding:14px 10px;border-right:1px solid var(--line);overflow:auto}.element-library button{display:block;width:100%;padding:7px 6px;text-align:left}.element-library button.active{background:var(--ink);color:var(--paper)}
 .map-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-width:0;overflow:auto;background-image:radial-gradient(var(--line) .7px,transparent .7px);background-size:12px 12px}
 .map-stage small{color:var(--muted);font-size:8px;letter-spacing:.13em}
 .map-canvas{position:relative;flex:0 0 auto;background:var(--paper);border:1px solid var(--ink);box-shadow:7px 7px 0 color-mix(in srgb,var(--ink) 12%,transparent)}
 .studio-element{position:absolute;display:block;color:var(--ink);cursor:grab;user-select:none}
 .studio-element em{position:absolute;left:2px;top:calc(100% + 3px);padding:0 2px;background:var(--paper);color:var(--muted);font:8px/1.3 "IBM Plex Mono","Courier New",monospace;white-space:nowrap;pointer-events:none}
+.studio-composite{position:absolute;display:block;cursor:grab}.studio-composite.selected{outline:2px solid var(--ink);outline-offset:4px}.studio-composite em{position:absolute;left:0;top:calc(100% + 4px);color:var(--muted);font:8px/1.3 "IBM Plex Mono","Courier New",monospace;white-space:nowrap}.studio-composite .studio-element{pointer-events:none}
 .studio-element:hover{outline:1px dotted var(--ink);outline-offset:3px}
 .studio-element.selected{outline:2px solid var(--ink);outline-offset:4px}
 .studio-element.rect{border:1px solid var(--ink)}
@@ -29,4 +31,4 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .map-mode.map-raw-open #map-studio{display:none}
 .map-mode.map-raw-open #markdown{display:block}
 [hidden]{display:none!important}
-@media(max-width:900px){.map-workspace{grid-template-columns:1fr 210px}}
+@media(max-width:900px){.map-workspace{grid-template-columns:110px 1fr 210px}}
