@@ -66,9 +66,13 @@ first drag.
 
 just to think.
 
+oh my god
+
+what if we make a scented candle?
+
 ...
 
-nothing.
+nah.
 
 ---
 [THOUGHT]
@@ -90,11 +94,11 @@ one message.
 [ACTION] check phone
 [UNLOCK] scroll
 
-instagram.
+open instagram.
 
-instagram again.
+totally forgot about the message notification.
 
-a reel.
+clicked on a reel.
 another one.
 
 someone renovated a kitchen.
@@ -139,17 +143,6 @@ you drink it anyway.
 still cold.
 
 ---
-[THOUGHT]
-## TEXT
-we make it smaller?
-
-smaller how?
-
-...
-
-no.
-
----
 [NARRATION]
 ## TEXT
 you open a new tab.
@@ -157,15 +150,6 @@ you open a new tab.
 you don't remember why.
 
 close tab.
-
----
-[THOUGHT]
-## TEXT
-we just tell the truth?
-
-what truth?
-
-...
 
 ---
 [THOUGHT]
@@ -181,9 +165,11 @@ maybe.
 ---
 [NARRATION]
 ## TEXT
-you stare at it.
+you stare at your screen.
 
 ...
+
+dissociate a bit.
 
 still nothing.
 
@@ -213,6 +199,8 @@ you almost have it.
 ...
 
 gone.
+
+Now you're awake.
 
 coffee.
 
