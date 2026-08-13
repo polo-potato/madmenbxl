@@ -19,8 +19,8 @@
 [ELEMENT] window
 [WIDTH] 118
 [HEIGHT] 9
-[ANCHOR X] 68
-[ANCHOR Y] 32
+[ANCHOR X] 141
+[ANCHOR Y] -37
 [PART] line
 [SHAPE] line
 [STYLE] pure
