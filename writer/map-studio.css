@@ -20,6 +20,7 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .canvas-actions #map-raw{margin-left:auto}
 .map-stage{position:relative;display:flex;min-width:0;min-height:0;align-items:center;justify-content:center;padding:42px 34px 70px;overflow:auto;background-image:radial-gradient(var(--line) .7px,transparent .7px);background-size:12px 12px}
 .map-canvas{position:relative;flex:0 0 auto;border:1px solid var(--ink);outline:0;background:var(--paper);box-shadow:7px 7px 0 color-mix(in srgb,var(--ink) 12%,transparent);touch-action:none}
+.map-studio[data-mode="elements"] .map-canvas{border-color:transparent;background:transparent;box-shadow:none}
 .map-canvas[data-tool="move"]{cursor:grab}.map-canvas[data-tool="move"]:active{cursor:grabbing}
 .map-canvas[data-tool="select"]{cursor:crosshair}.map-canvas[data-tool="resize"]{cursor:default}
 

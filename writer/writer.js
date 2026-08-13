@@ -287,6 +287,7 @@ function check() {
 
 function setVisualMode(enabled) {
   const panel = document.querySelector(".editor");
+  mapStudio.dataset.mode = current;
   panel.classList.toggle("map-mode", enabled);
   panel.classList.remove("map-raw-open");
   mapStudio.hidden = !enabled;
