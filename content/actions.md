@@ -33,10 +33,14 @@
 - someone showing off an award.
 - a fucking sunset.
 - an ad that was annoyingly good.
+- another LinkedIn ai slop post.
+- why are you looking at pool renovations? you don't own a pool.
+- cute dog.
+- again a thirst trap.
 ## LUCKY NOTE
-- wait.
+- woooow smart content
 - that was actually good.
-
+- now that's a proper social media campaign
 ---
 [ACTION] coffee
 [EFFECT] creativity +1
@@ -45,6 +49,17 @@
 ## NOTE
 - still too hot.
 - then suddenly cold.
+- hmmm the smell is amazing
+- flat white. oat.
+
+---
+[ACTION] eat
+[EFFECT] creativity +1
+[EFFECT] energy +10
+[EFFECT] stress -10
+## NOTE
+- damn. good sandwich.
+- nothing beats a cold pizza.
 
 ---
 [ACTION] look out the window
