@@ -29,18 +29,18 @@
 
 ---
 [PLACE] chair
-[X] 83
-[Y] 119
+[X] 135
+[Y] 118
 
 ---
 [PLACE] bed
-[X] 46
-[Y] 256
+[X] 25
+[Y] 216
 
 ---
 [PLACE] pillow
-[X] 55
-[Y] 265
+[X] 37
+[Y] 226
 
 ---
 [PLACE] coffee
