@@ -1,5 +1,5 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
-const loadText = name => fetch(new URL(`../content/${name}?v=3`, import.meta.url)).then(r => {
+const loadText = name => fetch(new URL(`../content/${name}?v=4`, import.meta.url)).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.text();
 });
@@ -44,6 +44,10 @@ function parsePrologue(source) {
 }
 
 function parseActions(source) {
+  const notePool = text => {
+    const items=[...(text||"").matchAll(/^\s*-\s+(.+)$/gm)].map(match=>match[1].trim()).filter(Boolean);
+    return items.length?items:[text.trim()].filter(Boolean);
+  };
   return Object.fromEntries(blocks(source).map(block => {
     const [normalBlock, luckyNote = ""] = block.split("## LUCKY NOTE");
     const [head, note = ""] = normalBlock.split("## NOTE");
@@ -52,7 +56,7 @@ function parseActions(source) {
     const tagged = Object.fromEntries([...head.matchAll(/^\[EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
     const lucky = Object.fromEntries([...head.matchAll(/^\[LUCKY EFFECT\]\s+(creativity|energy|stress)\s+([+-]?\d+)$/gm)].map(match => [match[1], Number(match[2])]));
     const chance = Number(head.match(/^\[CHANCE\]\s+([\d.]+)$/m)?.[1] || 0);
-    return [id, { creativity: tagged.creativity ?? Number(data.creativity || 0), energy: tagged.energy ?? Number(data.energy || 0), stress: tagged.stress ?? Number(data.stress || 0), note: note.trim(), chance, luckyEffects: lucky, luckyNote: luckyNote.trim() }];
+    return [id, { creativity: tagged.creativity ?? Number(data.creativity || 0), energy: tagged.energy ?? Number(data.energy || 0), stress: tagged.stress ?? Number(data.stress || 0), notes: notePool(note), chance, luckyEffects: lucky, luckyNotes: notePool(luckyNote) }];
   }));
 }
 
