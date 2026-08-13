@@ -1,6 +1,8 @@
 # WHAT IF content system
 
-`manifest.json` defines the hierarchy. `actions.md` is global. The active era is Prologue, composed of `prologue.md`, `brief.md`, and `events.md`. Agency is reserved for later.
+`manifest.json` defines the hierarchy. `actions.md` is global. The active era is Prologue, composed of story, gauges, brief, events, reusable elements, and map placement. Agency is reserved for later.
+
+`prologue-elements.md` defines what room objects look like. `prologue-map.md` only places those reusable elements. Action `[PROP]` tags reference element names, while `[MOVE]` tags reference player positions defined by the map.
 
 ## Prologue story
 
