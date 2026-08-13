@@ -91,7 +91,7 @@ const modules = {
   },
   map: {
     file: "prologue-map.md",
-    legend: `<p class="kicker">MAP PLACEMENT</p><section class="tag"><code>[PLACE] desk</code><b>PLACE AN ELEMENT</b></section><section class="tag"><code>[INSTANCE] desk-1</code><b>UNIQUE COPY NAME</b></section><section class="tag"><code>[X] 46 / [Y] 44</code><b>POSITION</b></section><section class="tag"><code>[POSITION] window 177 10</code><b>PLAYER DESTINATION</b></section><p class="rules">Create elements in Elements, then place as many copies as needed here.</p>`,
+    legend: `<p class="kicker">MAP PLACEMENT</p><section class="tag"><code>[PLACE] desk</code><b>PLACE AN ELEMENT</b></section><section class="tag"><code>[INSTANCE] desk-1</code><b>UNIQUE COPY NAME</b></section><section class="tag"><code>[X] 46 / [Y] 44</code><b>POSITION</b></section><section class="tag"><code>[ROTATION] 45</code><b>INSTANCE ROTATION</b><p>The toolbar adds 45°. Values always stay between 0° and 359°.</p></section><section class="tag"><code>[POSITION] window 177 10</code><b>PLAYER DESTINATION</b></section><p class="rules">Create elements in Elements, then place as many copies as needed here.</p>`,
     counts: source => [["PLACED", /^\[PLACE\]/gm], ["POSITIONS", /^\[POSITION\]/gm]]
   }
 };
@@ -107,6 +107,11 @@ function tag(block, name) {
 function numberTag(block, name, fallback = 0) {
   const value = Number(tag(block, name));
   return Number.isFinite(value) ? value : fallback;
+}
+
+function normalizeRotation(value) {
+  const numeric = Number(value) || 0;
+  return ((numeric % 360) + 360) % 360;
 }
 
 function splitSource(source) {
@@ -159,7 +164,8 @@ function parseCurrentSource() {
       id,
       instance: tag(block, "INSTANCE") || `${id}-${index + 1}`,
       x: numberTag(block, "X"),
-      y: numberTag(block, "Y")
+      y: numberTag(block, "Y"),
+      rotation: normalizeRotation(numberTag(block, "ROTATION"))
     };
   }).filter(Boolean);
   if (!placements.some(item => item.instance === activePlacementId)) activePlacementId = placements[0]?.instance || "";
@@ -195,7 +201,8 @@ function serializeCurrentSource() {
       `[PLACE] ${item.id}`,
       `[INSTANCE] ${item.instance}`,
       `[X] ${Math.round(item.x)}`,
-      `[Y] ${Math.round(item.y)}`
+      `[Y] ${Math.round(item.y)}`,
+      `[ROTATION] ${normalizeRotation(item.rotation)}`
     ].join("\n"));
   }
   editor.value = [sourceHeader, ...blocks].filter(Boolean).join("\n\n---\n").trim() + "\n";
@@ -241,7 +248,7 @@ function layerList(item) {
 function renderInspector() {
   if (current === "map") {
     const item = activePlacement();
-    mapInspector.innerHTML = item ? `<p class="kicker">PLACED COPY</p><b>${escapeHtml(item.id)}</b><label>INSTANCE<input name="instance" value="${escapeHtml(item.instance)}"></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${item.x}"></label><label>Y<input name="y" type="number" value="${item.y}"></label></div>` : `<p class="kicker">PLACE AN ELEMENT</p><p class="inspector-help">Choose an element in the library, then use + or PLACE SELECTED.</p>`;
+    mapInspector.innerHTML = item ? `<p class="kicker">PLACED COPY</p><b>${escapeHtml(item.id)}</b><label>INSTANCE<input name="instance" value="${escapeHtml(item.instance)}"></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${item.x}"></label><label>Y<input name="y" type="number" value="${item.y}"></label></div><label>ROTATION (°)<input name="rotation" type="number" min="0" max="359" step="45" value="${normalizeRotation(item.rotation)}"></label>` : `<p class="kicker">PLACE AN ELEMENT</p><p class="inspector-help">Choose an element in the library, then use + or PLACE SELECTED.</p>`;
     return;
   }
   const item = activeElement();
@@ -264,6 +271,7 @@ function renderInspector() {
 
 function renderCanvas() {
   document.querySelectorAll("[data-tool]").forEach(button => button.classList.toggle("active", button.dataset.tool === activeTool));
+  document.querySelector("#map-rotate").hidden = current !== "map" || !activePlacementId;
   if (current === "elements") {
     const item = activeElement();
     mapCanvas.style.width = `${item?.width || 160}px`;
@@ -278,7 +286,8 @@ function renderCanvas() {
     mapCanvas.dataset.tool = activeTool;
     mapCanvas.innerHTML = placements.map(item => {
       const definition = catalog[item.id] || { width: 50, height: 40, parts: [] };
-      return `<span class="studio-composite${item.instance === activePlacementId ? " selected" : ""}" data-map-id="${escapeHtml(item.instance)}" style="left:${item.x}px;top:${item.y}px;width:${definition.width}px;height:${definition.height}px">${definition.parts.map(part => drawPart(part, item.instance)).join("")}<em>${escapeHtml(item.instance)}</em></span>`;
+      const rotation = normalizeRotation(item.rotation);
+      return `<span class="studio-composite${item.instance === activePlacementId ? " selected" : ""}" data-map-id="${escapeHtml(item.instance)}" style="left:${item.x}px;top:${item.y}px;width:${definition.width}px;height:${definition.height}px;--rotation:${rotation}deg;--counter-rotation:${-rotation}deg;transform:rotate(var(--rotation))">${definition.parts.map(part => drawPart(part, item.instance)).join("")}<em>${escapeHtml(item.instance)}</em></span>`;
     }).join("");
   }
   renderLibrary();
@@ -453,7 +462,7 @@ function placeElement(id) {
   const instance = uniqueInstance(id);
   const mapWidth = numberTag(sourceHeader, "MAP WIDTH", 280);
   const mapHeight = numberTag(sourceHeader, "MAP HEIGHT", 360);
-  placements.push({ id, instance, x: Math.max(0, Math.round((mapWidth - definition.width) / 2)), y: Math.max(0, Math.round((mapHeight - definition.height) / 2)) });
+  placements.push({ id, instance, x: Math.max(0, Math.round((mapWidth - definition.width) / 2)), y: Math.max(0, Math.round((mapHeight - definition.height) / 2)), rotation: 0 });
   activePlacementId = instance;
   selectedLibraryId = id;
   syncVisual(true);
@@ -699,6 +708,12 @@ document.querySelectorAll("[data-add-shape]").forEach(button => button.addEventL
 }));
 
 document.querySelector("#map-place").addEventListener("click", () => placeElement(selectedLibraryId));
+document.querySelector("#map-rotate").addEventListener("click", () => {
+  const item = activePlacement();
+  if (!item) return;
+  item.rotation = normalizeRotation(item.rotation + 45);
+  syncVisual(true);
+});
 document.querySelector("#map-duplicate").addEventListener("click", () => {
   const item = activePlacement();
   if (!item) return message("SELECT A PLACED COPY FIRST");
@@ -763,7 +778,7 @@ mapInspector.addEventListener("click", event => {
 mapInspector.addEventListener("input", event => {
   const name = event.target.name;
   if (!name) return;
-  const numeric = ["x", "y", "width", "height", "diameter", "element-width", "element-height"].includes(name);
+  const numeric = ["x", "y", "rotation", "width", "height", "diameter", "element-width", "element-height"].includes(name);
   const value = numeric ? Number(event.target.value || 0) : event.target.value.trim();
   if (current === "map") {
     const item = activePlacement();
@@ -773,6 +788,7 @@ mapInspector.addEventListener("input", event => {
       item.instance = value || old;
       activePlacementId = item.instance;
     } else if (["x", "y"].includes(name)) item[name] = value;
+    else if (name === "rotation") item.rotation = normalizeRotation(value);
     syncVisual();
     return;
   }

@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="writer.css?v=9">
   <link rel="stylesheet" href="navigation.css?v=2">
   <link rel="stylesheet" href="history.css?v=1">
-  <link rel="stylesheet" href="map-studio.css?v=9">
+  <link rel="stylesheet" href="map-studio.css?v=10">
   <link rel="stylesheet" href="save-guard.css?v=1">
 </head>
 <body>
@@ -64,6 +64,9 @@
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5M3 8l6-6M21 8l-6-6M3 16l6 6M21 16l-6 6"/></svg>
                 </button>
                 <span class="tool-divider" aria-hidden="true"></span>
+                <button id="map-rotate" title="Rotate +45°" aria-label="Rotate +45°" hidden>
+                  <span class="rotate-icon" aria-hidden="true">↻<small>45°</small></span>
+                </button>
                 <button data-add-shape="line" title="Add line" aria-label="Add line">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/></svg>
                 </button>
@@ -117,7 +120,7 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="writer.js?v=25"></script>
+  <script src="writer.js?v=26"></script>
   <script type="module" src="../js/theme.js?v=1"></script>
 </body>
 </html>

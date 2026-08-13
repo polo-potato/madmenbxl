@@ -1,5 +1,5 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
-const loadText = name => fetch(new URL(`../content/${name}?v=11`, import.meta.url)).then(r => {
+const loadText = name => fetch(new URL(`../content/${name}?v=12`, import.meta.url)).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.text();
 });
@@ -118,12 +118,13 @@ function parseElements(source) {
 
 function parseMap(source,definitions) {
   const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
+  const rotation=value=>((Number(value||0)%360)+360)%360;
   const first=source.split(/^---$/m)[0];
   const positions=Object.fromEntries([...first.matchAll(/^\[POSITION\]\s+(\S+)\s+([+-]?[\d.]+)\s+([+-]?[\d.]+)$/gm)].map(match=>[match[1],{x:Number(match[2]),y:Number(match[3])}]));
   const elements=source.split(/^---$/m).slice(1).map(block=>{
     const id=block.match(/^\[PLACE\]\s+(.+)$/m)?.[1]?.trim();
     if(!id)return null;
-    return {...definitions[id],id,instance:block.match(/^\[INSTANCE\]\s+(.+)$/m)?.[1]?.trim()||id,x:numberTag(block,"X"),y:numberTag(block,"Y")};
+    return {...definitions[id],id,instance:block.match(/^\[INSTANCE\]\s+(.+)$/m)?.[1]?.trim()||id,x:numberTag(block,"X"),y:numberTag(block,"Y"),rotation:rotation(numberTag(block,"ROTATION"))};
   }).filter(Boolean);
   return {width:numberTag(first,"MAP WIDTH",280),height:numberTag(first,"MAP HEIGHT",360),positions,elements};
 }
