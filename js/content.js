@@ -1,5 +1,5 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
-const loadText = name => fetch(new URL(`../content/${name}?v=7`, import.meta.url)).then(r => {
+const loadText = name => fetch(new URL(`../content/${name}?v=8`, import.meta.url)).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.text();
 });
@@ -98,21 +98,30 @@ function parseGauges(source) {
   return {gauges,idea:{base:numberTag(source,"IDEA BASE",8),minimumGain:numberTag(source,"IDEA MINIMUM GAIN",9)}};
 }
 
-function parseMap(source) {
+function parseElements(source) {
+  const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
+  return Object.fromEntries(source.split(/^---$/m).slice(1).map(block=>{
+    const id=block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim();
+    if(!id)return null;
+    const tag=name=>block.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";
+    return [id,{id,shape:tag("SHAPE")||"rect",width:numberTag(block,"WIDTH"),height:numberTag(block,"HEIGHT"),text:tag("TEXT"),show:tag("SHOW"),attach:tag("ATTACH")}];
+  }).filter(Boolean));
+}
+
+function parseMap(source,definitions) {
   const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
   const first=source.split(/^---$/m)[0];
   const positions=Object.fromEntries([...first.matchAll(/^\[POSITION\]\s+(\S+)\s+([+-]?[\d.]+)\s+([+-]?[\d.]+)$/gm)].map(match=>[match[1],{x:Number(match[2]),y:Number(match[3])}]));
   const elements=source.split(/^---$/m).slice(1).map(block=>{
-    const id=block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim();
+    const id=block.match(/^\[PLACE\]\s+(.+)$/m)?.[1]?.trim();
     if(!id)return null;
-    const tag=name=>block.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";
-    return {id,shape:tag("SHAPE")||"rect",x:numberTag(block,"X"),y:numberTag(block,"Y"),width:numberTag(block,"WIDTH"),height:numberTag(block,"HEIGHT"),text:tag("TEXT"),show:tag("SHOW"),attach:tag("ATTACH")};
+    return {...definitions[id],id,x:numberTag(block,"X"),y:numberTag(block,"Y")};
   }).filter(Boolean);
   return {width:numberTag(first,"MAP WIDTH",280),height:numberTag(first,"MAP HEIGHT",360),positions,elements};
 }
 
-const [prologueSource, briefSource, actionsSource, eventsSource, gaugesSource, mapSource] = await Promise.all([
-  loadText("prologue.md"), loadText("brief.md"), loadText("actions.md"), loadText("events.md"), loadText("prologue-gauges.md"), loadText("prologue-map.md")
+const [prologueSource, briefSource, actionsSource, eventsSource, gaugesSource, elementsSource, mapSource] = await Promise.all([
+  loadText("prologue.md"), loadText("brief.md"), loadText("actions.md"), loadText("events.md"), loadText("prologue-gauges.md"), loadText("prologue-elements.md"), loadText("prologue-map.md")
 ]);
 
 export const introBeats = parsePrologue(prologueSource);
@@ -120,7 +129,8 @@ export const briefCopy = parseBrief(briefSource);
 export const personalActions = parseActions(actionsSource);
 export const briefEvents = parseEvents(eventsSource);
 export const { gauges: prologueGauges, idea: prologueIdea } = parseGauges(gaugesSource);
-export const prologueMap = parseMap(mapSource);
+export const prologueElements = parseElements(elementsSource);
+export const prologueMap = parseMap(mapSource,prologueElements);
 
 export const peopleSeed = [
   { id: "maya", name: "MAYA", role: "Creative", state: "ON FIRE", className: "fire", status: "ON PROJECT", salary: 3900 },
