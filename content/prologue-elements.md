@@ -49,13 +49,13 @@
 [Y] 0
 [WIDTH] 43
 [HEIGHT] 28
-[PART] base
-[SHAPE] line
+[PART] circle
+[SHAPE] circle
 [STYLE] pure
-[X] 0
-[Y] 32
-[WIDTH] 53
-[HEIGHT] 1
+[X] 22
+[Y] 10
+[WIDTH] 8
+[HEIGHT] 8
 
 ---
 [ELEMENT] chair
@@ -82,7 +82,7 @@
 [HEIGHT] 62
 [PART] pillow
 [SHAPE] rect
-[STYLE] muted
+[STYLE] pure
 [X] 9
 [Y] 9
 [WIDTH] 31
@@ -96,9 +96,9 @@
 [PART] cup
 [SHAPE] text
 [STYLE] pure
-[TEXT] ○
 [X] 0
 [Y] 0
+[TEXT] ○
 
 ---
 [ELEMENT] pizza
@@ -108,8 +108,10 @@
 [PART] slice
 [SHAPE] triangle
 [STYLE] pure
-[X] 0
+[X] 8
 [Y] 0
+[WIDTH] 9
+[HEIGHT] 4
 
 ---
 [ELEMENT] cigarette
@@ -133,6 +135,6 @@
 [PART] smoke
 [SHAPE] smoke
 [STYLE] animated
-[TEXT] ∿
 [X] 0
 [Y] 0
+[TEXT] ∿
