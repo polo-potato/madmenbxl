@@ -110,14 +110,36 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .after-brief-dialogue { min-height: 650px; margin-left: 360px; }
 .after-brief-screen .personal-side { left: 978px; }
 .after-brief-map { position: absolute; left: 0; top: max(15vh, 86px); width: 280px; height: 360px; color: var(--muted); }
-.room-plan { position: relative; width: 100%; height: 100%; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.plan-window { position: absolute; left: 46px; top: 0; width: 112px; border-top: 2px solid var(--ink); }
+.room-plan { position: relative; width: 100%; height: 100%; }
+.map-element { position: absolute; display: block; }
+.shape-rect { border: 1px solid var(--ink); }
+.shape-rect-muted { border: 1px solid var(--line); }
+.shape-ellipse { border: 1px solid var(--ink); border-radius: 45%; }
+.shape-window { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+.shape-window::before, .shape-window::after { content: ""; position: absolute; top: 0; height: 8px; border-left: 1px solid var(--line); }
+.shape-window::before { left: 33%; }
+.shape-window::after { right: 33%; }
+.shape-laptop { border: 1px solid var(--ink); }
+.shape-laptop::after { content: ""; position: absolute; left: -5px; right: -5px; bottom: -5px; border-top: 1px solid var(--ink); }
+.shape-text { color: var(--ink); font-size: 13px; }
+.shape-triangle { width: 0 !important; height: 0 !important; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 15px solid var(--ink); transform: rotate(-18deg); }
+.shape-line { border-top: 2px solid var(--ink); transform: rotate(-16deg); }
+.shape-smoke { color: var(--muted); font-size: 16px; animation: room-smoke 1.8s ease-out infinite; }
+.plan-window { position: absolute; left: 46px; top: 0; display: flex; justify-content: space-around; width: 118px; height: 9px; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+.plan-window span { height: 9px; border-left: 1px solid var(--line); }
 .plan-desk { position: absolute; left: 46px; top: 44px; width: 118px; height: 62px; border: 1px solid var(--ink); }
-.plan-desk span { position: absolute; left: 9px; top: 8px; font-size: 9px; }
-.plan-you { position: absolute; left: 178px; top: 117px; display: flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 9px; }
+.plan-laptop { position: absolute; left: 38px; top: 13px; width: 43px; height: 28px; border: 1px solid var(--ink); }
+.plan-laptop::after { content: ""; position: absolute; left: -5px; right: -5px; bottom: -5px; border-top: 1px solid var(--ink); }
+.plan-coffee { position: absolute; right: 10px; top: 10px; color: var(--ink); font-size: 13px; }
+.plan-pizza { position: absolute; left: 10px; bottom: 8px; color: var(--ink); font-size: 14px; transform: rotate(-18deg); }
+.plan-chair { position: absolute; left: 83px; top: 119px; width: 44px; height: 25px; border: 1px solid var(--ink); border-radius: 45%; }
+.plan-you { position: absolute; display: flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 9px; transition: left .65s ease, top .65s ease; }
+.plan-you.at-desk { left: 101px; top: 154px; }
+.plan-you.at-window { left: 177px; top: 10px; }
 .plan-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
-.plan-bed { position: absolute; left: 46px; bottom: 42px; width: 150px; height: 76px; border: 1px solid var(--ink); }
-.plan-bed span:last-child { position: absolute; right: 10px; bottom: 8px; font-size: 9px; }
+.plan-cigarette { width: 12px; border-top: 2px solid var(--ink); transform: rotate(-16deg); }
+.plan-smoke { position: absolute; left: 50px; top: -17px; color: var(--muted); font-size: 16px; animation: room-smoke 1.8s ease-out infinite; }
+.plan-bed { position: absolute; left: 46px; bottom: 42px; width: 118px; height: 62px; border: 1px solid var(--ink); }
 .plan-pillow { position: absolute; left: 9px; top: 9px; bottom: 9px; width: 31px; border: 1px solid var(--line); }
 
 .early { min-height: 100vh; padding: 8vh 7vw 60px; display: grid; grid-template-columns: minmax(450px, 1fr) 260px; gap: 8vw; align-items: start; }
@@ -175,6 +197,7 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 @keyframes fade { 0%, 72% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes reveal-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes log-write { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+@keyframes room-smoke { 0% { opacity: 0; transform: translateY(5px); } 35% { opacity: .8; } 100% { opacity: 0; transform: translate(5px,-9px); } }
 
 @media (max-width: 900px) {
   .agency { grid-template-columns: 1fr; }
