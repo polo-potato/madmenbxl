@@ -1,4 +1,4 @@
-import { peopleSeed, prologueGauges } from "./content.js";
+import { peopleSeed, personalActions, prologueGauges } from "./content.js?v=6";
 
 export const SAVE_KEY = "what-if-prototype-v1";
 
@@ -34,7 +34,7 @@ export function loadState() {
     const loaded = raw ? { ...initialState(), ...JSON.parse(raw) } : initialState();
     loaded.unlockedActions = (loaded.unlockedActions || [])
       .map(id => id === "light a cigarette" ? "cigarette" : id)
-      .filter(id => ["cigarette", "scroll", "coffee", "look out the window", "take a walk"].includes(id));
+      .filter(id => id in personalActions);
     loaded.autoTyping = false;
     loaded.autoHold = false;
     loaded.introActionNote = "";
