@@ -1,5 +1,5 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js?v=6";
-import { initialState, loadState, saveState, resetState } from "./state.js?v=5";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=7";
+import { initialState, loadState, saveState, resetState } from "./state.js?v=6";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
 
@@ -189,7 +189,7 @@ function renderBrief() {
   const actions = state.unlockedActions.map(id => {
     const a=personalActions[id]; if(!a) return "";
     const disabled=(id==="cigarette"&&p.stress<10)||(id==="coffee"&&p.energy>88)||(id==="take a walk"&&p.energy<8);
-    return `<button data-personal-action="${id}" ${disabled||state.metricAnimating?'disabled':''}>[ ${id} ]</button>`;
+    return actionButton(id,disabled);
   }).join("");
   const eventBlock = event ? `<div class="brief-event"><span class="label warning">DISTRACTION</span><p>${event.text.replaceAll("\n","<br>")}</p>${event.choices.map((c,i)=>`<button data-event-choice="${i}" ${state.metricAnimating?'disabled':''}>[ ${c.label} ]</button>`).join("")}</div>` : "";
   const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green',metric):personalMetric('STRESS',p.stress,'fill-purple',metric)).join('');
@@ -231,10 +231,37 @@ function revealActionMetric(id){
   if(id==='scroll'||id==='look out the window'||id==='take a walk')unlockMetric('creativity');
 }
 
+function cooldownRemaining(id){ return Math.max(0,Math.ceil(((state.actionCooldowns||{})[id]-Date.now())/1000)); }
+function actionButton(id,disabled=false){
+  const remaining=cooldownRemaining(id);
+  return `<button data-personal-action="${id}" ${disabled||remaining||state.metricAnimating?'disabled':''}>[ ${id}${remaining?` · ${remaining}s`:''} ]</button>`;
+}
+function clearExpiredCooldowns(){
+  let changed=false;
+  Object.entries(state.actionCooldowns||{}).forEach(([id,end])=>{if(end<=Date.now()){delete state.actionCooldowns[id];changed=true;}});
+  return changed;
+}
+function activeRoomState(){
+  const active=Object.keys(state.actionCooldowns||{}).filter(id=>cooldownRemaining(id)>0).map(id=>personalActions[id]?.room).filter(Boolean);
+  const moving=[...active].reverse().find(room=>room.move&&room.move!=="desk");
+  return { move:moving?.move||"desk", props:new Set(active.flatMap(room=>room.props||[])), animations:new Set(active.map(room=>room.animation).filter(Boolean)) };
+}
+function renderRoomMap(room){
+  const visible=element=>!element.show||room.props.has(element.show)||room.animations.has(element.show);
+  const draw=element=>`<span class="map-element shape-${element.shape}" style="left:${element.x}px;top:${element.y}px;${element.width?`width:${element.width}px;`:''}${element.height?`height:${element.height}px;`:''}">${element.text||''}</span>`;
+  const fixed=prologueMap.elements.filter(element=>!element.attach&&visible(element)).map(draw).join('');
+  const attached=prologueMap.elements.filter(element=>element.attach==='player'&&visible(element)).map(draw).join('');
+  const position=prologueMap.positions[room.move]||prologueMap.positions.desk||{x:0,y:0};
+  return `<div class="room-plan" style="width:${prologueMap.width}px;height:${prologueMap.height}px">${fixed}<div class="plan-you" style="left:${position.x}px;top:${position.y}px"><span class="plan-dot"></span><span class="plan-arrow">← you</span>${attached}</div></div>`;
+}
+
 function usePersonalAction(id,{inIntro=false,resume=false}={}){
+  if(cooldownRemaining(id))return;
   const result=resolvePersonalAction(id);
   revealActionMetric(id);
   state.actionUses[id]=(state.actionUses[id]||0)+1;
+  const cooldown=personalActions[id]?.cooldown||0;
+  if(cooldown)state.actionCooldowns[id]=Date.now()+cooldown*1000;
   if(inIntro)state.introActionNote=resume?"":result.note;
   else { state.firstBrief.eventResult=result.note; logActivity("action",`${id}. ${result.note.replaceAll("\n"," ")}`); }
   animateMetrics(result.effects);
@@ -282,10 +309,11 @@ function animateMetrics(effects, ideaGain=0, done=()=>{}) {
 function renderEarly() {
   const p=state.personal;
   const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',p.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',p.energy,'fill-green',metric):personalMetric('STRESS',p.stress,'fill-purple',metric)).join('');
-  const actions=state.unlockedActions.map(id=>personalActions[id]?`<button data-personal-action="${id}" ${state.metricAnimating?'disabled':''}>[ ${id} ]</button>`:'').join('');
+  const actions=state.unlockedActions.map(id=>personalActions[id]?actionButton(id):'').join('');
+  const room=activeRoomState();
   game.innerHTML=`<section class="after-brief-screen"><div class="brief-dialogue after-brief-dialogue"><span class="label insight brief-label">BRIEF SENT</span><div class="brief-thought"><span class="auto-anchor">WHAT IF...</span><br><br><span>one thought survived.</span></div><div class="idea-meter"><div class="row-head"><span>IDEA</span><span>100 / 100</span></div>${bar(100,'fill-yellow',20)}</div><button class="try-idea" data-first-brief>[ enter the office ]</button>${activityLogView(state,"activity-log-brief",state.activityLogPulse)}</div>
   <aside class="personal-side">${metrics?`<div class="personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:''}<nav class="habit-menu"><span class="action-menu-title">HABITS</span>${actions}</nav></aside>
-  <aside class="after-brief-map" aria-label="room map"><div class="room-plan"><div class="plan-window" aria-label="window"></div><div class="plan-desk"><span>desk</span></div><div class="plan-you"><span class="plan-dot"></span><span class="plan-arrow">← you</span></div><div class="plan-bed"><span class="plan-pillow"></span><span>bed</span></div></div></aside></section>`;
+  <aside class="after-brief-map" aria-label="room map">${renderRoomMap(room)}</aside></section>`;
 }
 
 function skipToAgency(){ state=initialState(); state.mode="agency"; state.activityLog=[{type:"goal",text:"Keep the agency alive."}]; afkNote=""; saveState(state); render(); }
@@ -349,6 +377,7 @@ document.addEventListener("click", e=>{
 
 setInterval(()=>{
   const now=Date.now(),delta=(now-lastTick)/1000;
+  const cooldownEnded=clearExpiredCooldowns();
   const previousEvent=state.events[0]?.text;
   simulate(state,delta); lastTick=now;
   if(state.mode==="brief"&&!state.metricAnimating){
@@ -358,6 +387,9 @@ setInterval(()=>{
     render();
   } else if(state.mode==="agency") {
     if(state.events[0]?.text&&state.events[0].text!==previousEvent) logActivity("event",state.events[0].text.replaceAll("\n"," "));
+    render();
+  } else if(cooldownEnded || (state.mode==="early"&&Object.keys(state.actionCooldowns||{}).length)) {
+    saveState(state);
     render();
   }
 },1000);
