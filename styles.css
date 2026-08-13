@@ -30,10 +30,12 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .debug-controls a:hover, .debug-controls a:focus-visible { background: var(--ink); color: var(--paper); outline: 0; }
 .debug-controls:hover, .debug-controls:focus-within { opacity: 1; }
 
-.prologue { width: min(860px, calc(100vw - 48px)); margin: 0 auto; padding-top: max(15vh, 86px); min-height: 100vh; }
+.prologue { position: relative; width: min(860px, calc(100vw - 48px)); margin: 0 auto; padding-top: max(15vh, 86px); min-height: 100vh; }
 .prologue-output { position: relative; width: min(560px, calc(100vw - 48px)); min-height: 390px; white-space: pre-wrap; letter-spacing: .015em; }
 .intro-action-note { display: block; max-width: 300px; margin-top: 44px; }
-.prologue-metrics { position: absolute; left: 618px; top: max(15vh,86px); width: 242px; }
+.prologue-side { position: absolute; left: 618px; top: max(15vh,86px); width: 242px; }
+.prologue-metrics { width: 100%; }
+.prologue-side .action-menu { position: static; width: 100%; max-width: none; margin-top: 28px; }
 .prologue .time { display: block; margin-bottom: 32px; color: var(--muted); }
 .typed { white-space: pre-wrap; }
 .cursor { display: inline-block; animation: blink 1s steps(1) infinite; }
@@ -163,7 +165,7 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
   .early { grid-template-columns: 1fr; }
   .early-map { order: -1; }
   .personal-side { position: static; width: min(420px, 100%); padding: 0 0 80px; }
-  .prologue-metrics { position: static; width: min(420px,100%); margin-top: 42px; }
+  .prologue-side { position: static; width: min(420px,100%); margin-top: 42px; padding-bottom: 80px; }
   .metric-delta { right: 0; top: -18px; }
   .activity-log-brief { position: static; width: min(390px,100%); margin-top: 70px; }
   .activity-log-agency { width: min(390px,80vw); }
