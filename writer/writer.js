@@ -23,8 +23,6 @@ let activePartId = "";
 let activeTool = "select";
 let pendingElementDelete = "";
 
-const shapeNames = ["rect", "rect-muted", "ellipse", "line", "window", "dot", "text", "triangle", "laptop", "smoke"];
-
 const modules = {
   story: {
     file: "prologue.md",
@@ -53,7 +51,7 @@ const modules = {
   },
   elements: {
     file: "prologue-elements.md",
-    legend: `<p class="kicker">ELEMENT LIBRARY</p><section class="tag"><code>[ELEMENT] bed</code><b>REUSABLE ELEMENT</b></section><section class="tag"><code>[PART] pillow</code><b>ONE LAYER</b><p>Maximum five layers per element.</p></section><section class="tag"><code>[SHAPE] rect</code><b>VISUAL FORM</b></section><section class="tag"><code>[X] 0 / [Y] 0</code><b>LAYER POSITION</b></section><section class="tag"><code>[WIDTH] 118</code><b>SIZE</b></section><section class="tag"><code>[SHOW] coffee</code><b>ACTION PROP</b></section><section class="tag"><code>[ATTACH] player</code><b>FOLLOW PLAYER</b></section><p class="rules">Design each reusable element here. The Map only places copies.</p>`,
+    legend: `<p class="kicker">ELEMENT LIBRARY</p><section class="tag"><code>[ELEMENT] bed</code><b>REUSABLE ELEMENT</b></section><section class="tag"><code>[PART] pillow</code><b>ONE LAYER</b><p>Maximum five layers per element.</p></section><section class="tag"><code>[SHAPE] rect</code><b>VISUAL FORM</b><p>Create lines, rectangles and circles from the floating toolbar.</p></section><section class="tag"><code>[X] 0 / [Y] 0</code><b>LAYER POSITION</b></section><section class="tag"><code>[WIDTH] 118</code><b>SIZE</b></section><section class="tag"><code>[SHOW] coffee</code><b>ACTION PROP</b></section><section class="tag"><code>[ATTACH] player</code><b>FOLLOW PLAYER</b></section><p class="rules">Design each reusable element here. The Map only places copies.</p>`,
     counts: source => [["ELEMENTS", /^\[ELEMENT\]/gm], ["LAYERS", /^\[PART\]/gm], ["ACTION LINKS", /^\[(?:SHOW|ATTACH)\]/gm]]
   },
   map: {
@@ -204,7 +202,7 @@ function renderLibrary() {
 }
 
 function layerList(item) {
-  return `<section class="layers"><div><p class="kicker">LAYERS · ${item.parts.length}/5</p></div>${item.parts.map((part, index) => `<button type="button" data-layer-id="${escapeHtml(part.id)}" class="${selectedPartIds.has(part.id) ? "active" : ""}"><span>${index + 1}</span>${escapeHtml(part.id)}<small>${escapeHtml(part.shape)}</small></button>`).join("") || `<small>NO SHAPES YET</small>`}</section>`;
+  return `<section class="layers"><div><p class="kicker">LAYERS · ${item.parts.length}/5</p></div>${item.parts.map((part, index) => `<div class="layer-row${selectedPartIds.has(part.id) ? " active" : ""}"><button type="button" data-layer-id="${escapeHtml(part.id)}"><span>${index + 1}</span>${escapeHtml(part.id)}<small>${escapeHtml(part.shape)}</small></button><button type="button" class="layer-remove" data-remove-layer="${escapeHtml(part.id)}" title="Delete ${escapeHtml(part.id)}" aria-label="Delete ${escapeHtml(part.id)}">×</button></div>`).join("") || `<small>NO SHAPES YET</small>`}</section>`;
 }
 
 function renderInspector() {
@@ -224,7 +222,7 @@ function renderInspector() {
   if (selectedPartIds.size > 1) {
     selection = `<section class="selection-summary"><p class="kicker">SELECTION</p><b>${selectedPartIds.size} LAYERS SELECTED</b><p>Use Move to drag them together, or Delete Selected to remove them.</p></section>`;
   } else if (chosen) {
-    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><label>SHAPE<select name="shape">${shapeNames.map(shape => `<option${shape === chosen.shape ? " selected" : ""}>${shape}</option>`).join("")}</select></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
+    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><div class="shape-type"><small>TYPE</small><b>${escapeHtml(chosen.shape)}</b></div><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
   }
   mapInspector.innerHTML = metadata + layerList(item) + selection;
 }
@@ -280,10 +278,10 @@ function setVisualMode(enabled) {
   mapStudio.hidden = !enabled;
   document.querySelector("#element-add").hidden = current !== "elements";
   document.querySelector("#library-title").textContent = current === "elements" ? "ELEMENTS" : "ELEMENT LIBRARY";
-  document.querySelector("#part-add").hidden = current !== "elements";
   document.querySelector("#map-place").hidden = current !== "map";
   document.querySelector("#map-duplicate").hidden = current !== "map";
-  document.querySelector("#map-delete").textContent = current === "elements" ? "[ DELETE SELECTED ]" : "[ DELETE COPY ]";
+  document.querySelector("#map-delete").hidden = current !== "map";
+  document.querySelectorAll("[data-add-shape]").forEach(button => button.hidden = current !== "elements");
   document.querySelector("#map-raw").textContent = "[ RAW MARKDOWN ]";
   document.querySelector("#visual-return").hidden = true;
   if (enabled) {
@@ -577,15 +575,18 @@ document.querySelector("#element-add").addEventListener("click", () => {
   syncVisual(true);
 });
 
-document.querySelector("#part-add").addEventListener("click", () => {
+document.querySelectorAll("[data-add-shape]").forEach(button => button.addEventListener("click", () => {
   const item = activeElement();
   if (!item) return message("CREATE OR SELECT AN ELEMENT FIRST");
   if (item.parts.length >= 5) return message("MAXIMUM 5 LAYERS PER ELEMENT");
-  const id = uniqueName("shape", item.parts.map(part => part.id));
-  item.parts.push({ id, shape: "rect", x: 10, y: 10, width: 50, height: 30, text: "" });
+  const shape = button.dataset.addShape;
+  const base = shape === "hline" ? "line" : shape;
+  const id = uniqueName(base, item.parts.map(part => part.id));
+  const dimensions = shape === "hline" ? { width: 50, height: 1 } : shape === "circle" ? { width: 36, height: 36 } : { width: 50, height: 30 };
+  item.parts.push({ id, shape, x: 10, y: 10, ...dimensions, text: "" });
   selectPart(id);
   syncVisual(true);
-});
+}));
 
 document.querySelector("#map-place").addEventListener("click", () => placeElement(selectedLibraryId));
 document.querySelector("#map-duplicate").addEventListener("click", () => {
@@ -632,6 +633,17 @@ elementLibrary.addEventListener("click", event => {
 
 mapInspector.addEventListener("submit", event => event.preventDefault());
 mapInspector.addEventListener("click", event => {
+  const remove = event.target.closest("[data-remove-layer]");
+  if (remove) {
+    const item = activeElement();
+    if (!item) return;
+    const id = remove.dataset.removeLayer;
+    item.parts = item.parts.filter(part => part.id !== id);
+    selectedPartIds.delete(id);
+    if (activePartId === id) activePartId = [...selectedPartIds].at(-1) || "";
+    syncVisual(true);
+    return;
+  }
   const layer = event.target.closest("[data-layer-id]");
   if (!layer) return;
   selectPart(layer.dataset.layerId, event.shiftKey || event.metaKey || event.ctrlKey);
@@ -672,7 +684,7 @@ mapInspector.addEventListener("input", event => {
       selectedPartIds.delete(old);
       selectedPartIds.add(part.id);
       activePartId = part.id;
-    } else if (["shape", "x", "y", "width", "height", "text"].includes(name)) part[name] = value;
+    } else if (["x", "y", "width", "height", "text"].includes(name)) part[name] = value;
   }
   syncVisual();
 });

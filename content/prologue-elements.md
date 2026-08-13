@@ -4,8 +4,10 @@
 
 - `[ELEMENT] bed` = one reusable designed object.
 - `[WIDTH]` and `[HEIGHT]` = element canvas size.
-- `[PART] pillow` = one shape inside the element.
+- `[PART] pillow` = one visible, independently editable layer inside the element.
 - A part uses `[SHAPE]`, `[X]`, `[Y]`, `[WIDTH]`, `[HEIGHT]`, and optional `[TEXT]`.
+- Every visible piece must have its own `[PART]`. Do not hide several pieces inside one shape.
+- In the visual editor, create new layers with the line, rectangle, or circle icons.
 - `[SHOW] coffee` = element only appears while that action prop is active.
 - `[ATTACH] player` = the whole element follows the player.
 - `---` = next reusable element.
@@ -14,11 +16,29 @@
 [ELEMENT] window
 [WIDTH] 118
 [HEIGHT] 9
-[PART] frame
-[SHAPE] window
+[PART] top-frame
+[SHAPE] hline
 [X] 0
 [Y] 0
 [WIDTH] 118
+[HEIGHT] 1
+[PART] bottom-frame
+[SHAPE] hline-muted
+[X] 0
+[Y] 8
+[WIDTH] 118
+[HEIGHT] 1
+[PART] left-divider
+[SHAPE] vline-muted
+[X] 39
+[Y] 0
+[WIDTH] 1
+[HEIGHT] 9
+[PART] right-divider
+[SHAPE] vline-muted
+[X] 79
+[Y] 0
+[WIDTH] 1
 [HEIGHT] 9
 
 ---
@@ -37,22 +57,28 @@
 [WIDTH] 53
 [HEIGHT] 33
 [PART] screen
-[SHAPE] laptop
+[SHAPE] rect
 [X] 5
 [Y] 0
 [WIDTH] 43
 [HEIGHT] 28
+[PART] base
+[SHAPE] hline
+[X] 0
+[Y] 32
+[WIDTH] 53
+[HEIGHT] 1
 
 ---
 [ELEMENT] chair
-[WIDTH] 44
-[HEIGHT] 25
+[WIDTH] 36
+[HEIGHT] 36
 [PART] seat
-[SHAPE] ellipse
+[SHAPE] circle
 [X] 0
 [Y] 0
-[WIDTH] 44
-[HEIGHT] 25
+[WIDTH] 36
+[HEIGHT] 36
 
 ---
 [ELEMENT] bed

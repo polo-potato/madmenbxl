@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="writer.css?v=8">
   <link rel="stylesheet" href="navigation.css?v=2">
   <link rel="stylesheet" href="history.css?v=1">
-  <link rel="stylesheet" href="map-studio.css?v=3">
+  <link rel="stylesheet" href="map-studio.css?v=4">
 </head>
 <body>
   <header>
@@ -45,10 +45,9 @@
 
           <section class="studio-center">
             <div class="canvas-actions">
-              <button id="part-add">[ + SHAPE ]</button>
               <button id="map-place">[ PLACE SELECTED ]</button>
               <button id="map-duplicate">[ DUPLICATE ]</button>
-              <button id="map-delete">[ DELETE SELECTED ]</button>
+              <button id="map-delete">[ DELETE COPY ]</button>
               <button id="map-raw">[ RAW MARKDOWN ]</button>
             </div>
             <div class="map-stage">
@@ -62,6 +61,16 @@
                 </button>
                 <button data-tool="resize" title="Resize (R)" aria-label="Resize">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5M3 8l6-6M21 8l-6-6M3 16l6 6M21 16l-6 6"/></svg>
+                </button>
+                <span class="tool-divider" aria-hidden="true"></span>
+                <button data-add-shape="hline" title="Add line" aria-label="Add line">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/></svg>
+                </button>
+                <button data-add-shape="rect" title="Add rectangle" aria-label="Add rectangle">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12"/></svg>
+                </button>
+                <button data-add-shape="circle" title="Add circle" aria-label="Add circle">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/></svg>
                 </button>
               </div>
             </div>
@@ -92,7 +101,7 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="writer.js?v=17"></script>
+  <script src="writer.js?v=18"></script>
   <script type="module" src="../js/theme.js?v=1"></script>
 </body>
 </html>
