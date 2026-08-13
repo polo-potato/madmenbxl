@@ -31,6 +31,10 @@ duplicateElements.forEach(id=>errors.push(`content/prologue-elements.md: duplica
 const placedIds=[...sources["content/prologue-map.md"].matchAll(/^\[PLACE\]\s+(.+)$/gm)].map(match=>match[1].trim());
 if(!placedIds.length)errors.push("content/prologue-map.md: no [PLACE] tags");
 placedIds.forEach(id=>{if(!elementIds.includes(id))errors.push(`content/prologue-map.md: [PLACE] ${id} has no matching element`);});
+const instances=[...sources["content/prologue-map.md"].matchAll(/^\[INSTANCE\]\s+(.+)$/gm)].map(match=>match[1].trim());
+if(instances.length!==placedIds.length)errors.push("content/prologue-map.md: every [PLACE] needs one [INSTANCE]");
+instances.filter((id,index)=>instances.indexOf(id)!==index).forEach(id=>errors.push(`content/prologue-map.md: duplicate instance ${id}`));
+for(const block of sources["content/prologue-elements.md"].split(/^---$/m).slice(1)){if(/^\[ELEMENT\]/m.test(block)&&!/^\[PART\]/m.test(block))errors.push(`content/prologue-elements.md: ${block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]} has no [PART]`);}
 const propIds=[...sources["content/actions.md"].matchAll(/^\[PROP\]\s+(.+)$/gm)].map(match=>match[1].trim());
 propIds.forEach(id=>{if(!elementIds.includes(id))errors.push(`content/actions.md: [PROP] ${id} has no matching element`);});
 if(errors.length){console.error(errors.join("\n"));process.exit(1);}
