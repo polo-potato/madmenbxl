@@ -54,10 +54,10 @@
 
 ---
 [PLACE] cigarette
-[X] 175
-[Y] 28
+[X] 124
+[Y] 191
 
 ---
 [PLACE] smoke
-[X] 191
-[Y] 13
+[X] 142
+[Y] 172
