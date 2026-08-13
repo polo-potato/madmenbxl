@@ -5,7 +5,7 @@ export const SAVE_KEY = "what-if-prototype-v1";
 export function initialState() {
   return {
     mode: "intro", beat: 0, char: 0, actionStep: 0, waiting: false, erasing: false, autoTyping: false, autoHold: false, inbox: false,
-    unlockedActions: [],
+    unlockedActions: [], introActionNote: "",
     activityLog: [],
     personal: Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.start])),
     firstBrief: { idea: 0, attempts: 0, eventIndex: 0, pendingEvent: null, eventResult: "", completed: false, promptChar: 0, promptComplete: false, ideaUnlocked: false },
@@ -37,6 +37,7 @@ export function loadState() {
       .filter(id => ["cigarette", "scroll", "coffee", "look out the window", "take a walk"].includes(id));
     loaded.autoTyping = false;
     loaded.autoHold = false;
+    loaded.introActionNote = "";
     loaded.metricAnimating = false;
     loaded.activityLogPulse = false;
     loaded.firstBrief = { ...initialState().firstBrief, ...(loaded.firstBrief || {}) };
