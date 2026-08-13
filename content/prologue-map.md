@@ -68,13 +68,13 @@
 ---
 [PLACE] cigarette
 [INSTANCE] cigarette-1
-[X] 21
-[Y] 192
+[X] 37
+[Y] 205
 [ROTATION] 0
 
 ---
 [PLACE] smoke
 [INSTANCE] smoke-1
-[X] 37
-[Y] 170
+[X] 50
+[Y] 184
 [ROTATION] 0
