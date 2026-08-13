@@ -27,6 +27,7 @@ let pendingElementDelete = "";
 let loadedSource = "";
 let isDirty = false;
 let pendingNavigation = null;
+let cleanStateLabel = "LOADED FROM GITHUB";
 
 const saveClickStorageKey = "what-if-writer-save-clicks";
 let saveClicks = {};
@@ -321,7 +322,10 @@ function recordSaveClick() {
 
 async function publishCurrent() {
   await navigator.clipboard.writeText(editor.value);
+  loadedSource = editor.value;
+  cleanStateLabel = "SAVED + COPIED";
   recordSaveClick();
+  check();
   message("MODULE COPIED — FINISH THE COMMIT IN GITHUB");
   window.open(editRoot + "content/" + modules[current].file, "_blank", "noopener");
 }
@@ -341,7 +345,7 @@ function check() {
   const source = editor.value;
   document.querySelector("#detected").innerHTML = `<span>LIVE CHECK</span>` + module.counts(source).map(([name, expression]) => `<b>${(source.match(expression) || []).length}</b><small>${name}</small>`).join("");
   isDirty = source !== loadedSource;
-  document.querySelector("#state").textContent = isDirty ? "UNSAVED CHANGES" : "LOADED FROM GITHUB";
+  document.querySelector("#state").textContent = isDirty ? "UNSAVED CHANGES" : cleanStateLabel;
 }
 
 function setVisualMode(enabled) {
@@ -371,6 +375,7 @@ async function load() {
   document.querySelectorAll("[data-module]").forEach(button => button.classList.toggle("active", button.dataset.module === current));
   editor.value = await fetch(`../content/${module.file}?v=${Date.now()}`).then(response => response.text());
   loadedSource = editor.value;
+  cleanStateLabel = "LOADED FROM GITHUB";
   if (current === "map") {
     const catalogSource = await fetch(`../content/prologue-elements.md?v=${Date.now()}`).then(response => response.text());
     catalog = Object.fromEntries(parseElementCatalog(catalogSource).elements.map(item => [item.id, item]));

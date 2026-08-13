@@ -89,7 +89,7 @@
           <p><b>TO SAVE</b><br>Copy, open GitHub, replace everything with <kbd>⌘A</kbd> <kbd>⌘V</kbd>, then commit.</p>
           <p id="save-indicator" class="save-meta" title="This records the button click, not the GitHub commit.">LAST SAVE CLICK · NEVER</p>
         </div>
-        <button id="publish">[ COPY ALL + OPEN GITHUB ↗ ]</button>
+        <button id="publish">[ SAVE + AUTOCOPY + GITHUB ↗ ]</button>
       </div>
     </section>
   </main>
@@ -108,16 +108,16 @@
     <form method="dialog">
       <p class="kicker">UNSAVED CHANGES</p>
       <p id="leave-file-copy">This file has changes that only exist in this tab.</p>
-      <small>Copying opens GitHub but does not confirm the commit. You will stay on this file until you choose to discard.</small>
+      <small>Saving records this version, copies it, and opens GitHub. The protection returns after your next edit.</small>
       <div>
         <button id="leave-stay" value="cancel">[ STAY HERE ]</button>
         <button id="leave-discard" value="discard">[ DISCARD & CONTINUE ]</button>
-        <button id="leave-save" type="button">[ COPY + OPEN GITHUB ↗ ]</button>
+        <button id="leave-save" type="button">[ SAVE + AUTOCOPY + GITHUB ↗ ]</button>
       </div>
     </form>
   </dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="writer.js?v=24"></script>
+  <script src="writer.js?v=25"></script>
   <script type="module" src="../js/theme.js?v=1"></script>
 </body>
 </html>
