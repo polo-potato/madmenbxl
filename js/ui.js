@@ -6,6 +6,12 @@ export function bar(value, color = "fill-green", width = 12) {
   return `<div class="bar" aria-label="${Math.round(value)} percent"><span class="${color}">${"█".repeat(filled)}</span><span class="empty">${"░".repeat(width-filled)}</span></div>`;
 }
 
+export function activityLogView(s, modifier="", animateLatest=false) {
+  const entries=(s.activityLog||[]).slice(-10);
+  if(!entries.length)return "";
+  return `<section class="activity-log ${modifier}" aria-label="Event log"><div class="activity-rule"><span>LOG</span></div><div class="activity-messages">${entries.map((entry,index)=>`<p class="activity-entry ${animateLatest&&index===entries.length-1?'activity-writing':''}"><span>${esc(entry.type||"event")}</span>${esc(entry.text)}</p>`).join("")}</div></section>`;
+}
+
 export function officeMap() {
   return `<section class="map-region"><div class="office-title">RUE DU CANAL / FLOOR 2</div><div class="office">
     <div class="zone z-bedroom"><span class="label">ORIGINAL DESK</span>\n\n     ○\n  ┌───────┐\n  │   ▪   │\n  └───────┘\n  the stain stayed.</div>
@@ -45,6 +51,6 @@ function toolsPanel(s) { const tools=[['ADOBE CREATIVE CLOUD','€620 / cycle','
 
 export function agencyView(s, afkNote="") {
   const panels={resources:resourcePanel,campaigns:campaignPanel,people:peoplePanel,clients:clientsPanel,events:eventsPanel,tools:toolsPanel};
-  return `<div class="agency">${officeMap()}<aside class="side"><nav class="tabs">${s.unlockedTabs.map(t=>`<button class="${t===s.activeTab?'active':''}" data-tab="${t}">${t.toUpperCase()}</button>`).join("")}</nav><div class="panel">${panels[s.activeTab](s)}</div></aside>
+  return `<div class="agency">${officeMap()}${activityLogView(s,"activity-log-agency",s.activityLogPulse)}<aside class="side"><nav class="tabs">${s.unlockedTabs.map(t=>`<button class="${t===s.activeTab?'active':''}" data-tab="${t}">${t.toUpperCase()}</button>`).join("")}</nav><div class="panel">${panels[s.activeTab](s)}</div></aside>
   <footer class="status"><div><div class="stat-label">MORALE</div><div class="stat-value">${bar(s.morale,"fill-yellow",8)}</div></div><div><div class="stat-label">CASHFLOW</div><div class="stat-value">${s.cashflow>=0?'+++':'—'}</div></div><div><div class="stat-label">REPUTATION</div>${bar(s.reputation,"fill-blue",9)}</div><div><div class="stat-label">CASH</div><div class="cash">${money(s.cash)}</div></div></footer>${afkNote?`<div class="afk-note">WHILE YOU WERE AWAY<br>${afkNote}</div>`:""}</div>`;
 }
