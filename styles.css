@@ -101,6 +101,14 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .activity-log-early { width: 390px; margin-top: 80px; }
 .activity-log-agency { position: absolute; z-index: 4; left: 5%; bottom: 105px; width: min(390px,42vw); max-height: 170px; overflow: hidden; padding: 10px 12px; background: color-mix(in srgb,var(--paper) 88%,transparent); }
 
+.after-brief-screen { position: relative; width: min(1160px, calc(100vw - 48px)); min-height: 100vh; margin: 0 auto; padding-top: max(15vh, 86px); }
+.after-brief-dialogue { min-height: 650px; }
+.after-brief-screen .personal-side { left: 618px; }
+.after-brief-map { position: absolute; left: 900px; top: max(15vh, 86px); width: 260px; }
+.mini-office { position: relative; height: 330px; margin-top: 20px; border-left: 1px dotted var(--line); }
+.mini-bedroom { left: 24px; top: 30px; }
+.mini-door { right: 8px; bottom: 34px; }
+
 .early { min-height: 100vh; padding: 8vh 7vw 60px; display: grid; grid-template-columns: minmax(450px, 1fr) 260px; gap: 8vw; align-items: start; }
 .early-copy { max-width: 390px; white-space: pre-wrap; }
 .early-map { position: relative; height: 420px; }
@@ -169,6 +177,8 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
   .metric-delta { right: 0; top: -18px; }
   .activity-log-brief { position: static; width: min(390px,100%); margin-top: 70px; }
   .activity-log-agency { width: min(390px,80vw); }
+  .after-brief-screen { width: calc(100vw - 48px); }
+  .after-brief-map { position: static; width: min(420px,100%); margin-top: 42px; padding-bottom: 80px; }
 }
 
 @media (max-width: 760px) {
