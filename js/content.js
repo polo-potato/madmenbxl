@@ -1,5 +1,5 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
-const loadText = name => fetch(new URL(`../content/${name}?v=9`, import.meta.url)).then(r => {
+const loadText = name => fetch(new URL(`../content/${name}?v=10`, import.meta.url)).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.text();
 });
@@ -100,12 +100,17 @@ function parseGauges(source) {
 
 function parseElements(source) {
   const numberTag=(text,name,fallback=0)=>Number(text.match(new RegExp(`^\\[${name}\\]\\s+([+-]?[\\d.]+)$`,"m"))?.[1] ?? fallback);
+  const normalizeVisual=(shape,style)=>{
+    const legacy={hline:["line","pure"],"hline-muted":["line","muted"],"vline-muted":["line","vertical-muted"],"rect-muted":["rect","muted"]}[shape];
+    if(legacy)return{shape:legacy[0],style:style||legacy[1]};
+    return{shape:shape||"rect",style:style||(shape==="smoke"?"animated":"pure")};
+  };
   return Object.fromEntries(source.split(/^---$/m).slice(1).map(block=>{
     const id=block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim();
     if(!id)return null;
     const tag=name=>block.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";
     const firstPart=block.search(/^\[PART\]/m),head=firstPart<0?block:block.slice(0,firstPart);
-    const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|$)/gm)].map(match=>{const body=match[2];const partTag=name=>body.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";return{id:match[1].trim(),shape:partTag("SHAPE")||"rect",x:numberTag(body,"X"),y:numberTag(body,"Y"),width:numberTag(body,"WIDTH"),height:numberTag(body,"HEIGHT"),text:partTag("TEXT")};});
+    const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|$)/gm)].map(match=>{const body=match[2];const partTag=name=>body.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`,"m"))?.[1]?.trim()||"";return{id:match[1].trim(),...normalizeVisual(partTag("SHAPE")||"rect",partTag("STYLE")),x:numberTag(body,"X"),y:numberTag(body,"Y"),width:numberTag(body,"WIDTH"),height:numberTag(body,"HEIGHT"),text:partTag("TEXT")};});
     return [id,{id,width:numberTag(head,"WIDTH"),height:numberTag(head,"HEIGHT"),show:tag("SHOW"),attach:tag("ATTACH"),parts}];
   }).filter(Boolean));
 }

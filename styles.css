@@ -114,8 +114,9 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .map-element { position: absolute; display: block; }
 .map-composite { position: absolute; display: block; }
 .shape-rect { border: 1px solid var(--ink); }
-.shape-rect-muted { border: 1px solid var(--line); }
+.shape-rect.style-muted { border-color: var(--line); }
 .shape-circle { border: 1px solid var(--ink); border-radius: 50%; }
+.shape-circle.style-muted { border-color: var(--line); }
 .shape-window { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
 .shape-window::before, .shape-window::after { content: ""; position: absolute; top: 0; height: 8px; border-left: 1px solid var(--line); }
 .shape-window::before { left: 33%; }
@@ -125,11 +126,12 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .shape-text { color: var(--ink); font-size: 13px; }
 .shape-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
 .shape-triangle { width: 0 !important; height: 0 !important; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 15px solid var(--ink); transform: rotate(-18deg); }
-.shape-line { border-top: 2px solid var(--ink); transform: rotate(-16deg); }
-.shape-hline { border-top: 2px solid var(--ink); }
-.shape-hline-muted { border-top: 1px solid var(--line); }
-.shape-vline-muted { border-left: 1px solid var(--line); }
-.shape-smoke { color: var(--muted); font-size: 16px; animation: room-smoke 1.8s ease-out infinite; }
+.shape-line { border-top: 2px solid var(--ink); }
+.shape-line.style-muted { border-top: 1px solid var(--line); }
+.shape-line.style-vertical-muted { border-top: 0; border-left: 1px solid var(--line); }
+.shape-line.style-slanted { transform: rotate(-16deg); transform-origin: left center; }
+.shape-smoke { color: var(--muted); font-size: 16px; }
+.shape-smoke.style-animated { animation: room-smoke 1.8s ease-out infinite; }
 .plan-window { position: absolute; left: 46px; top: 0; display: flex; justify-content: space-around; width: 118px; height: 9px; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
 .plan-window span { height: 9px; border-left: 1px solid var(--line); }
 .plan-desk { position: absolute; left: 46px; top: 44px; width: 118px; height: 62px; border: 1px solid var(--ink); }

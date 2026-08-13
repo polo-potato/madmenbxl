@@ -32,19 +32,30 @@ const saveClickStorageKey = "what-if-writer-save-clicks";
 let saveClicks = {};
 try { saveClicks = JSON.parse(localStorage.getItem(saveClickStorageKey) || "{}"); } catch { saveClicks = {}; }
 
-const shapeTypes = [
-  ["hline", "Line"],
-  ["rect", "Rectangle"],
-  ["circle", "Circle"],
-  ["hline-muted", "Muted line"],
-  ["vline-muted", "Vertical muted line"],
-  ["rect-muted", "Muted rectangle"],
-  ["line", "Slanted line"],
-  ["text", "Text"],
-  ["triangle", "Triangle"],
-  ["dot", "Dot"],
-  ["smoke", "Smoke"]
-];
+const shapeLabels = { line: "Line", rect: "Rectangle", circle: "Circle", text: "Text", triangle: "Triangle", dot: "Dot", smoke: "Smoke" };
+const shapeStyles = {
+  line: [["pure", "Pure"], ["muted", "Muted"], ["vertical-muted", "Vertical muted"], ["slanted", "Slanted"]],
+  rect: [["pure", "Pure"], ["muted", "Muted"]],
+  circle: [["pure", "Pure"], ["muted", "Muted"]],
+  text: [["pure", "Pure"]],
+  triangle: [["pure", "Pure"]],
+  dot: [["pure", "Pure"]],
+  smoke: [["pure", "Pure"], ["animated", "Animated"]]
+};
+
+function normalizeShape(shape = "rect", style = "") {
+  const legacy = {
+    hline: ["line", "pure"],
+    "hline-muted": ["line", "muted"],
+    "vline-muted": ["line", "vertical-muted"],
+    "rect-muted": ["rect", "muted"]
+  }[shape];
+  if (legacy) return { shape: legacy[0], style: style || legacy[1] };
+  const canonical = shapeLabels[shape] ? shape : "rect";
+  const options = shapeStyles[canonical] || [["pure", "Pure"]];
+  const fallback = shape === "smoke" && !style ? "animated" : "pure";
+  return { shape: canonical, style: options.some(([value]) => value === style) ? style : fallback };
+}
 
 const modules = {
   story: {
@@ -74,7 +85,7 @@ const modules = {
   },
   elements: {
     file: "prologue-elements.md",
-    legend: `<p class="kicker">ELEMENT LIBRARY</p><section class="tag"><code>[ELEMENT] bed</code><b>REUSABLE ELEMENT</b></section><section class="tag"><code>[PART] pillow</code><b>ONE LAYER</b><p>Maximum five layers per element.</p></section><section class="tag"><code>[SHAPE] rect</code><b>VISUAL FORM</b><p>Create lines, rectangles and circles from the floating toolbar.</p></section><section class="tag"><code>[X] 0 / [Y] 0</code><b>LAYER POSITION</b></section><section class="tag"><code>[WIDTH] 118</code><b>SIZE</b></section><section class="tag"><code>[SHOW] coffee</code><b>ACTION PROP</b></section><section class="tag"><code>[ATTACH] player</code><b>FOLLOW PLAYER</b></section><p class="rules">Design each reusable element here. The Map only places copies.</p>`,
+    legend: `<p class="kicker">ELEMENT LIBRARY</p><section class="tag"><code>[ELEMENT] bed</code><b>REUSABLE ELEMENT</b></section><section class="tag"><code>[PART] pillow</code><b>ONE LAYER</b><p>Maximum five layers per element.</p></section><section class="tag"><code>[SHAPE] rect</code><b>FIXED GEOMETRY</b><p>A layer cannot change shape after creation.</p></section><section class="tag"><code>[STYLE] pure</code><b>COMPATIBLE EFFECT</b><p>Pure is the default. Effects never change geometry.</p></section><section class="tag"><code>[X] 0 / [Y] 0</code><b>LAYER POSITION</b></section><section class="tag"><code>[WIDTH] 118</code><b>SIZE</b></section><section class="tag"><code>[SHOW] coffee</code><b>ACTION PROP</b></section><section class="tag"><code>[ATTACH] player</code><b>FOLLOW PLAYER</b></section><p class="rules">Design each reusable element here. The Map only places copies.</p>`,
     counts: source => [["ELEMENTS", /^\[ELEMENT\]/gm], ["LAYERS", /^\[PART\]/gm], ["ACTION LINKS", /^\[(?:SHOW|ATTACH)\]/gm]]
   },
   map: {
@@ -109,15 +120,10 @@ function parseElementCatalog(source) {
     if (!id) return null;
     const firstPart = block.search(/^\[PART\]/m);
     const head = firstPart < 0 ? block : block.slice(0, firstPart);
-    const parts = [...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match => ({
-      id: match[1].trim(),
-      shape: tag(match[2], "SHAPE") || "rect",
-      x: numberTag(match[2], "X"),
-      y: numberTag(match[2], "Y"),
-      width: numberTag(match[2], "WIDTH"),
-      height: numberTag(match[2], "HEIGHT"),
-      text: tag(match[2], "TEXT")
-    }));
+    const parts = [...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match => {
+      const visual = normalizeShape(tag(match[2], "SHAPE") || "rect", tag(match[2], "STYLE"));
+      return { id: match[1].trim(), ...visual, x: numberTag(match[2], "X"), y: numberTag(match[2], "Y"), width: numberTag(match[2], "WIDTH"), height: numberTag(match[2], "HEIGHT"), text: tag(match[2], "TEXT") };
+    });
     return {
       id,
       width: numberTag(head, "WIDTH", 100),
@@ -161,6 +167,7 @@ function serializePart(part) {
   return [
     `[PART] ${part.id}`,
     `[SHAPE] ${part.shape}`,
+    `[STYLE] ${part.style || "pure"}`,
     `[X] ${Math.round(part.x)}`,
     `[Y] ${Math.round(part.y)}`,
     part.width ? `[WIDTH] ${Math.round(part.width)}` : "",
@@ -213,7 +220,7 @@ function handles(part) {
 function drawPart(part, parent = "") {
   const selected = selectedPartIds.has(part.id);
   const safeText = escapeHtml(part.text);
-  return `<span class="studio-element ${escapeHtml(part.shape)}${selected ? " selected" : ""}" data-part-id="${escapeHtml(part.id)}"${parent ? ` data-map-id="${escapeHtml(parent)}"` : ""} style="left:${part.x}px;top:${part.y}px;${part.width ? `width:${part.width}px;` : ""}${part.height ? `height:${part.height}px;` : ""}">${safeText}${parent ? "" : handles(part)}</span>`;
+  return `<span class="studio-element ${escapeHtml(part.shape)} style-${escapeHtml(part.style || "pure")}${selected ? " selected" : ""}" data-part-id="${escapeHtml(part.id)}"${parent ? ` data-map-id="${escapeHtml(parent)}"` : ""} style="left:${part.x}px;top:${part.y}px;${part.width ? `width:${part.width}px;` : ""}${part.height ? `height:${part.height}px;` : ""}">${safeText}${parent ? "" : handles(part)}</span>`;
 }
 
 function renderLibrary() {
@@ -245,7 +252,8 @@ function renderInspector() {
   if (selectedPartIds.size > 1) {
     selection = `<section class="selection-summary"><p class="kicker">SELECTION</p><b>${selectedPartIds.size} LAYERS SELECTED</b><p>Use Move to drag them together, or Delete Selected to remove them.</p></section>`;
   } else if (chosen) {
-    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><label>TYPE<select name="shape">${shapeTypes.map(([value, label]) => `<option value="${value}"${value === chosen.shape ? " selected" : ""}>${label}</option>`).join("")}</select></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
+    const effects = shapeStyles[chosen.shape] || [["pure", "Pure"]];
+    selection = `<section class="shape-fields"><p class="kicker">SELECTED SHAPE</p><label>NAME<input name="part-id" value="${escapeHtml(chosen.id)}"></label><label>TYPE<span class="fixed-type">${escapeHtml(shapeLabels[chosen.shape] || chosen.shape)}</span></label><label>EFFECT<select name="style"${effects.length === 1 ? " disabled" : ""}>${effects.map(([value, label]) => `<option value="${value}"${value === chosen.style ? " selected" : ""}>${label}</option>`).join("")}</select></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${chosen.x}"></label><label>Y<input name="y" type="number" value="${chosen.y}"></label><label>WIDTH<input name="width" type="number" min="1" value="${chosen.width || ""}"></label><label>HEIGHT<input name="height" type="number" min="1" value="${chosen.height || ""}"></label></div><label>TEXT<input name="text" value="${escapeHtml(chosen.text)}"></label></section>`;
   }
   mapInspector.innerHTML = metadata + layerList(item) + selection;
 }
@@ -663,10 +671,9 @@ document.querySelectorAll("[data-add-shape]").forEach(button => button.addEventL
   if (!item) return message("CREATE OR SELECT AN ELEMENT FIRST");
   if (item.parts.length >= 5) return message("MAXIMUM 5 LAYERS PER ELEMENT");
   const shape = button.dataset.addShape;
-  const base = shape === "hline" ? "line" : shape;
-  const id = uniqueName(base, item.parts.map(part => part.id));
-  const dimensions = shape === "hline" ? { width: 50, height: 1 } : shape === "circle" ? { width: 36, height: 36 } : { width: 50, height: 30 };
-  item.parts.push({ id, shape, x: 10, y: 10, ...dimensions, text: "" });
+  const id = uniqueName(shape, item.parts.map(part => part.id));
+  const dimensions = shape === "line" ? { width: 50, height: 1 } : shape === "circle" ? { width: 36, height: 36 } : { width: 50, height: 30 };
+  item.parts.push({ id, shape, style: "pure", x: 10, y: 10, ...dimensions, text: "" });
   selectPart(id);
   syncVisual(true);
 }));
@@ -767,7 +774,7 @@ mapInspector.addEventListener("input", event => {
       selectedPartIds.delete(old);
       selectedPartIds.add(part.id);
       activePartId = part.id;
-    } else if (["shape", "x", "y", "width", "height", "text"].includes(name)) part[name] = value;
+    } else if (["style", "x", "y", "width", "height", "text"].includes(name)) part[name] = value;
   }
   syncVisual();
 });

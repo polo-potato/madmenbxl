@@ -36,18 +36,21 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .map-canvas[data-tool="move"] .studio-element{cursor:grab}
 .studio-element.selected{outline:1px solid var(--ink);outline-offset:3px}
 .studio-element.rect{border:1px solid var(--ink)}
-.studio-element.rect-muted{border:1px solid var(--line)}
+.studio-element.rect.style-muted{border-color:var(--line)}
 .studio-element.circle{border:1px solid var(--ink);border-radius:50%}
+.studio-element.circle.style-muted{border-color:var(--line)}
 .studio-element.window{border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
 .studio-element.line{border-top:2px solid var(--ink)}
-.studio-element.hline{border-top:2px solid var(--ink)}
-.studio-element.hline-muted{border-top:1px solid var(--line)}
-.studio-element.vline-muted{border-left:1px solid var(--line)}
+.studio-element.line.style-muted{border-top:1px solid var(--line)}
+.studio-element.line.style-vertical-muted{border-top:0;border-left:1px solid var(--line)}
+.studio-element.line.style-slanted{transform:rotate(-16deg);transform-origin:left center}
 .studio-element.dot{width:7px!important;height:7px!important;border-radius:50%;background:var(--ink)}
 .studio-element.laptop{border:1px solid var(--ink)}
 .studio-element.laptop:after{position:absolute;right:-5px;bottom:-5px;left:-5px;border-top:1px solid var(--ink);content:""}
 .studio-element.triangle{width:0!important;height:0!important;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:15px solid var(--ink)}
 .studio-element.text,.studio-element.smoke{font-size:14px;white-space:nowrap}
+.studio-element.smoke.style-animated{animation:studio-smoke 1.8s ease-out infinite}
+@keyframes studio-smoke{0%{opacity:.2;transform:translateY(3px)}50%{opacity:.8}100%{opacity:.1;transform:translateY(-6px)}}
 
 .resize-handle{position:absolute;z-index:5;width:8px;height:8px;border:1px solid var(--ink);background:var(--white)}
 .resize-handle.nw{top:-8px;left:-8px;cursor:nwse-resize}.resize-handle.ne{top:-8px;right:-8px;cursor:nesw-resize}.resize-handle.se{right:-8px;bottom:-8px;cursor:nwse-resize}.resize-handle.sw{bottom:-8px;left:-8px;cursor:nesw-resize}
@@ -63,6 +66,7 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .map-inspector>b{display:block;margin:8px 0 18px;font-weight:400}
 .map-inspector label{display:block;margin:0 0 12px;color:var(--muted);font-size:9px;letter-spacing:.08em}
 .map-inspector input,.map-inspector select{display:block;width:100%;margin-top:4px;padding:6px 7px;border:1px solid var(--line);border-radius:0;outline:0;background:var(--paper);color:var(--ink)}
+.fixed-type{display:block;width:100%;margin-top:4px;padding:6px 7px;border:1px solid var(--line);background:color-mix(in srgb,var(--paper) 72%,var(--line));color:var(--ink);text-transform:uppercase}
 .map-inspector input:focus,.map-inspector select:focus{border-color:var(--ink)}
 .inspector-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .inspector-help,.selection-summary p{color:var(--muted);font-size:9px}
