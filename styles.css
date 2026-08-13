@@ -84,7 +84,7 @@ button:disabled { cursor: default; color: var(--muted); background: none; }
 .metric-delta { position: absolute; right: -48px; top: 0; min-width: 38px; color: var(--ink); font-size: 12px; text-align: left; pointer-events: none; }
 .habit-menu { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 28px; }
 .habit-menu button:disabled { opacity: .3; }
-.brief-event { position: absolute; left: 42px; top: 350px; width: 300px; padding: 18px 20px; background: var(--paper); border: 1px solid var(--ink); border-left-width: 3px; z-index: 5; }
+.brief-event { position: absolute; left: 16px; top: 28px; z-index: 8; width: min(420px, calc(100% - 32px)); min-height: 300px; padding: 24px 26px; background: var(--paper); border: 1px solid var(--ink); border-left-width: 3px; }
 .brief-event p { margin: 16px 0; }
 .brief-event button { display: block; margin-top: 9px; }
 .brief-event.event-result { color: var(--muted); border-left-color: var(--yellow); }
