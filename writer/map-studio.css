@@ -34,13 +34,14 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 
 .studio-element{position:absolute;display:block;color:var(--ink);user-select:none}
 .map-canvas[data-tool="move"] .studio-element{cursor:grab}
-.studio-element.selected{outline:1px solid var(--ink);outline-offset:3px}
-.map-canvas:not([data-tool="resize"]) .studio-element.line.selected{outline:0}
-.map-canvas:not([data-tool="resize"]) .studio-element.line.selected:before,.map-canvas:not([data-tool="resize"]) .studio-element.line.selected:after{position:absolute;top:-3px;width:5px;height:5px;border:1px solid var(--ink);background:var(--white);content:""}
-.map-canvas:not([data-tool="resize"]) .studio-element.line.selected:before{left:-3px}
-.map-canvas:not([data-tool="resize"]) .studio-element.line.selected:after{right:-3px}
-.map-canvas:not([data-tool="resize"]) .studio-element.line.style-vertical-muted.selected:before{top:-3px;left:-3px;right:auto}
-.map-canvas:not([data-tool="resize"]) .studio-element.line.style-vertical-muted.selected:after{top:auto;right:auto;bottom:-3px;left:-3px}
+.map-canvas[data-tool="resize"] .studio-element.selected{outline:1px solid var(--ink);outline-offset:3px}
+.map-canvas:not([data-tool="resize"]) .studio-element.rect.selected,.map-canvas:not([data-tool="resize"]) .studio-element.circle.selected{border-width:2px}
+.map-canvas:not([data-tool="resize"]) .studio-element.line.selected{border-top-width:3px}
+.map-canvas:not([data-tool="resize"]) .studio-element.line.style-muted.selected{border-top-width:2px}
+.map-canvas:not([data-tool="resize"]) .studio-element.line.style-vertical-muted.selected{border-top-width:0;border-left-width:2px}
+.map-canvas:not([data-tool="resize"]) .studio-element.text.selected,.map-canvas:not([data-tool="resize"]) .studio-element.smoke.selected{font-weight:700}
+.map-canvas:not([data-tool="resize"]) .studio-element.dot.selected{transform:scale(1.3)}
+.map-canvas:not([data-tool="resize"]) .studio-element.triangle.selected{filter:drop-shadow(1px 0 0 var(--ink))}
 .studio-element.rect{border:1px solid var(--ink)}
 .studio-element.rect.style-muted{border-color:var(--line)}
 .studio-element.circle{border:1px solid var(--ink);border-radius:50%}

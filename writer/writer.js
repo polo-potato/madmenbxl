@@ -550,6 +550,9 @@ function beginResize(event, item, part, corner) {
 function beginMarquee(event, item) {
   const start = canvasPoint(event);
   const existing = event.shiftKey ? new Set(selectedPartIds) : new Set();
+  selectedPartIds = new Set(existing);
+  activePartId = [...selectedPartIds].at(-1) || "";
+  mapCanvas.querySelectorAll("[data-part-id]").forEach(node => node.classList.toggle("selected", selectedPartIds.has(node.dataset.partId)));
   const marquee = document.createElement("span");
   marquee.className = "selection-marquee";
   mapCanvas.append(marquee);
@@ -831,6 +834,16 @@ mapCanvas.addEventListener("pointerdown", event => {
     activePartId = "";
     renderCanvas();
   }
+});
+
+document.querySelector(".map-stage").addEventListener("pointerdown", event => {
+  if (event.target !== event.currentTarget) return;
+  if (current === "map") activePlacementId = "";
+  else {
+    selectedPartIds.clear();
+    activePartId = "";
+  }
+  renderCanvas();
 });
 
 document.querySelector("#delete-element-confirm").addEventListener("click", () => {
