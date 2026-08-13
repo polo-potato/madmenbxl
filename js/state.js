@@ -1,4 +1,4 @@
-import { peopleSeed, personalActions, prologueGauges } from "./content.js?v=9";
+import { briefCopy, peopleSeed, personalActions, prologueGauges } from "./content.js?v=16";
 
 export const SAVE_KEY = "what-if-prototype-v1";
 
@@ -46,7 +46,7 @@ export function loadState() {
     loaded.unlockedMetrics = loaded.unlockedMetrics || [];
     loaded.actionCooldowns = loaded.actionCooldowns || {};
     loaded.activityLog = (loaded.activityLog || []).slice(-10);
-    if (!["intro","inbox"].includes(loaded.mode) && !loaded.activityLog.length) loaded.activityLog = [{ type:"goal", text:"Find a direction for the brief." }];
+    if (!["intro","inbox"].includes(loaded.mode) && !loaded.activityLog.length) loaded.activityLog = [{ type:"goal", text:briefCopy.logs.start }];
     return loaded;
   } catch { return initialState(); }
 }

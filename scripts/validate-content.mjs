@@ -1,13 +1,28 @@
 import { readFile } from "node:fs/promises";
 
-const files = ["content/prologue.md", "content/prologue-gauges.md", "content/brief.md", "content/actions.md", "content/events.md", "content/prologue-elements.md", "content/prologue-map.md"];
+const manifest = JSON.parse(await readFile("content/manifest.json","utf8"));
+const activeFiles = ["content/prologue.md", "content/prologue-gauges.md", "content/brief.md", "content/actions.md", "content/events.md", "content/prologue-elements.md", "content/prologue-map.md"];
+const declaredFiles = [...(manifest.globals||[]),...(manifest.eras||[]).flatMap(era=>era.modules||[])].map(module=>`content/${module.file}`);
+const files = [...new Set([...activeFiles,...declaredFiles])];
 const sources = Object.fromEntries(await Promise.all(files.map(async file => [file, await readFile(file,"utf8")])));
 const errors=[];
+const editorTypes = new Set(["story","gauges","brief","actions","events","elements","map","text"]);
+for(const era of manifest.eras||[]){
+  const ids=(era.modules||[]).map(module=>module.id);
+  ids.filter((id,index)=>ids.indexOf(id)!==index).forEach(id=>errors.push(`content/manifest.json: duplicate module ${era.id}:${id}`));
+  for(const module of era.modules||[]){
+    if(!editorTypes.has(module.editor||"text"))errors.push(`content/manifest.json: unknown editor ${module.editor}`);
+    if(!files.includes(`content/${module.file}`))errors.push(`content/manifest.json: missing declared file content/${module.file}`);
+    if(module.editor==="map"&&!ids.includes(module.elementsModule||"elements"))errors.push(`content/manifest.json: ${era.id}:${module.id} needs an Elements module`);
+  }
+}
+const activeEra=(manifest.eras||[]).find(era=>era.status==="active");
+for(const id of ["story","actions","map","elements","gauges","brief","events"]){if(!activeEra?.modules?.some(module=>module.id===id))errors.push(`content/manifest.json: active era is missing ${id}`);}
 const clickableLegendTags = {
   "content/prologue.md": ["---", "[THOUGHT]", "[NARRATION]", "## TEXT", "[ACTION] check phone", "[UNLOCK] scroll"],
-  "content/prologue-gauges.md": ["[IDEA BASE] 2", "[IDEA MINIMUM GAIN] 9", "---", "[GAUGE] creativity", "[START] 48", "[DRIFT] -0.025", "[TRY MINIMUM] 12", "[TRY COST] -12", "[IDEA SOURCE] +0.14", "[IDEA BOOST] +0.006", "## PURPOSE"],
-  "content/brief.md": ["## VISIBLE ACTIONS", "- cigarette", "[BRIEF]", "[LABEL] BRIEF", "[PREFIX] WHAT IF...", "[PROMPT] waiting felt useful?", "[ACTION] try a direction", "[METER] IDEA", "[COMPLETE] there it is.", "[SEND] send it"],
-  "content/actions.md": ["---", "[ACTION] cigarette", "[COOLDOWN] 20", "[EFFECT] stress -5", "[MOVE] cigarette-1", "[PROP] coffee", "[ANIMATION] smoke", "[CHANCE] 0.1", "[LUCKY EFFECT] creativity +19", "## NOTE", "## LUCKY NOTE"],
+  "content/prologue-gauges.md": ["[IDEA BASE] 2", "[IDEA MINIMUM GAIN] 9", "---", "[GAUGE] creativity", "[LABEL] CREATIVITY", "[COLOR] yellow", "[START] 48", "[DRIFT] -0.025", "[TRY MINIMUM] 12", "[TRY COST] -12", "[IDEA SOURCE] +0.14", "[IDEA BOOST] +0.006", "## PURPOSE"],
+  "content/brief.md": ["## VISIBLE ACTIONS", "- cigarette", "[BRIEF]", "[LABEL] BRIEF", "[PREFIX] WHAT IF...", "[PROMPT] waiting felt useful?", "[ACTION] try a direction", "[METER] IDEA", "[COMPLETE] there it is.", "[SEND] send it", "[TARGET] 100", "[MISSING creativity] Creativity is missing.", "[LOG START] Find a direction for the brief.", "[MAIL] Hey, / / is it still ok for later?", "[AFTER TEXT] one thought survived.", "[NEXT] enter the office"],
+  "content/actions.md": ["---", "[ACTION] cigarette", "[COOLDOWN] 20", "[EFFECT] stress -5", "[REVEAL] stress", "[REQUIRES] stress >= 10", "[MOVE] cigarette-1", "[PROP] coffee", "[ANIMATION] smoke", "[CHANCE] 0.1", "[LUCKY EFFECT] creativity +19", "## NOTE", "## LUCKY NOTE"],
   "content/events.md": ["---", "[EVENT] event title", "## TEXT", "## CHOICE", "[CHOICE] open the window", "[EFFECT] stress -4", "[UNLOCK] take a walk", "## RESULT"],
   "content/prologue-elements.md": ["---", "[ELEMENT] bed", "[WIDTH] 118", "[HEIGHT] 62", "[ANCHOR X] 0", "[ANCHOR Y] 0", "[SHOW] coffee", "[ATTACH] player", "[PART] pillow", "[SHAPE] rect", "[STYLE] pure", "[X] 0", "[Y] 0", "[TEXT] ○"],
   "content/prologue-map.md": ["[MAP WIDTH] 280", "[MAP HEIGHT] 360", "[POSITION] window 177 10", "---", "[PLACE] desk", "[INSTANCE] desk-1", "[X] 46", "[Y] 44", "[ROTATION] 45"]
@@ -24,7 +39,7 @@ const requireTextBlocks=(file,marker)=>{
 requireTextBlocks("content/prologue.md","## TEXT");
 requireTextBlocks("content/actions.md","## NOTE");
 requireTextBlocks("content/events.md","## TEXT");
-for(const tag of ["LABEL","PREFIX","PROMPT","ACTION","METER","COMPLETE","SEND"]){if(!new RegExp(`^\\[${tag}\\]` ,"m").test(sources["content/brief.md"]))errors.push(`content/brief.md: missing [${tag}]`);}
+for(const tag of ["LABEL","PREFIX","PROMPT","ACTION","METER","COMPLETE","SEND","TARGET","LOG START","LOG PROMPT","LOG TRY","LOG READY","MAIL","REPLY","AFTER LABEL","AFTER PREFIX","AFTER TEXT","NEXT"]){if(!new RegExp(`^\\[${tag}\\]` ,"m").test(sources["content/brief.md"]))errors.push(`content/brief.md: missing [${tag}]`);}
 if(!/^\[ACTION\]/m.test(sources["content/actions.md"]))errors.push("content/actions.md: no [ACTION] tags");
 if(!/^\[EFFECT\]/m.test(sources["content/actions.md"]))errors.push("content/actions.md: no [EFFECT] tags");
 if(!/^\[CHOICE\]/m.test(sources["content/events.md"]))errors.push("content/events.md: no [CHOICE] tags");
@@ -33,6 +48,12 @@ for(const tag of ["GAUGE","START","DRIFT","TRY MINIMUM","TRY COST","IDEA SOURCE"
 const actionIds=[...sources["content/actions.md"].matchAll(/^\[ACTION\]\s+(.+)$/gm)].map(match=>match[1].trim());
 const duplicateActions=actionIds.filter((id,index)=>actionIds.indexOf(id)!==index);
 duplicateActions.forEach(id=>errors.push(`content/actions.md: duplicate action ${id}`));
+const gaugeIds=[...sources["content/prologue-gauges.md"].matchAll(/^\[GAUGE\]\s+(.+)$/gm)].map(match=>match[1].trim());
+gaugeIds.forEach(id=>{if(!new RegExp(`^\\[MISSING ${id.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\]`,"m").test(sources["content/brief.md"]))errors.push(`content/brief.md: missing discovery copy for ${id}`);});
+for(const match of sources["content/actions.md"].matchAll(/^\[(REVEAL|REQUIRES)\]\s+(\S+)/gm)){if(!gaugeIds.includes(match[2]))errors.push(`content/actions.md: [${match[1]}] references unknown gauge ${match[2]}`);}
+for(const match of sources["content/actions.md"].matchAll(/^\[REQUIRES\]\s+(.+)$/gm)){if(!/^(\S+)\s*(<=|>=|=|<|>)\s*[+-]?[\d.]+$/.test(match[1].trim()))errors.push(`content/actions.md: invalid [REQUIRES] rule ${match[1]}`);}
+for(const block of sources["content/prologue-gauges.md"].split(/^---$/m).slice(1)){if(/^\[GAUGE\]/m.test(block)){for(const tag of ["LABEL","COLOR","START"]){if(!new RegExp(`^\\[${tag}\\]`,"m").test(block))errors.push(`content/prologue-gauges.md: ${block.match(/^\[GAUGE\]\s+(.+)$/m)?.[1]} is missing [${tag}]`);}}}
+if(Number(sources["content/brief.md"].match(/^\[TARGET\]\s+([\d.]+)$/m)?.[1]||0)<=0)errors.push("content/brief.md: [TARGET] must be greater than zero");
 const unlockIds=Object.entries(sources).flatMap(([file,source])=>[...source.matchAll(/^\[UNLOCK\]\s+(.+)$/gm)].map(match=>[file,match[1].trim()]));
 unlockIds.forEach(([file,id])=>{if(!actionIds.includes(id))errors.push(`${file}: [UNLOCK] ${id} has no matching global action`);});
 const visibleActions=[...(sources["content/brief.md"].match(/^## VISIBLE ACTIONS\s*\n([\s\S]*?)(?=^\[BRIEF\])/m)?.[1]||"").matchAll(/^\s*-\s+(.+)$/gm)].map(match=>match[1].trim());

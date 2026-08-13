@@ -6,6 +6,8 @@
 - `[IDEA MINIMUM GAIN] 9` = minimum IDEA gained by a valid attempt.
 - `---` = next gauge.
 - `[GAUGE] creativity` = gauge identifier.
+- `[LABEL] CREATIVITY` = interface label.
+- `[COLOR] yellow` = interface theme token.
 - `[START] 48` = initial value.
 - `[DRIFT] -0.025` = automatic change per second.
 - `[TRY MINIMUM] 12` = minimum value required for an attempt.
@@ -26,6 +28,8 @@ All three gauges must first be discovered. If a required value is too low, the a
 
 ---
 [GAUGE] creativity
+[LABEL] CREATIVITY
+[COLOR] yellow
 [START] 48
 [DRIFT] -0.025
 [TRY MINIMUM] 12
@@ -36,6 +40,8 @@ Creative fuel and the only direct source of IDEA. Actions such as walking or loo
 
 ---
 [GAUGE] energy
+[LABEL] ENERGY
+[COLOR] green
 [START] 62
 [DRIFT] -0.085
 [TRY MINIMUM] 6
@@ -46,6 +52,8 @@ Capacity to keep working. Energy makes creativity turn into IDEA faster. Every d
 
 ---
 [GAUGE] stress
+[LABEL] STRESS
+[COLOR] purple
 [START] 36
 [DRIFT] +0.045
 [TRY MINIMUM] 6

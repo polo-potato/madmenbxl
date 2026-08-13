@@ -1,7 +1,10 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=16";
-import { initialState, loadState, saveState, resetState } from "./state.js?v=7";
+import { activeEra, introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=16";
+import { initialState, loadState, saveState, resetState } from "./state.js?v=8";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
+import { createEraRuntime } from "./era-runtime.js?v=1";
+import { createPrologueController } from "./eras/prologue-controller.js?v=1";
+import { createAgencyController } from "./eras/agency-controller.js?v=1";
 
 let state = loadState();
 let lastTick = Date.now();
@@ -15,16 +18,7 @@ let activeIdeaDelta = 0;
 let metricDeltaProgress = 0;
 let activityPulseTimer = null;
 const game = document.querySelector("#game");
-const metricDefinitions = {
-  creativity: { label:"CREATIVITY", color:"fill-yellow", revealedBy:["scroll","look out the window","take a walk"] },
-  energy: { label:"ENERGY", color:"fill-green", revealedBy:["coffee"] },
-  stress: { label:"STRESS", color:"fill-purple", revealedBy:["cigarette"] }
-};
-const actionLimits = {
-  cigarette: personal => personal.stress < 10,
-  coffee: personal => personal.energy > 88,
-  "take a walk": personal => personal.energy < 8
-};
+const metricDefinitions = Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,{label:gauge.label,color:`fill-${gauge.color}`}]))
 
 function logActivity(type,text){
   if(!text)return;
@@ -41,13 +35,7 @@ if (elapsed > 12 && state.mode === "agency") {
   afkNote = `${money(result.cash)} net\nresources accumulated`;
 }
 
-function render() {
-  if (state.mode === "intro") renderIntro();
-  else if (state.mode === "inbox") renderInbox();
-  else if (state.mode === "brief") renderBrief();
-  else if (state.mode === "early") renderEarly();
-  else game.innerHTML = agencyView(state, afkNote);
-}
+function render() { eraRuntime.render(state.mode); }
 
 function renderIntro() {
   const b = introBeats[state.beat];
@@ -187,7 +175,7 @@ function resumeIntroAction() {
 }
 
 function renderInbox() {
-  game.innerHTML=`<section class="prologue"><div class="inbox"><div class="inbox-head"><span>INBOX</span><span>1</span></div><p>Hey,<br><br>is it still ok for later?</p><div class="mail-reply"><span>&gt;</span><button data-reply>[ yes ]</button></div></div></section>`;
+  game.innerHTML=`<section class="prologue"><div class="inbox"><div class="inbox-head"><span>INBOX</span><span>1</span></div><p>${briefCopy.mail.body.replaceAll("\n","<br>")}</p><div class="mail-reply"><span>&gt;</span><button data-reply>[ ${briefCopy.mail.reply} ]</button></div></div></section>`;
 }
 
 function renderBrief() {
@@ -198,12 +186,12 @@ function renderBrief() {
   const event = brief.pendingEvent;
   const actions = state.unlockedActions.map(id => {
     const a=personalActions[id]; if(!a) return "";
-    const disabled=actionLimits[id]?.(p) || false;
+    const disabled=!actionAvailable(a,p);
     return actionButton(id,disabled);
   }).join("");
   const eventBlock = event ? `<div class="brief-event"><span class="label warning">DISTRACTION</span><p>${event.text.replaceAll("\n","<br>")}</p>${event.choices.map((c,i)=>`<button data-event-choice="${i}" ${state.metricAnimating?'disabled':''}>[ ${c.label} ]</button>`).join("")}</div>` : "";
   const metrics=renderPersonalMetrics(p);
-  const ideaMeter=brief.promptComplete?`<div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${Math.floor(brief.idea)} / 100</span>${deltaBadge(activeIdeaDelta)}</div>${bar(brief.idea,'fill-yellow',20)}</div>`:'';
+  const ideaMeter=brief.promptComplete?`<div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${Math.floor(brief.idea)} / ${briefCopy.target}</span>${deltaBadge(activeIdeaDelta)}</div>${bar(brief.idea/briefCopy.target*100,'fill-yellow',20)}</div>`:'';
   const completion=briefCopy.completion.replace(' / ','<br><br>');
   const attempt=brief.promptComplete?(brief.completed?`<p class="idea-found">${completion}</p><button data-finish-brief>[ ${briefCopy.send} ]</button>`:`<button class="try-idea" data-try-idea ${state.metricAnimating?'disabled':''}>[ ${briefCopy.attempt} ]</button>`):'';
   game.innerHTML=`<section class="brief-screen"><div class="brief-dialogue"><span class="label insight brief-label">${briefCopy.label}</span><div class="brief-thought"><span class="auto-anchor">${briefCopy.anchor}</span><br><br><span>${promptVisible}</span>${!brief.promptComplete?'<span class="cursor">|</span>':''}</div>${ideaMeter}${attempt}${eventBlock}${activityLogView(state,"activity-log-brief",state.activityLogPulse)}</div>
@@ -223,22 +211,19 @@ function deltaBadge(value){
   return `<span class="metric-delta" style="opacity:${opacity};transform:translateY(${-8*metricDeltaProgress}px)">${signed(value)}</span>`;
 }
 
-const ideaRequirements = [
-  { id:"creativity", message:"Creativity is missing.\n\nMaybe look somewhere else." },
-  { id:"energy", message:"Your energy is low.\n\nCoffee is still there." },
-  { id:"stress", message:"You have no motivation.\n\nA little pressure might help." }
-];
-
 function resolvePersonalAction(id){
   const action=personalActions[id];
   const lucky=action.chance>0&&Object.keys(action.luckyEffects||{}).length&&Math.random()<action.chance;
   const pool=lucky?action.luckyNotes:action.notes;
-  return { effects:lucky?action.luckyEffects:action, note:pool[Math.floor(Math.random()*pool.length)]||"", lucky };
+  return { effects:lucky?action.luckyEffects:action.effects, note:pool[Math.floor(Math.random()*pool.length)]||"", lucky };
 }
 
 function revealActionMetric(id){
-  Object.entries(metricDefinitions).filter(([,metric])=>metric.revealedBy.includes(id)).forEach(([metric])=>unlockMetric(metric));
+  (personalActions[id]?.reveals||[]).forEach(unlockMetric);
 }
+
+const requirementTests = {">":(a,b)=>a>b,">=":(a,b)=>a>=b,"<":(a,b)=>a<b,"<=":(a,b)=>a<=b,"=":(a,b)=>a===b};
+function actionAvailable(action,personal){return (action.requirements||[]).every(rule=>requirementTests[rule.operator]?.(personal[rule.gauge],rule.value)??true);}
 
 function cooldownRemaining(id){ return Math.max(0,Math.ceil(((state.actionCooldowns||{})[id]-Date.now())/1000)); }
 function actionButton(id,disabled=false){
@@ -289,7 +274,7 @@ function advanceBriefTyping(){
   const b=state.firstBrief,prompt=briefCopy.prompt;
   if(b.promptComplete)return;
   b.promptChar=Math.min(prompt.length,b.promptChar+2);
-  if(b.promptChar>=prompt.length){b.promptComplete=true;logActivity("goal","Fill the IDEA gauge.");}
+  if(b.promptChar>=prompt.length){b.promptComplete=true;logActivity("goal",briefCopy.logs.prompt);}
   render();
 }
 
@@ -308,7 +293,7 @@ function animateMetrics(effects, ideaGain=0, done=()=>{}) {
     const partial={};
     Object.entries(effects).filter(([k])=>k in state.personal).forEach(([k,v])=>partial[k]=v/steps);
     adjustPersonal(partial);
-    if(ideaGain) state.firstBrief.idea=Math.min(100,state.firstBrief.idea+ideaGain/steps);
+    if(ideaGain) state.firstBrief.idea=Math.min(briefCopy.target,state.firstBrief.idea+ideaGain/steps);
     if(step>=steps){
       clearInterval(metricTween);
       metricTween=null;
@@ -328,17 +313,17 @@ function renderEarly() {
   const metrics=renderPersonalMetrics(p);
   const actions=state.unlockedActions.map(id=>personalActions[id]?actionButton(id):'').join('');
   const room=activeRoomState();
-  game.innerHTML=`<section class="after-brief-screen"><div class="brief-dialogue after-brief-dialogue"><span class="label insight brief-label">BRIEF SENT</span><div class="brief-thought"><span class="auto-anchor">WHAT IF...</span><br><br><span>one thought survived.</span></div><div class="idea-meter"><div class="row-head"><span>IDEA</span><span>100 / 100</span></div>${bar(100,'fill-yellow',20)}</div><button class="try-idea" data-first-brief>[ enter the office ]</button>${activityLogView(state,"activity-log-brief",state.activityLogPulse)}</div>
+  game.innerHTML=`<section class="after-brief-screen"><div class="brief-dialogue after-brief-dialogue"><span class="label insight brief-label">${briefCopy.after.label}</span><div class="brief-thought"><span class="auto-anchor">${briefCopy.after.prefix}</span><br><br><span>${briefCopy.after.text}</span></div><div class="idea-meter"><div class="row-head"><span>${briefCopy.idea}</span><span>${briefCopy.target} / ${briefCopy.target}</span></div>${bar(100,'fill-yellow',20)}</div><button class="try-idea" data-first-brief>[ ${briefCopy.after.next} ]</button>${activityLogView(state,"activity-log-brief",state.activityLogPulse)}</div>
   <aside class="personal-side">${metrics?`<div class="personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:''}<nav class="habit-menu"><span class="action-menu-title">HABITS</span>${actions}</nav></aside>
   <aside class="after-brief-map" aria-label="room map">${renderRoomMap(room)}</aside></section>`;
 }
 
 function skipToAgency(){ state=initialState(); state.mode="agency"; state.activityLog=[{type:"goal",text:"Keep the agency alive."}]; afkNote=""; saveState(state); render(); }
-function skipToBrief(){ state=initialState(); state.mode="brief"; state.activityLog=[{type:"goal",text:"Find a direction for the brief."}]; briefCopy.visibleActions.forEach(unlockPersonal); afkNote=""; saveState(state); render(); }
+function skipToBrief(){ state=initialState(); state.mode="brief"; state.activityLog=[{type:"goal",text:briefCopy.logs.start}]; briefCopy.visibleActions.forEach(unlockPersonal); afkNote=""; saveState(state); render(); }
 function skipToAfterBrief(){
   state=initialState();
   state.mode="early";
-  state.firstBrief.idea=100;
+  state.firstBrief.idea=briefCopy.target;
   state.firstBrief.completed=true;
   state.unlockedMetrics=Object.keys(prologueGauges);
   briefCopy.visibleActions.forEach(unlockPersonal);
@@ -348,13 +333,13 @@ function skipToAfterBrief(){
   render();
 }
 
-document.addEventListener("keydown", e=>{ if(!e.metaKey&&!e.ctrlKey&&!e.altKey){ if(state.mode==="intro"){e.preventDefault();advanceTyping();}else if(state.mode==="brief"){e.preventDefault();advanceBriefTyping();} }});
-document.addEventListener("click", e=>{
-  const el=e.target.closest("button"); if(!el)return;
-  if(el.dataset.action==="brief") return skipToBrief();
-  if(el.dataset.action==="after-brief") return skipToAfterBrief();
-  if(el.dataset.action==="skip") return skipToAgency();
-  if(el.dataset.action==="reset"){ resetState(); state=initialState(); afkNote=""; return render(); }
+function handlePrologueInput(event){
+  if(event.metaKey||event.ctrlKey||event.altKey)return;
+  if(state.mode==="intro"){event.preventDefault();advanceTyping();}
+  else if(state.mode==="brief"){event.preventDefault();advanceBriefTyping();}
+}
+
+function handlePrologueClick(el){
   if(el.hasAttribute("data-intro-action")) return nextThought(el.textContent.includes("cigarette"));
   if(el.hasAttribute("data-resume-action")) return resumeIntroAction();
   if(el.dataset.introPersonalAction) return usePersonalAction(el.dataset.introPersonalAction,{inIntro:true,resume:el.hasAttribute("data-resume-after-action")});
@@ -366,11 +351,11 @@ document.addEventListener("click", e=>{
     if(phone) return startAutoDialogue();
     return render();
   }
-  if(el.hasAttribute("data-reply")){ state.mode="brief"; briefCopy.visibleActions.forEach(unlockPersonal); logActivity("goal","Find a direction for the brief."); return render(); }
+  if(el.hasAttribute("data-reply")){ state.mode="brief"; briefCopy.visibleActions.forEach(unlockPersonal); logActivity("goal",briefCopy.logs.start); return render(); }
   if(el.dataset.personalAction) return usePersonalAction(el.dataset.personalAction);
   if(el.hasAttribute("data-try-idea")){
     const p=state.personal,b=state.firstBrief;
-    const problem=ideaRequirements.find(({id})=>!state.unlockedMetrics.includes(id)||p[id]<(prologueGauges[id]?.tryMinimum||0));
+    const problem=Object.keys(prologueGauges).map(id=>({id,message:briefCopy.missing[id]||`${prologueGauges[id].label} is missing.`})).find(({id})=>!state.unlockedMetrics.includes(id)||p[id]<(prologueGauges[id]?.tryMinimum||0));
     if(problem){ b.eventResult=problem.message; logActivity("goal",problem.message.replaceAll("\n"," ")); return render(); }
     const source=Object.entries(prologueGauges).reduce((sum,[id,gauge])=>sum+p[id]*gauge.ideaSource,0);
     const boost=1+Object.entries(prologueGauges).reduce((sum,[id,gauge])=>sum+p[id]*gauge.ideaBoost,0);
@@ -378,18 +363,51 @@ document.addEventListener("click", e=>{
     const costs=Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.tryCost]));
     b.ideaUnlocked=true;
     b.eventResult="";
-    logActivity("action",`Tried a direction. IDEA +${gain}.`);
-    animateMetrics(costs,gain,()=>{b.attempts++;if(b.idea>=99.5){b.idea=100;b.completed=true;logActivity("goal","The direction is ready to send.");}else if(b.attempts%2===0&&briefEvents.length){b.pendingEvent=briefEvents[b.eventIndex%briefEvents.length];b.eventIndex++;logActivity("event",b.pendingEvent.text.replaceAll("\n"," "));}});
+    logActivity("action",`${briefCopy.logs.attempt} ${briefCopy.idea} +${gain}.`);
+    animateMetrics(costs,gain,()=>{b.attempts++;if(b.idea>=briefCopy.target-.5){b.idea=briefCopy.target;b.completed=true;logActivity("goal",briefCopy.logs.ready);}else if(b.attempts%2===0&&briefEvents.length){b.pendingEvent=briefEvents[b.eventIndex%briefEvents.length];b.eventIndex++;logActivity("event",b.pendingEvent.text.replaceAll("\n"," "));}});
     return render();
   }
   if(el.dataset.eventChoice!==undefined){ const b=state.firstBrief,event=b.pendingEvent,index=Number(el.dataset.eventChoice),c=event.choices[index]; b.pendingEvent=null; b.eventResult=c.result; if(c.unlock) unlockPersonal(c.unlock); logActivity("action",`${c.label}. ${c.result.replaceAll("\n"," ")}`); animateMetrics(c.effects); return render(); }
   if(el.hasAttribute("data-finish-brief")){ state.mode="early"; state.resources.ideas=18; logActivity("goal","Brief sent."); return render(); }
   if(el.hasAttribute("data-first-brief")){ state.mode="agency"; state.events.unshift({age:"THEN",text:"16:00.\n\nIt was an interview."}); logActivity("goal","Keep the agency alive."); return render(); }
+}
+
+function handleAgencyClick(el){
   if(el.dataset.tab){ state.activeTab=el.dataset.tab; return render(); }
   if(el.dataset.staff){ const c=state.campaign; const role=el.dataset.staff; const next=Math.max(0,Math.min(3,c.staffing[role]+Number(el.dataset.delta))); const diff=next-c.staffing[role]; c.staffing[role]=next; c.margin-=diff*900; logActivity("action",`${diff>0?"Added":"Removed"} ${role} capacity.`); return render(); }
   if(el.dataset.choice==="defend"){ state.campaign.decision=false; state.campaign.paused=false; state.campaign.phase="CRAFT"; state.campaign.progress=76; state.reputation=Math.min(100,state.reputation+2); state.events.unshift({age:"NOW",text:"you defended it.\n\nthe silence lasted too long.\n\nthen: \"okay.\""}); logActivity("action","Defended the idea. The client said okay."); return render(); }
   if(el.dataset.choice==="adapt"){ state.campaign.decision=false; state.campaign.paused=false; state.campaign.phase="CRAFT"; state.campaign.progress=83; state.campaign.margin-=1800; state.events.unshift({age:"NOW",text:"option 2 became option 1.\n\napproval ↑\nmargin ↓"}); logActivity("action","Adapted the idea. Approval up, margin down."); return render(); }
   if(el.dataset.choice==="award" && state.cash>=2400){ state.cash-=2400; state.awardEligible=false; state.events.unshift({age:"NOW",text:"submitted to CBA.\n\nCASE FILM\n██████░░░░░░\n\nnow we wait."}); logActivity("action","Submitted the work to CBA."); return render(); }
+}
+
+const eraControllers = [
+  createPrologueController({
+    getMode:()=>state.mode,
+    renderers:{intro:renderIntro,inbox:renderInbox,brief:renderBrief,early:renderEarly},
+    input:handlePrologueInput,
+    click:handlePrologueClick,
+    tick({cooldownEnded}){
+      if(state.mode==="brief"&&!state.metricAnimating){const drift={};state.unlockedMetrics.forEach(id=>drift[id]=prologueGauges[id]?.drift||0);adjustPersonal(drift);render();}
+      else if(cooldownEnded||(state.mode==="early"&&Object.keys(state.actionCooldowns||{}).length)){saveState(state);render();}
+    }
+  }),
+  createAgencyController({
+    render:()=>{game.innerHTML=agencyView(state,afkNote);},
+    click:handleAgencyClick,
+    tick({previousEvent}){if(state.events[0]?.text&&state.events[0].text!==previousEvent)logActivity("event",state.events[0].text.replaceAll("\n"," "));render();}
+  })
+];
+if(!eraControllers.some(controller=>controller.id===activeEra.controller))throw new Error(`Missing controller ${activeEra.controller} for era ${activeEra.id}`);
+const eraRuntime = createEraRuntime(eraControllers);
+
+document.addEventListener("keydown",event=>eraRuntime.input(state.mode,event));
+document.addEventListener("click",event=>{
+  const el=event.target.closest("button"); if(!el)return;
+  if(el.dataset.action==="brief") return skipToBrief();
+  if(el.dataset.action==="after-brief") return skipToAfterBrief();
+  if(el.dataset.action==="skip") return skipToAgency();
+  if(el.dataset.action==="reset"){resetState();state=initialState();afkNote="";return render();}
+  eraRuntime.click(state.mode,el);
 });
 
 setInterval(()=>{
@@ -397,18 +415,7 @@ setInterval(()=>{
   const cooldownEnded=clearExpiredCooldowns();
   const previousEvent=state.events[0]?.text;
   simulate(state,delta); lastTick=now;
-  if(state.mode==="brief"&&!state.metricAnimating){
-    const drift={};
-    state.unlockedMetrics.forEach(id=>drift[id]=prologueGauges[id]?.drift||0);
-    adjustPersonal(drift);
-    render();
-  } else if(state.mode==="agency") {
-    if(state.events[0]?.text&&state.events[0].text!==previousEvent) logActivity("event",state.events[0].text.replaceAll("\n"," "));
-    render();
-  } else if(cooldownEnded || (state.mode==="early"&&Object.keys(state.actionCooldowns||{}).length)) {
-    saveState(state);
-    render();
-  }
+  eraRuntime.tick(state.mode,{cooldownEnded,previousEvent,delta});
 },1000);
 setInterval(()=>saveState(state),5000);
 window.addEventListener("beforeunload",()=>saveState(state));

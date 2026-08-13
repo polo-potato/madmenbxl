@@ -1,3 +1,5 @@
+import { tagValue as tag, numberTag, normalizeRotation, parseElementDocument, parseMapDocument } from "../js/markdown.js?v=1";
+
 const editRoot = "https://github.com/polo-potato/madmenbxl/edit/main/";
 const editor = document.querySelector("#markdown");
 const toast = document.querySelector("#toast");
@@ -9,7 +11,8 @@ const deleteModal = document.querySelector("#delete-element-modal");
 const leaveFileModal = document.querySelector("#leave-file-modal");
 const saveIndicator = document.querySelector("#save-indicator");
 
-let current = "story";
+let current = "";
+let modules = {};
 let historyStates = [];
 let historyIndex = -1;
 let historyTimer = null;
@@ -63,98 +66,66 @@ function makeLegend(title, items, note = "") {
   return `<p class="kicker">${escapeHtml(title)}</p><div class="tag-tools">${tools}</div>${note ? `<p class="rules">${escapeHtml(note)}</p>` : ""}`;
 }
 
-const modules = {
+const editorTypes = {
   story: {
-    file: "prologue.md",
     legend: makeLegend("PROLOGUE TAGS", [["---", "NEW SCENE"], ["[THOUGHT]", "YOU WRITE", "WHAT IF is automatic.", "thought"], ["[NARRATION]", "LIFE HAPPENS", "Italic and automatic.", "narration"], ["## TEXT", "SCREEN COPY"], ["[ACTION] check phone", "PAUSE HERE"], ["[UNLOCK] scroll", "PERMANENT ACTION", "Must match Actions.", "unlock"]]),
     counts: source => [["SCENES", /^---$/gm], ["ACTIONS", /^\[ACTION\]/gm], ["UNLOCKS", /^\[UNLOCK\]/gm]]
   },
   gauges: {
-    file: "prologue-gauges.md",
-    legend: makeLegend("PROLOGUE GAUGES", [["[IDEA BASE] 2", "BASE IDEA GAIN"], ["[IDEA MINIMUM GAIN] 9", "MINIMUM IDEA GAIN"], ["---", "NEW GAUGE"], ["[GAUGE] creativity", "GAUGE ID"], ["[START] 48", "INITIAL VALUE"], ["[DRIFT] -0.025", "CHANGE / SECOND"], ["[TRY MINIMUM] 12", "REQUIRED VALUE"], ["[TRY COST] -12", "COST / DIRECTION"], ["[IDEA SOURCE] +0.14", "DIRECT IDEA SOURCE"], ["[IDEA BOOST] +0.006", "SPEED BOOST"], ["## PURPOSE", "HUMAN DESCRIPTION"]]),
+    legend: makeLegend("PROLOGUE GAUGES", [["[IDEA BASE] 2", "BASE IDEA GAIN"], ["[IDEA MINIMUM GAIN] 9", "MINIMUM IDEA GAIN"], ["---", "NEW GAUGE"], ["[GAUGE] creativity", "GAUGE ID"], ["[LABEL] CREATIVITY", "INTERFACE LABEL"], ["[COLOR] yellow", "THEME TOKEN"], ["[START] 48", "INITIAL VALUE"], ["[DRIFT] -0.025", "CHANGE / SECOND"], ["[TRY MINIMUM] 12", "REQUIRED VALUE"], ["[TRY COST] -12", "COST / DIRECTION"], ["[IDEA SOURCE] +0.14", "DIRECT IDEA SOURCE"], ["[IDEA BOOST] +0.006", "SPEED BOOST"], ["## PURPOSE", "HUMAN DESCRIPTION"]]),
     counts: source => [["GAUGES", /^\[GAUGE\]/gm], ["RULES", /^\[(?:START|DRIFT|TRY MINIMUM|TRY COST|IDEA SOURCE|IDEA BOOST)\]/gm]]
   },
   brief: {
-    file: "brief.md",
-    legend: makeLegend("BRIEF TAGS", [["## VISIBLE ACTIONS", "MODULE ACTION MENU"], ["- cigarette", "VISIBLE ACTION", "Must match Actions."], ["[BRIEF]", "MODULE START"], ["[LABEL] BRIEF", "SMALL LABEL"], ["[PREFIX] WHAT IF...", "THOUGHT PREFIX"], ["[PROMPT] waiting felt useful?", "PLAYER THOUGHT"], ["[ACTION] try a direction", "IDEA BUTTON"], ["[METER] IDEA", "GAUGE NAME"], ["[COMPLETE] there it is.", "COMPLETION COPY"], ["[SEND] send it", "FINAL BUTTON"]]),
+    legend: makeLegend("BRIEF TAGS", [["## VISIBLE ACTIONS", "MODULE ACTION MENU"], ["- cigarette", "VISIBLE ACTION", "Must match Actions."], ["[BRIEF]", "MODULE START"], ["[LABEL] BRIEF", "SMALL LABEL"], ["[PREFIX] WHAT IF...", "THOUGHT PREFIX"], ["[PROMPT] waiting felt useful?", "PLAYER THOUGHT"], ["[ACTION] try a direction", "IDEA BUTTON"], ["[METER] IDEA", "GAUGE NAME"], ["[COMPLETE] there it is.", "COMPLETION COPY"], ["[SEND] send it", "FINAL BUTTON"], ["[TARGET] 100", "OBJECTIVE VALUE"], ["[MISSING creativity] Creativity is missing.", "RESOURCE HINT"], ["[LOG START] Find a direction for the brief.", "EVENT LOG COPY"], ["[MAIL] Hey, / / is it still ok for later?", "INBOX COPY"], ["[AFTER TEXT] one thought survived.", "AFTER-BRIEF COPY"], ["[NEXT] enter the office", "NEXT BUTTON"]]),
     counts: source => [["FIELDS", /^\[(?:LABEL|PREFIX|PROMPT|ACTION|METER|COMPLETE|SEND)\]/gm], ["VISIBLE ACTIONS", /^\s*-\s+.+$/gm]]
   },
   actions: {
-    file: "actions.md",
-    legend: makeLegend("ACTION TAGS", [["---", "NEW ACTION"], ["[ACTION] cigarette", "GLOBAL ACTION", "Unlocks refer to this name.", "unlock"], ["[COOLDOWN] 20", "WAIT TIME"], ["[EFFECT] stress -5", "GAUGE CHANGE"], ["[MOVE] cigarette-1", "PLAYER ANCHOR", "Uses that instance's element anchor."], ["[PROP] coffee", "ACTIVE ELEMENT", "Lasts for the full cooldown."], ["[ANIMATION] smoke", "ACTIVE ANIMATION", "Lasts for the full cooldown."], ["[CHANCE] 0.1", "LUCKY CHANCE"], ["[LUCKY EFFECT] creativity +19", "LUCKY GAUGE CHANGE"], ["## NOTE", "MESSAGE POOL", "One option per dash line.", "narration"], ["## LUCKY NOTE", "LUCKY MESSAGE POOL", "One option per dash line.", "narration"]], "MOVE uses the editable Element anchor after Map rotation. Attached props follow later movements until their own cooldown ends."),
+    legend: makeLegend("ACTION TAGS", [["---", "NEW ACTION"], ["[ACTION] cigarette", "ERA ACTION", "Unlocks refer to this name.", "unlock"], ["[COOLDOWN] 20", "WAIT TIME"], ["[EFFECT] stress -5", "GAUGE CHANGE"], ["[REVEAL] stress", "DISCOVER GAUGE"], ["[REQUIRES] stress >= 10", "AVAILABILITY RULE"], ["[MOVE] cigarette-1", "PLAYER ANCHOR", "Uses that instance's element anchor."], ["[PROP] coffee", "ACTIVE ELEMENT", "Lasts for the full cooldown."], ["[ANIMATION] smoke", "ACTIVE ANIMATION", "Lasts for the full cooldown."], ["[CHANCE] 0.1", "LUCKY CHANCE"], ["[LUCKY EFFECT] creativity +19", "LUCKY GAUGE CHANGE"], ["## NOTE", "MESSAGE POOL", "One option per dash line.", "narration"], ["## LUCKY NOTE", "LUCKY MESSAGE POOL", "One option per dash line.", "narration"]], "MOVE uses the editable Element anchor after Map rotation. Attached props follow later movements until their own cooldown ends."),
     counts: source => [["ACTIONS", /^\[ACTION\]/gm], ["EFFECTS", /^\[(?:EFFECT|LUCKY EFFECT)\]/gm], ["MESSAGES", /^\s*-\s+.+$/gm]]
   },
   events: {
-    file: "events.md",
     legend: makeLegend("EVENT TAGS", [["---", "NEW EVENT"], ["[EVENT] event title", "INTERNAL TITLE"], ["## TEXT", "WHAT HAPPENS", "Automatic narration.", "narration"], ["## CHOICE", "NEW CHOICE"], ["[CHOICE] open the window", "CONTEXT BUTTON"], ["[EFFECT] stress -4", "CONSEQUENCE"], ["[UNLOCK] take a walk", "PERMANENT ACTION", "Must match Actions.", "unlock"], ["## RESULT", "RESULT COPY", "Automatic after choice.", "narration"]]),
     counts: source => [["EVENTS", /^\[EVENT\]/gm], ["CHOICES", /^\[CHOICE\]/gm], ["EFFECTS", /^\[EFFECT\]/gm]]
   },
   elements: {
-    file: "prologue-elements.md",
     legend: makeLegend("ELEMENT TAGS", [["---", "NEW ELEMENT"], ["[ELEMENT] bed", "REUSABLE ELEMENT"], ["[WIDTH] 118", "CANVAS / PART WIDTH"], ["[HEIGHT] 62", "CANVAS / PART HEIGHT"], ["[ANCHOR X] 0", "MOVE ANCHOR X"], ["[ANCHOR Y] 0", "MOVE ANCHOR Y"], ["[SHOW] coffee", "ACTIVE WITH PROP"], ["[ATTACH] player", "FOLLOW PLAYER", "Keeps Map-relative spacing."], ["[PART] pillow", "NEW LAYER", "Maximum five."], ["[SHAPE] rect", "FIXED GEOMETRY"], ["[STYLE] pure", "VISUAL EFFECT", "Pure is the default."], ["[X] 0", "LAYER X"], ["[Y] 0", "LAYER Y"], ["[TEXT] ○", "TEXT CONTENT"]], "The MOVE anchor is independent: dragging it never moves the element's layers."),
     counts: source => [["ELEMENTS", /^\[ELEMENT\]/gm], ["LAYERS", /^\[PART\]/gm], ["ACTION LINKS", /^\[(?:SHOW|ATTACH)\]/gm]]
   },
   map: {
-    file: "prologue-map.md",
     legend: makeLegend("MAP TAGS", [["[MAP WIDTH] 280", "MAP WIDTH"], ["[MAP HEIGHT] 360", "MAP HEIGHT"], ["[POSITION] window 177 10", "NAMED PLAYER ANCHOR"], ["---", "NEW PLACEMENT"], ["[PLACE] desk", "ELEMENT TO PLACE"], ["[INSTANCE] desk-1", "UNIQUE COPY / ANCHOR", "Actions target it with MOVE."], ["[X] 46", "INSTANCE X"], ["[Y] 44", "INSTANCE Y"], ["[ROTATION] 45", "INSTANCE ROTATION", "Always 0°–359°."]], "Instances are the shared coordinates used by the Map editor and the game."),
     counts: source => [["PLACED", /^\[PLACE\]/gm], ["POSITIONS", /^\[POSITION\]/gm]]
   }
 };
 
+function currentEditor() { return modules[current]?.editor || "text"; }
+
+function configureModules(manifest) {
+  modules = {};
+  (manifest.globals || []).forEach(module => {
+    const key = `global:${module.id}`;
+    modules[key] = { ...(editorTypes[module.editor] || {}), ...module, era:"global", key };
+  });
+  manifest.eras.forEach(era => era.modules.forEach(module => {
+    const key = `${era.id}:${module.id}`;
+    modules[key] = { ...(editorTypes[module.editor] || {}), ...module, era:era.id, key };
+  }));
+  const activeEra = manifest.eras.find(era=>era.status==="active") || manifest.eras[0];
+  const preferred = activeEra?.modules.find(module=>module.id==="story") || activeEra?.modules[0];
+  current = preferred ? `${activeEra.id}:${preferred.id}` : Object.keys(modules)[0] || "";
+}
+
 function escapeHtml(value = "") {
   return String(value).replace(/[&<>"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);
 }
 
-function tag(block, name) {
-  return block.match(new RegExp(`^\\[${name}\\]\\s+(.+)$`, "m"))?.[1]?.trim() || "";
-}
-
-function numberTag(block, name, fallback = 0) {
-  const value = Number(tag(block, name));
-  return Number.isFinite(value) ? value : fallback;
-}
-
-function normalizeRotation(value) {
-  const numeric = Number(value) || 0;
-  return ((numeric % 360) + 360) % 360;
-}
-
-function splitSource(source) {
-  const blocks = source.split(/^---$/m);
-  return { header: blocks.shift()?.trim() || "", blocks };
-}
-
 function parseElementCatalog(source) {
-  const parsed = splitSource(source);
-  const result = parsed.blocks.map(block => {
-    const id = tag(block, "ELEMENT");
-    if (!id) return null;
-    const firstPart = block.search(/^\[PART\]/m);
-    const head = firstPart < 0 ? block : block.slice(0, firstPart);
-    const parts = [...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match => {
-      const visual = normalizeShape(tag(match[2], "SHAPE") || "rect", tag(match[2], "STYLE"));
-      const width = numberTag(match[2], "WIDTH");
-      const height = visual.shape === "circle" ? width || numberTag(match[2], "HEIGHT") : numberTag(match[2], "HEIGHT");
-      return { id: match[1].trim(), ...visual, x: numberTag(match[2], "X"), y: numberTag(match[2], "Y"), width, height, text: tag(match[2], "TEXT") };
-    });
-    return {
-      id,
-      width: numberTag(head, "WIDTH", 100),
-      height: numberTag(head, "HEIGHT", 70),
-      anchorX: numberTag(head, "ANCHOR X"),
-      anchorY: numberTag(head, "ANCHOR Y"),
-      show: tag(head, "SHOW"),
-      attach: tag(head, "ATTACH"),
-      parts
-    };
-  }).filter(Boolean);
-  return { header: parsed.header, elements: result };
+  return parseElementDocument(source,{normalizeVisual:normalizeShape,defaultWidth:100,defaultHeight:70});
 }
 
 function parseCurrentSource() {
   selectedPartIds.clear();
   activePartId = "";
-  if (current === "elements") {
+  if (currentEditor() === "elements") {
     const parsed = parseElementCatalog(editor.value);
     sourceHeader = parsed.header;
     elements = parsed.elements;
@@ -162,19 +133,9 @@ function parseCurrentSource() {
     selectedLibraryId = activeElementId;
     return;
   }
-  const parsed = splitSource(editor.value);
+  const parsed = parseMapDocument(editor.value);
   sourceHeader = parsed.header;
-  placements = parsed.blocks.map((block, index) => {
-    const id = tag(block, "PLACE");
-    if (!id) return null;
-    return {
-      id,
-      instance: tag(block, "INSTANCE") || `${id}-${index + 1}`,
-      x: numberTag(block, "X"),
-      y: numberTag(block, "Y"),
-      rotation: normalizeRotation(numberTag(block, "ROTATION"))
-    };
-  }).filter(Boolean);
+  placements = parsed.placements;
   if (!placements.some(item => item.instance === activePlacementId)) activePlacementId = placements[0]?.instance || "";
   if (selectedLibraryId && !catalog[selectedLibraryId]) selectedLibraryId = "";
 }
@@ -194,7 +155,7 @@ function serializePart(part) {
 
 function serializeCurrentSource() {
   let blocks;
-  if (current === "elements") {
+  if (currentEditor() === "elements") {
     blocks = elements.map(item => [
       `[ELEMENT] ${item.id}`,
       `[WIDTH] ${Math.round(item.width)}`,
@@ -243,7 +204,7 @@ function drawPart(part, parent = "") {
 }
 
 function renderLibrary() {
-  if (current === "elements") {
+  if (currentEditor() === "elements") {
     elementLibrary.innerHTML = elements.map(item => `<div class="library-row${item.id === activeElementId ? " active" : ""}"><button type="button" data-library-id="${escapeHtml(item.id)}">${escapeHtml(item.id)}</button><button type="button" class="library-remove" data-remove-element="${escapeHtml(item.id)}" title="Delete ${escapeHtml(item.id)}" aria-label="Delete ${escapeHtml(item.id)}">×</button></div>`).join("");
   } else {
     elementLibrary.innerHTML = Object.values(catalog).map(item => `<div class="library-row"><button type="button" class="library-direct-place" data-place-element="${escapeHtml(item.id)}" title="Place ${escapeHtml(item.id)}"><span>+</span>${escapeHtml(item.id)}</button></div>`).join("");
@@ -259,7 +220,7 @@ function mapLayerList() {
 }
 
 function renderInspector() {
-  if (current === "map") {
+  if (currentEditor() === "map") {
     const item = activePlacement();
     mapInspector.innerHTML = item ? `<p class="kicker">PLACED COPY</p><b>${escapeHtml(item.id)}</b><label>INSTANCE<input name="instance" value="${escapeHtml(item.instance)}"></label><div class="inspector-grid"><label>X<input name="x" type="number" value="${item.x}"></label><label>Y<input name="y" type="number" value="${item.y}"></label></div><label>ROTATION (°)<input name="rotation" type="number" min="0" max="359" step="45" value="${normalizeRotation(item.rotation)}"></label>` : mapLayerList();
     return;
@@ -284,8 +245,8 @@ function renderInspector() {
 
 function renderCanvas() {
   document.querySelectorAll("[data-tool]").forEach(button => button.classList.toggle("active", button.dataset.tool === activeTool));
-  document.querySelector("#map-rotate").hidden = current !== "map" || !activePlacementId;
-  if (current === "elements") {
+  document.querySelector("#map-rotate").hidden = currentEditor() !== "map" || !activePlacementId;
+  if (currentEditor() === "elements") {
     const item = activeElement();
     mapCanvas.style.width = `${item?.width || 160}px`;
     mapCanvas.style.height = `${item?.height || 120}px`;
@@ -372,18 +333,18 @@ function check() {
 
 function setVisualMode(enabled) {
   const panel = document.querySelector(".editor");
-  mapStudio.dataset.mode = current;
+  mapStudio.dataset.mode = currentEditor();
   panel.classList.toggle("map-mode", enabled);
   panel.classList.remove("map-raw-open");
   mapStudio.hidden = !enabled;
-  document.querySelector("#element-add").hidden = current !== "elements";
-  document.querySelector("#library-title").textContent = current === "elements" ? "ELEMENTS" : "ELEMENT LIBRARY";
+  document.querySelector("#element-add").hidden = currentEditor() !== "elements";
+  document.querySelector("#library-title").textContent = currentEditor() === "elements" ? "ELEMENTS" : "ELEMENT LIBRARY";
   document.querySelector("#map-place").hidden = true;
-  document.querySelector("#map-duplicate").hidden = current !== "map";
-  document.querySelector("#map-delete").hidden = current !== "map";
-  document.querySelectorAll("[data-add-shape]").forEach(button => button.hidden = current !== "elements");
-  document.querySelector('[data-tool="anchor"]').hidden = current !== "elements";
-  if (current !== "elements" && activeTool === "anchor") activeTool = "select";
+  document.querySelector("#map-duplicate").hidden = currentEditor() !== "map";
+  document.querySelector("#map-delete").hidden = currentEditor() !== "map";
+  document.querySelectorAll("[data-add-shape]").forEach(button => button.hidden = currentEditor() !== "elements");
+  document.querySelector('[data-tool="anchor"]').hidden = currentEditor() !== "elements";
+  if (currentEditor() !== "elements" && activeTool === "anchor") activeTool = "select";
   document.querySelector("#map-raw").textContent = "[ RAW MARKDOWN ]";
   document.querySelector("#visual-return").hidden = true;
   if (enabled) {
@@ -400,19 +361,21 @@ async function load() {
   editor.value = await fetch(`../content/${module.file}?v=${Date.now()}`).then(response => response.text());
   loadedSource = editor.value;
   cleanStateLabel = "LOADED FROM GITHUB";
-  if (current === "map") {
-    const catalogSource = await fetch(`../content/prologue-elements.md?v=${Date.now()}`).then(response => response.text());
+  if (currentEditor() === "map") {
+    const elementsModule = modules[`${module.era}:${module.elementsModule || "elements"}`];
+    if (!elementsModule) throw new Error(`Map module ${module.id} has no Elements module`);
+    const catalogSource = await fetch(`../content/${elementsModule.file}?v=${Date.now()}`).then(response => response.text());
     catalog = Object.fromEntries(parseElementCatalog(catalogSource).elements.map(item => [item.id, item]));
   }
-  setVisualMode(current === "map" || current === "elements");
+  setVisualMode(currentEditor() === "map" || currentEditor() === "elements");
   resetHistory();
   check();
   updateSaveIndicator();
 }
 
 function renderNavigation(manifest) {
-  const globals = manifest.globals?.length ? `<p class="nav-label">GLOBAL</p>${manifest.globals.map(item => `<button data-module="${item.id}">${item.label}</button>`).join("")}` : "";
-  const eras = `<p class="nav-label">ERAS</p>${manifest.eras.map(era => `<div class="era ${era.status}"><div class="era-title"><b>${era.label}</b><small>${era.status}</small></div>${era.modules.map(item => `<button data-module="${item.id}">↳ ${item.label}</button>`).join("")}</div>`).join("")}`;
+  const globals = manifest.globals?.length ? `<p class="nav-label">GLOBAL</p>${manifest.globals.map(item => `<button data-module="global:${item.id}">${item.label}</button>`).join("")}` : "";
+  const eras = `<p class="nav-label">ERAS</p>${manifest.eras.map(era => `<div class="era ${era.status}"><div class="era-title"><b>${era.label}</b><small>${era.status}</small></div>${era.modules.map(item => `<button data-module="${era.id}:${item.id}">↳ ${item.label}</button>`).join("")}</div>`).join("")}`;
   document.querySelector(".modules").innerHTML = globals + eras;
 }
 
@@ -441,7 +404,7 @@ function history(command) {
   if (target < 0 || target >= historyStates.length) return;
   historyIndex = target;
   editor.value = historyStates[historyIndex];
-  if (current === "map" || current === "elements") {
+  if (currentEditor() === "map" || currentEditor() === "elements") {
     parseCurrentSource();
     renderCanvas();
   } else {
@@ -490,7 +453,7 @@ function openElementDelete(id) {
 }
 
 function deleteSelected() {
-  if (current === "map") {
+  if (currentEditor() === "map") {
     if (!activePlacementId) return message("SELECT A PLACED COPY FIRST");
     placements = placements.filter(item => item.instance !== activePlacementId);
     activePlacementId = placements[0]?.instance || "";
@@ -760,7 +723,7 @@ elementLibrary.addEventListener("click", event => {
   if (place) return placeElement(place.dataset.placeElement);
   const button = event.target.closest("[data-library-id]");
   if (!button) return;
-  if (current === "elements") {
+  if (currentEditor() === "elements") {
     activeElementId = button.dataset.libraryId;
     selectedLibraryId = activeElementId;
     selectedPartIds.clear();
@@ -811,7 +774,7 @@ mapInspector.addEventListener("input", event => {
   if (!name) return;
   const numeric = ["x", "y", "rotation", "width", "height", "diameter", "element-width", "element-height", "anchor-x", "anchor-y"].includes(name);
   const value = numeric ? Number(event.target.value || 0) : event.target.value.trim();
-  if (current === "map") {
+  if (currentEditor() === "map") {
     const item = activePlacement();
     if (!item) return;
     if (name === "instance") {
@@ -855,7 +818,7 @@ mapInspector.addEventListener("input", event => {
 mapCanvas.addEventListener("pointerdown", event => {
   if (event.button !== 0) return;
   event.preventDefault();
-  if (current === "map") {
+  if (currentEditor() === "map") {
     const composite = event.target.closest("[data-map-id]");
     if (!composite) { activePlacementId = ""; selectedLibraryId = ""; renderCanvas(); return; }
     activePlacementId = composite.dataset.mapId;
@@ -902,7 +865,7 @@ mapCanvas.addEventListener("pointerdown", event => {
 
 document.querySelector(".map-stage").addEventListener("pointerdown", event => {
   if (event.target !== event.currentTarget) return;
-  if (current === "map") { activePlacementId = ""; selectedLibraryId = ""; }
+  if (currentEditor() === "map") { activePlacementId = ""; selectedLibraryId = ""; }
   else {
     selectedPartIds.clear();
     activePartId = "";
@@ -925,13 +888,13 @@ deleteModal.addEventListener("close", () => { pendingElementDelete = ""; });
 window.addEventListener("keydown", event => {
   const typing = event.target.matches("input, textarea, select, [contenteditable]");
   if (typing) return;
-  if ((current === "map" || current === "elements") && ["Backspace", "Delete"].includes(event.key)) {
+  if ((currentEditor() === "map" || currentEditor() === "elements") && ["Backspace", "Delete"].includes(event.key)) {
     event.preventDefault();
     deleteSelected();
     return;
   }
   const tool = { v: "move", s: "select", r: "resize", a: "anchor" }[event.key.toLowerCase()];
-  if (tool && (current === "map" || current === "elements")) {
+  if (tool && (currentEditor() === "map" || currentEditor() === "elements")) {
     activeTool = tool;
     renderCanvas();
   }
@@ -939,5 +902,5 @@ window.addEventListener("keydown", event => {
 
 fetch(`../content/manifest.json?v=${Date.now()}`)
   .then(response => response.json())
-  .then(manifest => { renderNavigation(manifest); return load(); })
+  .then(manifest => { configureModules(manifest); renderNavigation(manifest); return load(); })
   .catch(() => message("COULD NOT LOAD CONTENT STRUCTURE"));

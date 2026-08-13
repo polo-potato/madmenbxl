@@ -3,9 +3,11 @@
 ## LEGEND
 
 - `---` = next action.
-- `[ACTION] cigarette` = permanent button name.
+- `[ACTION] cigarette` = action name inside this era.
 - `[COOLDOWN] 20` = seconds before this action can be used again. Its room animation stays visible for the same duration.
 - `[EFFECT] stress -5` = gauge change after one click.
+- `[REVEAL] stress` = reveals this gauge when the action is first used.
+- `[REQUIRES] stress >= 10` = availability rule evaluated by the shared action system.
 - `[MOVE] cigarette-1` = uses that Map instance as the player's temporary anchor.
 - `[PROP] coffee` = activates the matching element for this action's full cooldown.
 - `[ANIMATION] smoke` = activates the matching animated element for this action's full cooldown.
@@ -19,6 +21,8 @@
 ---
 [ACTION] cigarette
 [COOLDOWN] 18
+[REVEAL] stress
+[REQUIRES] stress >= 10
 [MOVE] cigarette-1
 [PROP] cigarette
 [ANIMATION] smoke
@@ -32,6 +36,7 @@
 ---
 [ACTION] scroll
 [COOLDOWN] 12
+[REVEAL] creativity
 [EFFECT] creativity -5
 [EFFECT] energy -5
 [EFFECT] stress +5
@@ -55,6 +60,8 @@
 ---
 [ACTION] coffee
 [COOLDOWN] 20
+[REVEAL] energy
+[REQUIRES] energy <= 88
 [PROP] coffee
 [EFFECT] creativity +1
 [EFFECT] energy +18
@@ -79,6 +86,7 @@
 ---
 [ACTION] look out the window
 [COOLDOWN] 14
+[REVEAL] creativity
 [MOVE] window-1
 [EFFECT] creativity +7
 [EFFECT] energy -1
@@ -90,6 +98,8 @@
 ---
 [ACTION] take a walk
 [COOLDOWN] 30
+[REVEAL] creativity
+[REQUIRES] energy >= 8
 [EFFECT] creativity +16
 [EFFECT] energy +4
 [EFFECT] stress -7
