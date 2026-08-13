@@ -63,7 +63,8 @@ function renderIntro() {
   const menu = renderActionMenu(currentAction);
   const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',state.personal.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',state.personal.energy,'fill-green',metric):personalMetric('STRESS',state.personal.stress,'fill-purple',metric)).join('');
   const voiceClass = b.kind === "narration" ? "narration" : "typed";
-  game.innerHTML = `<section class="prologue"><div class="prologue-output">${anchor}<span class="${voiceClass}">${visible}</span>${cursor}${state.introActionNote?`<span class="intro-action-note narration">${state.introActionNote.replaceAll("\n","<br>")}</span>`:""}${menu}</div>${metrics?`<aside class="prologue-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</aside>`:""}<div class="hint">${hint}</div></section>`;
+  const side = metrics || menu ? `<aside class="prologue-side">${metrics?`<div class="prologue-metrics personal-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</div>`:""}${menu}</aside>` : "";
+  game.innerHTML = `<section class="prologue"><div class="prologue-output">${anchor}<span class="${voiceClass}">${visible}</span>${cursor}${state.introActionNote?`<span class="intro-action-note narration">${state.introActionNote.replaceAll("\n","<br>")}</span>`:""}</div>${side}<div class="hint">${hint}</div></section>`;
   if (complete && !state.erasing) scheduleErase();
 }
 
@@ -73,7 +74,8 @@ function renderActionMenu(current) {
   if (!state.unlockedActions.length && !contextual) return "";
   return `<nav class="action-menu" aria-label="actions">${state.unlockedActions.length?'<span class="action-menu-title">HABITS</span>':''}${state.unlockedActions.map(id => {
     const active = current && current.id === id;
-    const attr = state.metricAnimating ? "disabled" : active ? (current.persistent?`data-intro-personal-action="${id}" data-resume-after-action`:current.attr) : `data-intro-personal-action="${id}"`;
+    const used = (state.actionUses[id] || 0) > 0;
+    const attr = state.metricAnimating || used ? "disabled" : active ? (current.persistent?`data-intro-personal-action="${id}" data-resume-after-action`:current.attr) : `data-intro-personal-action="${id}"`;
     const label = active ? current.label : id;
     return `<button class="context-action" ${attr}>[ ${label} ]</button>`;
   }).join("")}${contextual}</nav>`;
