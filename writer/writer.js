@@ -58,40 +58,45 @@ function normalizeShape(shape = "rect", style = "") {
   return { shape: canonical, style: options.some(([value]) => value === style) ? style : fallback };
 }
 
+function makeLegend(title, items, note = "") {
+  const tools = items.map(([insert, label, help = "", kind = ""]) => `<button type="button" class="tag${kind ? ` ${kind}` : ""}" data-insert="${escapeHtml(insert)}"><code>${escapeHtml(insert)}</code><span class="tag-copy"><b>${escapeHtml(label)}</b>${help ? `<small>${escapeHtml(help)}</small>` : ""}</span></button>`).join("");
+  return `<p class="kicker">${escapeHtml(title)}</p><div class="tag-tools">${tools}</div>${note ? `<p class="rules">${escapeHtml(note)}</p>` : ""}`;
+}
+
 const modules = {
   story: {
     file: "prologue.md",
-    legend: `<p class="kicker">PROLOGUE TAGS</p><section class="tag"><code>---</code><b>NEW SCENE</b></section><section class="tag"><code>## TEXT</code><b>SCREEN COPY</b></section><section class="tag thought"><code>[THOUGHT]</code><b>YOU WRITE</b><p>Player types. WHAT IF is automatic.</p></section><section class="tag narration"><code>[NARRATION]</code><b>LIFE HAPPENS</b><p>Italic and automatic.</p></section><section class="tag"><code>[ACTION] check phone</code><b>PAUSE HERE</b></section><section class="tag unlock"><code>[UNLOCK] scroll</code><b>PERMANENT ACTION</b></section>`,
+    legend: makeLegend("PROLOGUE TAGS", [["---", "NEW SCENE"], ["[THOUGHT]", "YOU WRITE", "WHAT IF is automatic.", "thought"], ["[NARRATION]", "LIFE HAPPENS", "Italic and automatic.", "narration"], ["## TEXT", "SCREEN COPY"], ["[ACTION] check phone", "PAUSE HERE"], ["[UNLOCK] scroll", "PERMANENT ACTION", "Must match Actions.", "unlock"]]),
     counts: source => [["SCENES", /^---$/gm], ["ACTIONS", /^\[ACTION\]/gm], ["UNLOCKS", /^\[UNLOCK\]/gm]]
   },
   gauges: {
     file: "prologue-gauges.md",
-    legend: `<p class="kicker">PROLOGUE GAUGES</p><section class="tag"><code>---</code><b>NEW GAUGE</b></section><section class="tag"><code>[GAUGE] creativity</code><b>GAUGE ID</b></section><section class="tag"><code>[START] 48</code><b>INITIAL VALUE</b></section><section class="tag"><code>[DRIFT] -0.025</code><b>CHANGE PER SECOND</b></section><section class="tag"><code>[TRY COST] -12</code><b>COST PER DIRECTION</b></section><section class="tag"><code>[IDEA SOURCE] +0.14</code><b>DIRECT IDEA SOURCE</b></section><section class="tag"><code>[IDEA BOOST] +0.006</code><b>SPEED BOOST</b></section>`,
+    legend: makeLegend("PROLOGUE GAUGES", [["[IDEA BASE] 2", "BASE IDEA GAIN"], ["[IDEA MINIMUM GAIN] 9", "MINIMUM IDEA GAIN"], ["---", "NEW GAUGE"], ["[GAUGE] creativity", "GAUGE ID"], ["[START] 48", "INITIAL VALUE"], ["[DRIFT] -0.025", "CHANGE / SECOND"], ["[TRY MINIMUM] 12", "REQUIRED VALUE"], ["[TRY COST] -12", "COST / DIRECTION"], ["[IDEA SOURCE] +0.14", "DIRECT IDEA SOURCE"], ["[IDEA BOOST] +0.006", "SPEED BOOST"], ["## PURPOSE", "HUMAN DESCRIPTION"]]),
     counts: source => [["GAUGES", /^\[GAUGE\]/gm], ["RULES", /^\[(?:START|DRIFT|TRY MINIMUM|TRY COST|IDEA SOURCE|IDEA BOOST)\]/gm]]
   },
   brief: {
     file: "brief.md",
-    legend: `<p class="kicker">BRIEF TAGS</p><section class="tag"><code>## VISIBLE ACTIONS</code><b>MODULE ACTION MENU</b></section><section class="tag"><code>[LABEL] BRIEF</code><b>SMALL LABEL</b></section><section class="tag"><code>[PREFIX] WHAT IF...</code><b>THOUGHT PREFIX</b></section><section class="tag"><code>[PROMPT] waiting felt useful?</code><b>PLAYER THOUGHT</b></section><section class="tag"><code>[ACTION] try a direction</code><b>IDEA BUTTON</b></section><section class="tag"><code>[METER] IDEA</code><b>GAUGE NAME</b></section>`,
+    legend: makeLegend("BRIEF TAGS", [["## VISIBLE ACTIONS", "MODULE ACTION MENU"], ["- cigarette", "VISIBLE ACTION", "Must match Actions."], ["[BRIEF]", "MODULE START"], ["[LABEL] BRIEF", "SMALL LABEL"], ["[PREFIX] WHAT IF...", "THOUGHT PREFIX"], ["[PROMPT] waiting felt useful?", "PLAYER THOUGHT"], ["[ACTION] try a direction", "IDEA BUTTON"], ["[METER] IDEA", "GAUGE NAME"], ["[COMPLETE] there it is.", "COMPLETION COPY"], ["[SEND] send it", "FINAL BUTTON"]]),
     counts: source => [["FIELDS", /^\[(?:LABEL|PREFIX|PROMPT|ACTION|METER|COMPLETE|SEND)\]/gm], ["VISIBLE ACTIONS", /^\s*-\s+.+$/gm]]
   },
   actions: {
     file: "actions.md",
-    legend: `<p class="kicker">ACTION TAGS</p><section class="tag"><code>---</code><b>NEW ACTION</b></section><section class="tag unlock"><code>[ACTION] cigarette</code><b>GLOBAL ACTION</b></section><section class="tag"><code>[EFFECT] stress -5</code><b>GAUGE CHANGE</b></section><section class="tag"><code>[COOLDOWN] 20</code><b>WAIT TIME</b></section><section class="tag"><code>[MOVE] cigarette-1</code><b>MAP INSTANCE DESTINATION</b><p>Move that instance in Map to change the player's destination.</p></section><section class="tag"><code>[PROP] coffee</code><b>MAP OBJECT</b></section><section class="tag"><code>[ANIMATION] smoke</code><b>MAP ANIMATION</b></section><section class="tag"><code>[CHANCE] 0.1</code><b>LUCKY CHANCE</b></section><section class="tag narration"><code>## NOTE</code><b>MESSAGE POOL</b></section><section class="tag narration"><code>## LUCKY NOTE</code><b>LUCKY MESSAGE POOL</b></section>`,
+    legend: makeLegend("ACTION TAGS", [["---", "NEW ACTION"], ["[ACTION] cigarette", "GLOBAL ACTION", "Unlocks refer to this name.", "unlock"], ["[COOLDOWN] 20", "WAIT TIME"], ["[EFFECT] stress -5", "GAUGE CHANGE"], ["[MOVE] cigarette-1", "PLAYER ANCHOR", "Exact Map instance or position."], ["[PROP] coffee", "ACTIVE ELEMENT"], ["[ANIMATION] smoke", "ACTIVE ANIMATION"], ["[CHANCE] 0.1", "LUCKY CHANCE"], ["[LUCKY EFFECT] creativity +19", "LUCKY GAUGE CHANGE"], ["## NOTE", "MESSAGE POOL", "One option per dash line.", "narration"], ["## LUCKY NOTE", "LUCKY MESSAGE POOL", "One option per dash line.", "narration"]], "MOVE is the anchor. Player-attached elements keep their Map spacing around it."),
     counts: source => [["ACTIONS", /^\[ACTION\]/gm], ["EFFECTS", /^\[(?:EFFECT|LUCKY EFFECT)\]/gm], ["MESSAGES", /^\s*-\s+.+$/gm]]
   },
   events: {
     file: "events.md",
-    legend: `<p class="kicker">EVENT TAGS</p><section class="tag"><code>---</code><b>NEW EVENT</b></section><section class="tag"><code>[EVENT] event title</code><b>INTERNAL TITLE</b></section><section class="tag narration"><code>## TEXT</code><b>WHAT HAPPENS</b></section><section class="tag"><code>[CHOICE] open the window</code><b>CONTEXT BUTTON</b></section><section class="tag"><code>[EFFECT] stress -4</code><b>CONSEQUENCE</b></section><section class="tag unlock"><code>[UNLOCK] take a walk</code><b>OPTIONAL PERMANENT ACTION</b></section>`,
+    legend: makeLegend("EVENT TAGS", [["---", "NEW EVENT"], ["[EVENT] event title", "INTERNAL TITLE"], ["## TEXT", "WHAT HAPPENS", "Automatic narration.", "narration"], ["## CHOICE", "NEW CHOICE"], ["[CHOICE] open the window", "CONTEXT BUTTON"], ["[EFFECT] stress -4", "CONSEQUENCE"], ["[UNLOCK] take a walk", "PERMANENT ACTION", "Must match Actions.", "unlock"], ["## RESULT", "RESULT COPY", "Automatic after choice.", "narration"]]),
     counts: source => [["EVENTS", /^\[EVENT\]/gm], ["CHOICES", /^\[CHOICE\]/gm], ["EFFECTS", /^\[EFFECT\]/gm]]
   },
   elements: {
     file: "prologue-elements.md",
-    legend: `<p class="kicker">ELEMENT LIBRARY</p><section class="tag"><code>[ELEMENT] bed</code><b>REUSABLE ELEMENT</b></section><section class="tag"><code>[PART] pillow</code><b>ONE LAYER</b><p>Maximum five layers per element.</p></section><section class="tag"><code>[SHAPE] rect</code><b>FIXED GEOMETRY</b><p>A layer cannot change shape after creation.</p></section><section class="tag"><code>[STYLE] pure</code><b>COMPATIBLE EFFECT</b><p>Pure is the default. Effects never change geometry.</p></section><section class="tag"><code>[X] 0 / [Y] 0</code><b>LAYER POSITION</b></section><section class="tag"><code>[WIDTH] 118</code><b>SIZE</b></section><section class="tag"><code>[SHOW] coffee</code><b>ACTION PROP</b></section><section class="tag"><code>[ATTACH] player</code><b>FOLLOW PLAYER</b></section><p class="rules">Design each reusable element here. The Map only places copies.</p>`,
+    legend: makeLegend("ELEMENT TAGS", [["---", "NEW ELEMENT"], ["[ELEMENT] bed", "REUSABLE ELEMENT"], ["[WIDTH] 118", "CANVAS / PART WIDTH"], ["[HEIGHT] 62", "CANVAS / PART HEIGHT"], ["[SHOW] coffee", "ACTIVE WITH PROP"], ["[ATTACH] player", "FOLLOW PLAYER", "Keeps Map-relative spacing."], ["[PART] pillow", "NEW LAYER", "Maximum five."], ["[SHAPE] rect", "FIXED GEOMETRY"], ["[STYLE] pure", "VISUAL EFFECT", "Pure is the default."], ["[X] 0", "LAYER X"], ["[Y] 0", "LAYER Y"], ["[TEXT] ○", "TEXT CONTENT"]], "Design an element here, then place instances in Map."),
     counts: source => [["ELEMENTS", /^\[ELEMENT\]/gm], ["LAYERS", /^\[PART\]/gm], ["ACTION LINKS", /^\[(?:SHOW|ATTACH)\]/gm]]
   },
   map: {
     file: "prologue-map.md",
-    legend: `<p class="kicker">MAP PLACEMENT</p><section class="tag"><code>[PLACE] desk</code><b>PLACE AN ELEMENT</b></section><section class="tag"><code>[INSTANCE] desk-1</code><b>UNIQUE COPY NAME</b><p>Actions can target it with [MOVE] desk-1.</p></section><section class="tag"><code>[X] 46 / [Y] 44</code><b>POSITION</b></section><section class="tag"><code>[ROTATION] 45</code><b>INSTANCE ROTATION</b><p>The toolbar adds 45°. Values always stay between 0° and 359°.</p></section><section class="tag"><code>[POSITION] window 177 10</code><b>PLAYER DESTINATION</b></section><p class="rules">Create elements in Elements, then place as many copies as needed here.</p>`,
+    legend: makeLegend("MAP TAGS", [["[MAP WIDTH] 280", "MAP WIDTH"], ["[MAP HEIGHT] 360", "MAP HEIGHT"], ["[POSITION] window 177 10", "NAMED PLAYER ANCHOR"], ["---", "NEW PLACEMENT"], ["[PLACE] desk", "ELEMENT TO PLACE"], ["[INSTANCE] desk-1", "UNIQUE COPY / ANCHOR", "Actions target it with MOVE."], ["[X] 46", "INSTANCE X"], ["[Y] 44", "INSTANCE Y"], ["[ROTATION] 45", "INSTANCE ROTATION", "Always 0°–359°."]], "Instances are the shared coordinates used by the Map editor and the game."),
     counts: source => [["PLACED", /^\[PLACE\]/gm], ["POSITIONS", /^\[POSITION\]/gm]]
   }
 };
@@ -618,15 +623,15 @@ function beginPlacementMove(event, item) {
 }
 
 document.querySelector("#guide").addEventListener("mousedown", event => {
-  if (event.target.closest(".tag code")) event.preventDefault();
+  if (event.target.closest(".tag")) event.preventDefault();
 });
 
 document.querySelector("#guide").addEventListener("click", event => {
-  const code = event.target.closest(".tag code");
-  if (!code) return;
+  const tool = event.target.closest(".tag");
+  if (!tool) return;
   const start = editor.selectionStart;
   const end = editor.selectionEnd;
-  const insert = code.textContent.trim();
+  const insert = tool.dataset.insert;
   const before = editor.value.slice(0, start);
   const after = editor.value.slice(end);
   editor.focus();

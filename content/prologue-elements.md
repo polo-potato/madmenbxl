@@ -11,7 +11,7 @@
 - Every visible piece must have its own `[PART]`. Do not hide several pieces inside one shape.
 - In the visual editor, create new layers with the line, rectangle, or circle icons.
 - `[SHOW] coffee` = element only appears while that action prop is active.
-- `[ATTACH] player` = the whole element follows the player.
+- `[ATTACH] player` = the whole element follows the player while keeping its Map-relative offset from the active `[MOVE]` anchor.
 - `---` = next reusable element.
 
 ---
@@ -96,9 +96,9 @@
 [PART] cup
 [SHAPE] text
 [STYLE] pure
+[TEXT] ○
 [X] 0
 [Y] 0
-[TEXT] ○
 
 ---
 [ELEMENT] pizza
@@ -135,6 +135,6 @@
 [PART] smoke
 [SHAPE] smoke
 [STYLE] animated
+[TEXT] ∿
 [X] 0
 [Y] 0
-[TEXT] ∿

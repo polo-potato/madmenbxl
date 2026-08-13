@@ -6,7 +6,8 @@
 - `[INSTANCE] desk-1` = unique name for this placed copy.
 - `[X]` and `[Y]` = its position.
 - `[ROTATION] 45` = rotation of that copy in degrees, always normalized from `0` to `359`.
-- An `[INSTANCE]` name can be used by an Action such as `[MOVE] cigarette-1`.
+- An `[INSTANCE]` name is a shared anchor: an Action such as `[MOVE] cigarette-1` moves the player there.
+- Active elements tagged `[ATTACH] player` preserve their Map spacing around that anchor in the game.
 - `[POSITION] desk 101 154` = a named player destination used by `[MOVE]`.
 - `---` = next placement.
 
