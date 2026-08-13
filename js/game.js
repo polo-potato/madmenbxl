@@ -1,5 +1,5 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js";
-import { initialState, loadState, saveState, resetState } from "./state.js?v=2";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js?v=3";
+import { initialState, loadState, saveState, resetState } from "./state.js?v=3";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
 
@@ -61,8 +61,9 @@ function renderIntro() {
   const cursor = b.kind !== "narration" && !atAction ? `<span class="cursor ${cursorMoving?'':'cursor-still'}">|</span>` : '';
   const hint = acceptingInput ? (state.beat === 0 ? 'TYPE TO THINK' : 'KEEP TYPING') : '';
   const menu = renderActionMenu(currentAction);
+  const metrics=state.unlockedMetrics.map(metric=>metric==='creativity'?personalMetric('CREATIVITY',state.personal.creativity,'fill-yellow',metric):metric==='energy'?personalMetric('ENERGY',state.personal.energy,'fill-green',metric):personalMetric('STRESS',state.personal.stress,'fill-purple',metric)).join('');
   const voiceClass = b.kind === "narration" ? "narration" : "typed";
-  game.innerHTML = `<section class="prologue"><div class="prologue-output">${anchor}<span class="${voiceClass}">${visible}</span>${cursor}${menu}</div><div class="hint">${hint}</div></section>`;
+  game.innerHTML = `<section class="prologue"><div class="prologue-output">${anchor}<span class="${voiceClass}">${visible}</span>${cursor}${state.introActionNote?`<span class="intro-action-note narration">${state.introActionNote.replaceAll("\n","<br>")}</span>`:""}${menu}</div>${metrics?`<aside class="prologue-metrics"><div class="section-title">YOU, APPARENTLY ${state.metricAnimating?'· · ·':''}</div>${metrics}</aside>`:""}<div class="hint">${hint}</div></section>`;
   if (complete && !state.erasing) scheduleErase();
 }
 
@@ -72,7 +73,7 @@ function renderActionMenu(current) {
   if (!state.unlockedActions.length && !contextual) return "";
   return `<nav class="action-menu" aria-label="actions">${state.unlockedActions.length?'<span class="action-menu-title">HABITS</span>':''}${state.unlockedActions.map(id => {
     const active = current && current.id === id;
-    const attr = active ? current.attr : "disabled";
+    const attr = state.metricAnimating ? "disabled" : active ? (current.persistent?`data-intro-personal-action="${id}" data-resume-after-action`:current.attr) : `data-intro-personal-action="${id}"`;
     const label = active ? current.label : id;
     return `<button class="context-action" ${attr}>[ ${label} ]</button>`;
   }).join("")}${contextual}</nav>`;
@@ -214,6 +215,28 @@ const ideaRequirements = [
   { id:"stress", message:"You have no motivation.\n\nA little pressure might help." }
 ];
 
+function resolvePersonalAction(id){
+  const action=personalActions[id];
+  const lucky=action.chance>0&&Object.keys(action.luckyEffects||{}).length&&Math.random()<action.chance;
+  return { effects:lucky?action.luckyEffects:action, note:lucky?action.luckyNote:action.note, lucky };
+}
+
+function revealActionMetric(id){
+  if(id==='cigarette')unlockMetric('stress');
+  if(id==='coffee')unlockMetric('energy');
+  if(id==='scroll'||id==='look out the window'||id==='take a walk')unlockMetric('creativity');
+}
+
+function usePersonalAction(id,{inIntro=false,resume=false}={}){
+  const result=resolvePersonalAction(id);
+  revealActionMetric(id);
+  state.actionUses[id]=(state.actionUses[id]||0)+1;
+  if(inIntro)state.introActionNote=resume?"":result.note;
+  else { state.firstBrief.eventResult=result.note; logActivity("action",`${id}. ${result.note.replaceAll("\n"," ")}`); }
+  animateMetrics(result.effects);
+  if(resume)resumeIntroAction(); else render();
+}
+
 function advanceBriefTyping(){
   const b=state.firstBrief,prompt=briefCopy.prompt;
   if(b.promptComplete)return;
@@ -267,6 +290,7 @@ document.addEventListener("click", e=>{
   if(el.dataset.action==="reset"){ resetState(); state=initialState(); afkNote=""; return render(); }
   if(el.hasAttribute("data-intro-action")) return nextThought(el.textContent.includes("cigarette"));
   if(el.hasAttribute("data-resume-action")) return resumeIntroAction();
+  if(el.dataset.introPersonalAction) return usePersonalAction(el.dataset.introPersonalAction,{inIntro:true,resume:el.hasAttribute("data-resume-after-action")});
   if(el.hasAttribute("data-next-thought")) return nextThought();
   if(el.hasAttribute("data-gate-action")){
     const phone=el.textContent.includes("phone");
@@ -276,7 +300,7 @@ document.addEventListener("click", e=>{
     return render();
   }
   if(el.hasAttribute("data-reply")){ state.mode="brief"; unlockPersonal("look out the window"); logActivity("goal","Find a direction for the brief."); return render(); }
-  if(el.dataset.personalAction){ const id=el.dataset.personalAction,a=personalActions[id]; if(id==='cigarette'||id==='scroll')unlockMetric('stress');if(id==='coffee')unlockMetric('energy');if(id==='look out the window'||id==='take a walk')unlockMetric('creativity'); state.firstBrief.eventResult=a.note; state.actionUses[id]=(state.actionUses[id]||0)+1; logActivity("action",`${id}. ${a.note.replaceAll("\n"," ")}`); animateMetrics(a); return render(); }
+  if(el.dataset.personalAction) return usePersonalAction(el.dataset.personalAction);
   if(el.hasAttribute("data-try-idea")){
     const p=state.personal,b=state.firstBrief;
     const problem=ideaRequirements.find(({id})=>!state.unlockedMetrics.includes(id)||p[id]<(prologueGauges[id]?.tryMinimum||0));
