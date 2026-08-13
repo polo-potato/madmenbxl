@@ -14,8 +14,8 @@
 
 ---
 [PLACE] window
-[X] 46
-[Y] 0
+[X] 74
+[Y] 5
 
 ---
 [PLACE] desk
@@ -54,10 +54,10 @@
 
 ---
 [PLACE] cigarette
-[X] 25
-[Y] 3
+[X] 175
+[Y] 28
 
 ---
 [PLACE] smoke
-[X] 44
-[Y] -18
+[X] 191
+[Y] 13
