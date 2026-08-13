@@ -1,5 +1,5 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js?v=4";
-import { initialState, loadState, saveState, resetState } from "./state.js?v=3";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea } from "./content.js?v=6";
+import { initialState, loadState, saveState, resetState } from "./state.js?v=5";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
 
@@ -179,6 +179,7 @@ function renderInbox() {
 }
 
 function renderBrief() {
+  briefCopy.visibleActions.forEach(unlockPersonal);
   const p=state.personal, brief=state.firstBrief;
   const prompt=briefCopy.prompt;
   const promptVisible=prompt.slice(0,brief.promptChar);
@@ -281,7 +282,7 @@ function renderEarly() {
 }
 
 function skipToAgency(){ state=initialState(); state.mode="agency"; state.activityLog=[{type:"goal",text:"Keep the agency alive."}]; afkNote=""; saveState(state); render(); }
-function skipToBrief(){ state=initialState(); state.mode="brief"; state.activityLog=[{type:"goal",text:"Find a direction for the brief."}]; ["cigarette","scroll","coffee","look out the window"].forEach(unlockPersonal); afkNote=""; saveState(state); render(); }
+function skipToBrief(){ state=initialState(); state.mode="brief"; state.activityLog=[{type:"goal",text:"Find a direction for the brief."}]; briefCopy.visibleActions.forEach(unlockPersonal); afkNote=""; saveState(state); render(); }
 
 document.addEventListener("keydown", e=>{ if(!e.metaKey&&!e.ctrlKey&&!e.altKey){ if(state.mode==="intro"){e.preventDefault();advanceTyping();}else if(state.mode==="brief"){e.preventDefault();advanceBriefTyping();} }});
 document.addEventListener("click", e=>{
@@ -300,7 +301,7 @@ document.addEventListener("click", e=>{
     if(phone) return startAutoDialogue();
     return render();
   }
-  if(el.hasAttribute("data-reply")){ state.mode="brief"; unlockPersonal("look out the window"); logActivity("goal","Find a direction for the brief."); return render(); }
+  if(el.hasAttribute("data-reply")){ state.mode="brief"; briefCopy.visibleActions.forEach(unlockPersonal); logActivity("goal","Find a direction for the brief."); return render(); }
   if(el.dataset.personalAction) return usePersonalAction(el.dataset.personalAction);
   if(el.hasAttribute("data-try-idea")){
     const p=state.personal,b=state.firstBrief;
