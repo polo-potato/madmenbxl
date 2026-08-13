@@ -1,5 +1,98 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WHAT IF / Writer's Room</title><link rel="stylesheet" href="writer.css?v=8"><link rel="stylesheet" href="navigation.css?v=2"><link rel="stylesheet" href="history.css?v=1"><link rel="stylesheet" href="map-studio.css?v=2"></head><body>
-<header><div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div><nav><a href="../index.html" target="_blank">[ OPEN GAME ↗ ]</a><button data-theme-toggle>[ DARK MODE ]</button><button id="reload">[ RELOAD FILE ]</button></nav></header>
-<main><aside><nav class="modules" aria-label="Content structure"></nav><div id="guide"></div><div class="detected" id="detected"></div></aside><section class="editor"><div class="editor-head"><span id="path">content/prologue.md</span><div class="history"><button id="undo">↶ <small>⌘Z</small></button><button id="redo">↷ <small>⌘⇧Z</small></button></div><span id="state">LOADED FROM GITHUB</span></div>
-<div id="map-studio" class="map-studio" hidden><div class="map-toolbar"><button id="map-add">[ + ELEMENT ]</button><button id="part-add">[ + SHAPE ]</button><button id="map-duplicate">[ DUPLICATE ]</button><button id="map-delete">[ DELETE ]</button><button id="map-raw">[ RAW MARKDOWN ]</button></div><div class="map-workspace"><nav id="element-library" class="element-library"></nav><div class="map-stage"><div id="map-canvas" class="map-canvas"></div><small>DRAG TO PLACE</small></div><form id="map-inspector" class="map-inspector"><p class="kicker">SELECT AN ELEMENT</p></form></div></div>
-<textarea id="markdown" aria-label="Full module Markdown" spellcheck="false"></textarea><div class="save"><p><b>TO SAVE</b><br>Copy, open GitHub, replace everything with <kbd>⌘A</kbd> <kbd>⌘V</kbd>, then commit.</p><button id="publish">[ COPY ALL + OPEN GITHUB ↗ ]</button></div></section></main><div class="toast" id="toast" role="status"></div><script src="writer.js?v=16"></script><script type="module" src="../js/theme.js?v=1"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WHAT IF / Writer's Room</title>
+  <link rel="stylesheet" href="writer.css?v=8">
+  <link rel="stylesheet" href="navigation.css?v=2">
+  <link rel="stylesheet" href="history.css?v=1">
+  <link rel="stylesheet" href="map-studio.css?v=3">
+</head>
+<body>
+  <header>
+    <div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div>
+    <nav>
+      <a href="../index.html" target="_blank">[ OPEN GAME ↗ ]</a>
+      <button data-theme-toggle>[ DARK MODE ]</button>
+      <button id="reload">[ RELOAD FILE ]</button>
+    </nav>
+  </header>
+  <main>
+    <aside>
+      <nav class="modules" aria-label="Content structure"></nav>
+      <div id="guide"></div>
+      <div class="detected" id="detected"></div>
+    </aside>
+    <section class="editor">
+      <div class="editor-head">
+        <span id="path">content/prologue.md</span>
+        <div class="history">
+          <button id="undo" title="Undo">↶ <small>⌘Z</small></button>
+          <button id="redo" title="Redo">↷ <small>⌘⇧Z</small></button>
+        </div>
+        <button id="visual-return" hidden>[ VISUAL EDITOR ]</button>
+        <span id="state">LOADED FROM GITHUB</span>
+      </div>
+
+      <div id="map-studio" class="map-studio" hidden>
+        <div class="map-workspace">
+          <section class="studio-library-panel">
+            <button id="element-add" class="library-add">[ + ELEMENT ]</button>
+            <p id="library-title" class="kicker">ELEMENTS</p>
+            <nav id="element-library" class="element-library" aria-label="Element library"></nav>
+          </section>
+
+          <section class="studio-center">
+            <div class="canvas-actions">
+              <button id="part-add">[ + SHAPE ]</button>
+              <button id="map-place">[ PLACE SELECTED ]</button>
+              <button id="map-duplicate">[ DUPLICATE ]</button>
+              <button id="map-delete">[ DELETE SELECTED ]</button>
+              <button id="map-raw">[ RAW MARKDOWN ]</button>
+            </div>
+            <div class="map-stage">
+              <div id="map-canvas" class="map-canvas" tabindex="0" aria-label="Drawing canvas"></div>
+              <div class="tool-palette" role="toolbar" aria-label="Canvas tools">
+                <button data-tool="move" title="Move (V)" aria-label="Move">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M2 12h20M12 2l-3 3m3-3 3 3M22 12l-3-3m3 3-3 3M12 22l3-3m-3 3-3-3M2 12l3 3m-3-3 3-3"/></svg>
+                </button>
+                <button data-tool="select" title="Select (S)" aria-label="Select">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l13 10-6 1 4 6-3 2-4-7-4 4z"/></svg>
+                </button>
+                <button data-tool="resize" title="Resize (R)" aria-label="Resize">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5M3 8l6-6M21 8l-6-6M3 16l6 6M21 16l-6 6"/></svg>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <form id="map-inspector" class="map-inspector">
+            <p class="kicker">SELECT AN ELEMENT</p>
+          </form>
+        </div>
+      </div>
+
+      <textarea id="markdown" aria-label="Full module Markdown" spellcheck="false"></textarea>
+      <div class="save">
+        <p><b>TO SAVE</b><br>Copy, open GitHub, replace everything with <kbd>⌘A</kbd> <kbd>⌘V</kbd>, then commit.</p>
+        <button id="publish">[ COPY ALL + OPEN GITHUB ↗ ]</button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="delete-element-modal" class="confirm-modal">
+    <form method="dialog">
+      <p class="kicker">DELETE ELEMENT</p>
+      <p id="delete-element-copy">This cannot be undone after saving.</p>
+      <div>
+        <button value="cancel">[ CANCEL ]</button>
+        <button id="delete-element-confirm" value="confirm">[ DELETE ]</button>
+      </div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="writer.js?v=17"></script>
+  <script type="module" src="../js/theme.js?v=1"></script>
+</body>
+</html>
