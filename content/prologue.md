@@ -54,6 +54,7 @@ sounds smarter than it is.
 ---
 [NARRATION]
 ## TEXT
+WHAT IF...
 you've been reading those two words
 for six minutes.
 
