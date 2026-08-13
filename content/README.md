@@ -2,7 +2,7 @@
 
 `manifest.json` defines the hierarchy. `actions.md` is global. The active era is Prologue, composed of story, gauges, brief, events, reusable elements, and map placement. Agency is reserved for later.
 
-`prologue-elements.md` defines what room objects look like. `prologue-map.md` only places those reusable elements. Action `[PROP]` tags reference element names, while `[MOVE]` tags reference player positions defined by the map.
+`prologue-elements.md` defines reusable objects as canvases composed from one or more `[PART]` shapes. `prologue-map.md` only places finished elements as uniquely named `[INSTANCE]` copies. Action `[PROP]` tags reference element names, while `[MOVE]` tags reference player positions defined by the map.
 
 ## Prologue story
 
