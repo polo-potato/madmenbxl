@@ -1,4 +1,4 @@
-import { peopleSeed, personalActions, prologueGauges } from "./content.js?v=6";
+import { peopleSeed, personalActions, prologueGauges } from "./content.js?v=7";
 
 export const SAVE_KEY = "what-if-prototype-v1";
 
@@ -10,6 +10,7 @@ export function initialState() {
     personal: Object.fromEntries(Object.entries(prologueGauges).map(([id,gauge])=>[id,gauge.start])),
     firstBrief: { idea: 0, attempts: 0, eventIndex: 0, pendingEvent: null, eventResult: "", completed: false, promptChar: 0, promptComplete: false, ideaUnlocked: false },
     actionUses: {},
+    actionCooldowns: {},
     metricAnimating: false,
     unlockedMetrics: [],
     resources: { ideas: 84, insights: 61, craft: 72 },
@@ -43,6 +44,7 @@ export function loadState() {
     loaded.firstBrief = { ...initialState().firstBrief, ...(loaded.firstBrief || {}) };
     loaded.personal = { ...initialState().personal, ...(loaded.personal || {}) };
     loaded.unlockedMetrics = loaded.unlockedMetrics || [];
+    loaded.actionCooldowns = loaded.actionCooldowns || {};
     loaded.activityLog = (loaded.activityLog || []).slice(-10);
     if (!["intro","inbox"].includes(loaded.mode) && !loaded.activityLog.length) loaded.activityLog = [{ type:"goal", text:"Find a direction for the brief." }];
     return loaded;
