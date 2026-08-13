@@ -246,7 +246,7 @@ function renderLibrary() {
   if (current === "elements") {
     elementLibrary.innerHTML = elements.map(item => `<div class="library-row${item.id === activeElementId ? " active" : ""}"><button type="button" data-library-id="${escapeHtml(item.id)}">${escapeHtml(item.id)}</button><button type="button" class="library-remove" data-remove-element="${escapeHtml(item.id)}" title="Delete ${escapeHtml(item.id)}" aria-label="Delete ${escapeHtml(item.id)}">×</button></div>`).join("");
   } else {
-    elementLibrary.innerHTML = Object.values(catalog).map(item => `<div class="library-row${item.id === selectedLibraryId ? " active" : ""}"><button type="button" data-library-id="${escapeHtml(item.id)}">${escapeHtml(item.id)}</button><button type="button" class="library-place" data-place-element="${escapeHtml(item.id)}" title="Place ${escapeHtml(item.id)}" aria-label="Place ${escapeHtml(item.id)}">+</button></div>`).join("");
+    elementLibrary.innerHTML = Object.values(catalog).map(item => `<div class="library-row"><button type="button" class="library-direct-place" data-place-element="${escapeHtml(item.id)}" title="Place ${escapeHtml(item.id)}"><span>+</span>${escapeHtml(item.id)}</button></div>`).join("");
   }
 }
 
@@ -281,7 +281,6 @@ function renderInspector() {
 function renderCanvas() {
   document.querySelectorAll("[data-tool]").forEach(button => button.classList.toggle("active", button.dataset.tool === activeTool));
   document.querySelector("#map-rotate").hidden = current !== "map" || !activePlacementId;
-  document.querySelector("#map-place").disabled = current === "map" && !selectedLibraryId;
   if (current === "elements") {
     const item = activeElement();
     mapCanvas.style.width = `${item?.width || 160}px`;
@@ -375,7 +374,7 @@ function setVisualMode(enabled) {
   mapStudio.hidden = !enabled;
   document.querySelector("#element-add").hidden = current !== "elements";
   document.querySelector("#library-title").textContent = current === "elements" ? "ELEMENTS" : "ELEMENT LIBRARY";
-  document.querySelector("#map-place").hidden = current !== "map";
+  document.querySelector("#map-place").hidden = true;
   document.querySelector("#map-duplicate").hidden = current !== "map";
   document.querySelector("#map-delete").hidden = current !== "map";
   document.querySelectorAll("[data-add-shape]").forEach(button => button.hidden = current !== "elements");

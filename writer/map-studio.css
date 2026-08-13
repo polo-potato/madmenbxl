@@ -13,6 +13,7 @@ input,select{font:12px/1.5 "IBM Plex Mono","Courier New",monospace}
 .library-row:hover .library-remove,.library-row:hover .library-place,.library-remove:focus,.library-place:focus{opacity:1}
 .library-row.active .library-remove,.library-row.active .library-place{color:var(--paper)}
 .library-row.active .library-remove:hover,.library-row.active .library-place:hover{background:var(--paper);color:var(--ink)}
+.library-row>button.library-direct-place{display:grid;width:100%;grid-template-columns:20px minmax(0,1fr);gap:4px;padding:7px 6px;text-align:left}.library-direct-place span{color:var(--muted)}.library-direct-place:hover span{color:inherit}
 
 .studio-center{position:relative;display:grid;min-width:0;min-height:0;grid-template-rows:47px minmax(0,1fr)}
 .canvas-actions{display:flex;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
