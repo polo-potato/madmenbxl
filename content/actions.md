@@ -78,6 +78,7 @@
 ---
 [ACTION] look out the window
 [COOLDOWN] 14
+[MOVE] window-1
 [EFFECT] creativity +7
 [EFFECT] energy -1
 [EFFECT] stress -3
