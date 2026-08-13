@@ -5,7 +5,7 @@
 - `[ACTION] cigarette` = permanent button name.
 - `[EFFECT] stress -13` = gauge change after one click.
 - `[COOLDOWN] 18` = seconds before this action can be used again. Its room animation stays visible for the same duration.
-- `[MOVE] window` = temporarily moves the player on the room map.
+- `[MOVE] cigarette-1` = temporarily moves the player to that placed Map instance.
 - `[PROP] coffee` = temporarily adds a supported object to the room.
 - `[ANIMATION] smoke` = optional minimal room animation.
 - `[CHANCE] 0.1` = optional lucky outcome probability (0.1 means roughly 1 in 10).
@@ -17,7 +17,7 @@
 ---
 [ACTION] cigarette
 [COOLDOWN] 18
-[MOVE] window
+[MOVE] cigarette-1
 [PROP] cigarette
 [ANIMATION] smoke
 [EFFECT] creativity +2

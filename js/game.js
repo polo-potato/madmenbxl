@@ -1,4 +1,4 @@
-import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=13";
+import { introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=14";
 import { initialState, loadState, saveState, resetState } from "./state.js?v=7";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";
@@ -249,9 +249,9 @@ function activeRoomState(){
 function renderRoomMap(room){
   const visible=element=>!element.show||room.props.has(element.show)||room.animations.has(element.show);
   const drawPart=part=>`<span class="map-element shape-${part.shape} style-${part.style||'pure'}" style="left:${part.x}px;top:${part.y}px;${part.width?`width:${part.width}px;`:''}${part.height?`height:${part.height}px;`:''}">${part.text||''}</span>`;
-  const draw=element=>`<span class="map-composite" style="left:${element.x}px;top:${element.y}px;width:${element.width||1}px;height:${element.height||1}px;transform:rotate(${element.rotation||0}deg)">${(element.parts||[]).map(drawPart).join('')}</span>`;
-  const fixed=prologueMap.elements.filter(element=>!element.attach&&visible(element)).map(draw).join('');
-  const attached=prologueMap.elements.filter(element=>element.attach==='player'&&visible(element)).map(draw).join('');
+  const draw=(element,attached=false)=>`<span class="map-composite" style="left:${attached?0:element.x}px;top:${attached?0:element.y}px;width:${element.width||1}px;height:${element.height||1}px;transform:rotate(${element.rotation||0}deg)">${(element.parts||[]).map(drawPart).join('')}</span>`;
+  const fixed=prologueMap.elements.filter(element=>!element.attach&&visible(element)).map(element=>draw(element)).join('');
+  const attached=prologueMap.elements.filter(element=>element.attach==='player'&&visible(element)).map(element=>draw(element,true)).join('');
   const position=prologueMap.positions[room.move]||prologueMap.positions.desk||{x:0,y:0};
   return `<div class="room-plan" style="width:${prologueMap.width}px;height:${prologueMap.height}px">${fixed}<div class="plan-you" style="left:${position.x}px;top:${position.y}px"><span class="plan-dot"></span><span class="plan-arrow">← you</span>${attached}</div></div>`;
 }

@@ -76,7 +76,7 @@ const modules = {
   },
   actions: {
     file: "actions.md",
-    legend: `<p class="kicker">ACTION TAGS</p><section class="tag"><code>---</code><b>NEW ACTION</b></section><section class="tag unlock"><code>[ACTION] cigarette</code><b>GLOBAL ACTION</b></section><section class="tag"><code>[EFFECT] stress -5</code><b>GAUGE CHANGE</b></section><section class="tag"><code>[COOLDOWN] 20</code><b>WAIT TIME</b></section><section class="tag"><code>[MOVE] window</code><b>PLAYER POSITION</b></section><section class="tag"><code>[PROP] coffee</code><b>MAP OBJECT</b></section><section class="tag"><code>[ANIMATION] smoke</code><b>MAP ANIMATION</b></section><section class="tag"><code>[CHANCE] 0.1</code><b>LUCKY CHANCE</b></section><section class="tag narration"><code>## NOTE</code><b>MESSAGE POOL</b></section><section class="tag narration"><code>## LUCKY NOTE</code><b>LUCKY MESSAGE POOL</b></section>`,
+    legend: `<p class="kicker">ACTION TAGS</p><section class="tag"><code>---</code><b>NEW ACTION</b></section><section class="tag unlock"><code>[ACTION] cigarette</code><b>GLOBAL ACTION</b></section><section class="tag"><code>[EFFECT] stress -5</code><b>GAUGE CHANGE</b></section><section class="tag"><code>[COOLDOWN] 20</code><b>WAIT TIME</b></section><section class="tag"><code>[MOVE] cigarette-1</code><b>MAP INSTANCE DESTINATION</b><p>Move that instance in Map to change the player's destination.</p></section><section class="tag"><code>[PROP] coffee</code><b>MAP OBJECT</b></section><section class="tag"><code>[ANIMATION] smoke</code><b>MAP ANIMATION</b></section><section class="tag"><code>[CHANCE] 0.1</code><b>LUCKY CHANCE</b></section><section class="tag narration"><code>## NOTE</code><b>MESSAGE POOL</b></section><section class="tag narration"><code>## LUCKY NOTE</code><b>LUCKY MESSAGE POOL</b></section>`,
     counts: source => [["ACTIONS", /^\[ACTION\]/gm], ["EFFECTS", /^\[(?:EFFECT|LUCKY EFFECT)\]/gm], ["MESSAGES", /^\s*-\s+.+$/gm]]
   },
   events: {
@@ -91,7 +91,7 @@ const modules = {
   },
   map: {
     file: "prologue-map.md",
-    legend: `<p class="kicker">MAP PLACEMENT</p><section class="tag"><code>[PLACE] desk</code><b>PLACE AN ELEMENT</b></section><section class="tag"><code>[INSTANCE] desk-1</code><b>UNIQUE COPY NAME</b></section><section class="tag"><code>[X] 46 / [Y] 44</code><b>POSITION</b></section><section class="tag"><code>[ROTATION] 45</code><b>INSTANCE ROTATION</b><p>The toolbar adds 45°. Values always stay between 0° and 359°.</p></section><section class="tag"><code>[POSITION] window 177 10</code><b>PLAYER DESTINATION</b></section><p class="rules">Create elements in Elements, then place as many copies as needed here.</p>`,
+    legend: `<p class="kicker">MAP PLACEMENT</p><section class="tag"><code>[PLACE] desk</code><b>PLACE AN ELEMENT</b></section><section class="tag"><code>[INSTANCE] desk-1</code><b>UNIQUE COPY NAME</b><p>Actions can target it with [MOVE] desk-1.</p></section><section class="tag"><code>[X] 46 / [Y] 44</code><b>POSITION</b></section><section class="tag"><code>[ROTATION] 45</code><b>INSTANCE ROTATION</b><p>The toolbar adds 45°. Values always stay between 0° and 359°.</p></section><section class="tag"><code>[POSITION] window 177 10</code><b>PLAYER DESTINATION</b></section><p class="rules">Create elements in Elements, then place as many copies as needed here.</p>`,
     counts: source => [["PLACED", /^\[PLACE\]/gm], ["POSITIONS", /^\[POSITION\]/gm]]
   }
 };

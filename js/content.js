@@ -127,7 +127,12 @@ function parseMap(source,definitions) {
     if(!id)return null;
     return {...definitions[id],id,instance:block.match(/^\[INSTANCE\]\s+(.+)$/m)?.[1]?.trim()||id,x:numberTag(block,"X"),y:numberTag(block,"Y"),rotation:rotation(numberTag(block,"ROTATION"))};
   }).filter(Boolean);
-  return {width:numberTag(first,"MAP WIDTH",280),height:numberTag(first,"MAP HEIGHT",360),positions,elements};
+  const instancePositions={};
+  elements.forEach(element=>{
+    instancePositions[element.instance]={x:element.x,y:element.y};
+    if(!instancePositions[element.id])instancePositions[element.id]={x:element.x,y:element.y};
+  });
+  return {width:numberTag(first,"MAP WIDTH",280),height:numberTag(first,"MAP HEIGHT",360),positions:{...instancePositions,...positions},elements};
 }
 
 const [prologueSource, briefSource, actionsSource, eventsSource, gaugesSource, elementsSource, mapSource] = await Promise.all([
