@@ -1,0 +1,10 @@
+:root { color-scheme: light dark; --paper:#f3f1ed; --ink:#151515; --muted:#777; }
+* { box-sizing:border-box; }
+body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--paper); color:var(--ink); font-family:"Courier New",monospace; }
+main { width:min(420px,calc(100vw - 40px)); }
+span,label { display:block; color:var(--muted); font-size:10px; letter-spacing:.2em; }
+h1 { margin:12px 0 48px; font-size:24px; font-weight:400; }
+.intro { margin:0 0 24px; color:var(--muted); font-size:12px; line-height:1.6; }
+#github-login { display:block; width:100%; padding:16px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); font:inherit; text-align:center; text-decoration:none; }
+#status { min-height:16px; margin:0; color:var(--muted); font-size:10px; letter-spacing:.12em; }
+@media (prefers-color-scheme:dark) { :root { --paper:#111; --ink:#efede8; --muted:#888; } }

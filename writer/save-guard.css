@@ -10,6 +10,38 @@
   letter-spacing: .09em;
 }
 
+.save-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.save-actions button {
+  white-space: nowrap;
+}
+
+#publish {
+  position: relative;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+#publish.reminder::after {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: 220px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  content: "DEV CHANGES HAVE NOT BEEN PUSHED TO GITHUB.";
+  font-size: 8px;
+  line-height: 1.45;
+  letter-spacing: .08em;
+  text-align: left;
+}
+
 .leave-file-modal small {
   display: block;
   margin: -14px 0 24px;

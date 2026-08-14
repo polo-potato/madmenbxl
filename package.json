@@ -1,0 +1,12 @@
+{
+  "name": "madmenbxl",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "test": "node scripts/validate-content.mjs && node scripts/test-cloudflare-worker.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.122.0"
+  }
+}

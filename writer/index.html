@@ -15,7 +15,9 @@
   <header>
     <div><span class="eyebrow">WHAT IF / CONTENT</span><h1>WRITER'S ROOM</h1></div>
     <nav>
-      <a href="../index.html" target="_blank">[ OPEN GAME ↗ ]</a>
+      <a href="../index.html?draft=1" target="_blank">[ OPEN DEV GAME ↗ ]</a>
+      <span id="github-user"></span>
+      <button id="logout">[ LOG OUT ]</button>
       <button data-theme-toggle>[ DARK MODE ]</button>
       <button id="reload">[ RELOAD FILE ]</button>
     </nav>
@@ -93,10 +95,14 @@
       <textarea id="markdown" aria-label="Full module Markdown" spellcheck="false"></textarea>
       <div class="save">
         <div class="save-copy">
-          <p><b>TO SAVE</b><br>Copy, open GitHub, replace everything with <kbd>⌘A</kbd> <kbd>⌘V</kbd>, then commit.</p>
-          <p id="save-indicator" class="save-meta" title="This records the button click, not the GitHub commit.">LAST SAVE CLICK · NEVER</p>
+          <p><b>DEV GAME</b><br>Save a shared Cloudflare draft and test it immediately. Push only when the file is ready for the public game.</p>
+          <p id="save-indicator" class="save-meta">LAST DEV SAVE · NEVER</p>
+          <p id="push-indicator" class="save-meta">LAST GITHUB PUSH · NEVER</p>
         </div>
-        <button id="publish">[ SAVE + AUTOCOPY + GITHUB ↗ ]</button>
+        <div class="save-actions">
+          <button id="save-dev">[ SAVE TO DEV GAME ]</button>
+          <button id="publish">[ PUSH TO GITHUB ]</button>
+        </div>
       </div>
     </section>
   </main>
@@ -115,16 +121,16 @@
     <form method="dialog">
       <p class="kicker">UNSAVED CHANGES</p>
       <p id="leave-file-copy">This file has changes that only exist in this tab.</p>
-      <small>Saving records this version, copies it, and opens GitHub. The protection returns after your next edit.</small>
+      <small>A dev save is shared with collaborators and immediately available in the dev game. It does not change the public game.</small>
       <div>
         <button id="leave-stay" value="cancel">[ STAY HERE ]</button>
         <button id="leave-discard" value="discard">[ DISCARD & CONTINUE ]</button>
-        <button id="leave-save" type="button">[ SAVE + AUTOCOPY + GITHUB ↗ ]</button>
+        <button id="leave-save" type="button">[ SAVE TO DEV GAME & CONTINUE ]</button>
       </div>
     </form>
   </dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script type="module" src="writer.js?v=37"></script>
+  <script type="module" src="writer.js?v=39"></script>
   <script type="module" src="../js/theme.js?v=1"></script>
 </body>
 </html>

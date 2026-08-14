@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "madmenbxl-editor",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-08-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".cloudflare-dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/writer", "/writer/*", "/api/*"]
+  },
+  "vars": {
+    "GITHUB_OWNER": "polo-potato",
+    "GITHUB_REPO": "madmenbxl",
+    "GITHUB_BRANCH": "main",
+    "GITHUB_CLIENT_ID": "Ov23li115AoC0git1s8U"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS",
+      "id": "5352edc111984521a922eb2715565e63"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DRAFTS_DB",
+      "database_name": "madmenbxl-editor-drafts",
+      "database_id": "830d8117-aca1-416c-a0a0-e1093e3803dd",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}

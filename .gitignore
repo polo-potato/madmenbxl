@@ -1,0 +1,5 @@
+.cloudflare-dist/
+.wrangler/
+node_modules/
+.dev.vars
+.env

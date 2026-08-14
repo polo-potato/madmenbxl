@@ -1,10 +1,26 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
 import { tagValue, tagValues, numberTag, parseElementDocument, parseMapDocument } from "./markdown.js?v=1";
 const contentVersion = Date.now();
-const loadText = name => fetch(new URL(`../content/${name}?v=${contentVersion}`, import.meta.url), { cache: "no-store" }).then(r => {
+const draftMode = new URLSearchParams(location.search).get("draft") === "1";
+async function githubDraft(name) {
+  if (!draftMode) return null;
+  try {
+    const response = await fetch(`/api/content?path=${encodeURIComponent(`content/${name}`)}`, { cache: "no-store" });
+    if (!response.ok) return null;
+    return (await response.json()).content || null;
+  } catch {
+    return null;
+  }
+}
+
+const loadText = async name => {
+  const draft = await githubDraft(name);
+  if (draft !== null) return draft;
+  return fetch(new URL(`../content/${name}?v=${contentVersion}`, import.meta.url), { cache: "no-store" }).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.text();
-});
+  });
+};
 const loadJson = name => fetch(new URL(`../content/${name}?v=${contentVersion}`, import.meta.url), { cache: "no-store" }).then(r => {
   if (!r.ok) throw new Error(`Could not load content/${name}`);
   return r.json();

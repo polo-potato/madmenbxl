@@ -1,6 +1,4 @@
 import { tagValue as tag, numberTag, normalizeRotation, parseElementDocument, parseMapDocument } from "../js/markdown.js?v=1";
-
-const editRoot = "https://github.com/polo-potato/madmenbxl/edit/main/";
 const editor = document.querySelector("#markdown");
 const toast = document.querySelector("#toast");
 const mapStudio = document.querySelector("#map-studio");
@@ -10,6 +8,9 @@ const elementLibrary = document.querySelector("#element-library");
 const deleteModal = document.querySelector("#delete-element-modal");
 const leaveFileModal = document.querySelector("#leave-file-modal");
 const saveIndicator = document.querySelector("#save-indicator");
+const pushIndicator = document.querySelector("#push-indicator");
+const publishButton = document.querySelector("#publish");
+const githubUser = document.querySelector("#github-user");
 
 let current = "";
 let modules = {};
@@ -31,10 +32,13 @@ let loadedSource = "";
 let isDirty = false;
 let pendingNavigation = null;
 let cleanStateLabel = "LOADED FROM GITHUB";
+let currentBaseSha = null;
+let currentDraftVersion = null;
+let remoteConflict = false;
 
-const saveClickStorageKey = "what-if-writer-save-clicks";
-let saveClicks = {};
-try { saveClicks = JSON.parse(localStorage.getItem(saveClickStorageKey) || "{}"); } catch { saveClicks = {}; }
+const activityStorageKey = "what-if-writer-activity-v1";
+let activity = {};
+try { activity = JSON.parse(localStorage.getItem(activityStorageKey) || "{}"); } catch { activity = {}; }
 
 const shapeLabels = { line: "Line", rect: "Rectangle", circle: "Circle", text: "Text", triangle: "Triangle", dot: "Dot", smoke: "Smoke" };
 const shapeStyles = {
@@ -282,35 +286,103 @@ function message(text) {
   message.timer = setTimeout(() => toast.classList.remove("show"), 2800);
 }
 
-function formatSaveClick(timestamp) {
-  if (!timestamp) return "LAST SAVE CLICK · NEVER";
+function formatActivity(label, timestamp) {
+  if (!timestamp) return `${label} · NEVER`;
   const formatted = new Intl.DateTimeFormat(undefined, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
     minute: "2-digit"
   }).format(new Date(timestamp));
-  return `LAST SAVE CLICK · ${formatted}`;
+  return `${label} · ${formatted}`;
 }
 
 function updateSaveIndicator() {
-  saveIndicator.textContent = formatSaveClick(saveClicks[modules[current].file]);
+  const file = modules[current].file;
+  saveIndicator.textContent = formatActivity("LAST DEV SAVE", activity[file]?.dev);
+  pushIndicator.textContent = formatActivity("LAST GITHUB PUSH", activity[file]?.github);
+  updatePublishReminder();
 }
 
-function recordSaveClick() {
-  saveClicks[modules[current].file] = Date.now();
-  localStorage.setItem(saveClickStorageKey, JSON.stringify(saveClicks));
+function recordActivity(kind) {
+  const file = modules[current].file;
+  activity[file] = { ...(activity[file] || {}), [kind]: Date.now() };
+  localStorage.setItem(activityStorageKey, JSON.stringify(activity));
   updateSaveIndicator();
 }
 
-async function publishCurrent() {
-  await navigator.clipboard.writeText(editor.value);
+function hasUnpublishedDraft() {
+  return Boolean(currentDraftVersion);
+}
+
+function updatePublishReminder() {
+  if (!modules[current]) return;
+  const lastPush = activity[modules[current].file]?.github || 0;
+  publishButton.classList.toggle("reminder", hasUnpublishedDraft() && Date.now() - lastPush >= 15 * 60 * 1000);
+  publishButton.disabled = !isDirty && !hasUnpublishedDraft();
+}
+
+async function saveCurrentToDev() {
+  const file = modules[current].file;
+  const response = await fetch("/api/draft", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      path: `content/${file}`,
+      content: editor.value,
+      baseSha: currentBaseSha,
+      expectedDraftVersion: currentDraftVersion
+    })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (response.status === 409) {
+    remoteConflict = true;
+    cleanStateLabel = "DEV DRAFT CHANGED";
+    check();
+    throw new Error(result.error || "DEV DRAFT CHANGED — RELOAD BEFORE SAVING");
+  }
+  if (!response.ok) throw new Error(result.error || "DEV SAVE FAILED");
+  currentDraftVersion = result.draftVersion || null;
+  currentBaseSha = result.sha;
   loadedSource = editor.value;
-  cleanStateLabel = "SAVED + COPIED";
-  recordSaveClick();
+  remoteConflict = Boolean(result.remoteChanged);
+  cleanStateLabel = result.cleared ? "MATCHES GITHUB" : "SAVED TO DEV GAME";
+  recordActivity("dev");
   check();
-  message("MODULE COPIED — FINISH THE COMMIT IN GITHUB");
-  window.open(editRoot + "content/" + modules[current].file, "_blank", "noopener");
+  message(result.cleared ? "DEV DRAFT CLEARED — MATCHES GITHUB" : "SAVED TO DEV GAME");
+  return result;
+}
+
+async function publishCurrent() {
+  if (isDirty) await saveCurrentToDev();
+  if (!hasUnpublishedDraft()) return message("NOTHING NEW TO PUSH");
+  const file = modules[current].file;
+  const response = await fetch("/api/publish", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      path: `content/${file}`,
+      content: editor.value,
+      expectedSha: currentBaseSha,
+      expectedDraftVersion: currentDraftVersion,
+      message: `Update ${file} from Writer's Room`
+    })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (response.status === 409) {
+    remoteConflict = true;
+    cleanStateLabel = "REMOTE FILE CHANGED";
+    check();
+    throw new Error("REMOTE FILE CHANGED — RELOAD BEFORE PUSHING");
+  }
+  if (!response.ok) throw new Error(result.error || "GITHUB PUSH FAILED");
+  currentBaseSha = result.sha;
+  currentDraftVersion = null;
+  remoteConflict = false;
+  cleanStateLabel = "PUBLISHED TO GITHUB";
+  recordActivity("github");
+  check();
+  message("PUSHED TO GITHUB");
 }
 
 function requestNavigation(action, destination) {
@@ -328,7 +400,8 @@ function check() {
   const source = editor.value;
   document.querySelector("#detected").innerHTML = `<span>LIVE CHECK</span>` + module.counts(source).map(([name, expression]) => `<b>${(source.match(expression) || []).length}</b><small>${name}</small>`).join("");
   isDirty = source !== loadedSource;
-  document.querySelector("#state").textContent = isDirty ? "UNSAVED CHANGES" : cleanStateLabel;
+  document.querySelector("#state").textContent = isDirty ? "UNSAVED EDITS" : remoteConflict ? "GITHUB CHANGED" : cleanStateLabel;
+  updatePublishReminder();
 }
 
 function setVisualMode(enabled) {
@@ -358,19 +431,39 @@ async function load() {
   document.querySelector("#guide").innerHTML = module.legend;
   document.querySelector("#path").textContent = `content/${module.file}`;
   document.querySelectorAll("[data-module]").forEach(button => button.classList.toggle("active", button.dataset.module === current));
-  editor.value = await fetch(`../content/${module.file}?v=${Date.now()}`).then(response => response.text());
+  const remote = await loadEditableFile(module.file);
+  currentBaseSha = remote.sha;
+  currentDraftVersion = remote.draftVersion || null;
+  editor.value = remote.content;
+  remoteConflict = Boolean(remote.remoteChanged);
+  cleanStateLabel = remote.source === "dev"
+    ? `${remoteConflict ? "DEV DRAFT · GITHUB CHANGED" : "DEV DRAFT"}${remote.savedBy ? ` · @${remote.savedBy}` : ""}`
+    : remote.source === "github" ? "LOADED FROM GITHUB" : "LOADED FROM DEPLOYMENT";
   loadedSource = editor.value;
-  cleanStateLabel = "LOADED FROM GITHUB";
   if (currentEditor() === "map") {
     const elementsModule = modules[`${module.era}:${module.elementsModule || "elements"}`];
     if (!elementsModule) throw new Error(`Map module ${module.id} has no Elements module`);
-    const catalogSource = await fetch(`../content/${elementsModule.file}?v=${Date.now()}`).then(response => response.text());
+    const catalogRemote = await loadEditableFile(elementsModule.file);
+    const catalogSource = catalogRemote.content;
     catalog = Object.fromEntries(parseElementCatalog(catalogSource).elements.map(item => [item.id, item]));
   }
   setVisualMode(currentEditor() === "map" || currentEditor() === "elements");
   resetHistory();
   check();
   updateSaveIndicator();
+}
+
+async function loadEditableFile(file) {
+  try {
+    const response = await fetch(`/api/content?path=${encodeURIComponent(`content/${file}`)}`, { cache: "no-store" });
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    }
+  } catch {}
+  const response = await fetch(`../content/${file}?v=${Date.now()}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Could not load content/${file}`);
+  return { content: await response.text(), sha: null, source: "deployment" };
 }
 
 function renderNavigation(manifest) {
@@ -638,9 +731,22 @@ document.querySelector("#reload").addEventListener("click", () => requestNavigat
   () => load().catch(() => message("COULD NOT RELOAD FILE")),
   "Reloading from GitHub"
 ));
-document.querySelector("#publish").addEventListener("click", () => publishCurrent().catch(() => message("COULD NOT COPY MODULE")));
-document.querySelector("#leave-save").addEventListener("click", () => {
-  publishCurrent().then(() => leaveFileModal.close("copied")).catch(() => message("COULD NOT COPY MODULE"));
+document.querySelector("#save-dev").addEventListener("click", () => saveCurrentToDev().catch(error => message(error.message || "DEV SAVE FAILED")));
+document.querySelector("#publish").addEventListener("click", () => publishCurrent().catch(error => message(error.message || "GITHUB PUSH FAILED")));
+document.querySelector("#logout").addEventListener("click", async () => {
+  await fetch("/api/logout", { method: "POST" });
+  location.replace("/writer/login");
+});
+document.querySelector("#leave-save").addEventListener("click", async () => {
+  try {
+    await saveCurrentToDev();
+    leaveFileModal.close("saved");
+    const action = pendingNavigation;
+    pendingNavigation = null;
+    if (action) action();
+  } catch (error) {
+    message(error.message || "DEV SAVE FAILED");
+  }
 });
 document.querySelector("#leave-discard").addEventListener("click", () => {
   const action = pendingNavigation;
@@ -904,3 +1010,12 @@ fetch(`../content/manifest.json?v=${Date.now()}`)
   .then(response => response.json())
   .then(manifest => { configureModules(manifest); renderNavigation(manifest); return load(); })
   .catch(() => message("COULD NOT LOAD CONTENT STRUCTURE"));
+
+setInterval(updatePublishReminder, 60 * 1000);
+
+fetch("/api/session", { cache: "no-store" })
+  .then(response => response.ok ? response.json() : null)
+  .then(session => {
+    githubUser.textContent = session?.authenticated ? `@${session.user.login}` : "";
+  })
+  .catch(() => {});
