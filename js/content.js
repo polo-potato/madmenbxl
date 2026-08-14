@@ -1,5 +1,5 @@
 // Human-editable narrative lives in /content/*.md. This file only parses it.
-import { tagValue, tagValues, numberTag, parseElementDocument, parseMapDocument } from "./markdown.js?v=1";
+import { tagValue, tagValues, numberTag, parseElementDocument, parseElementIndex, parseMapDocument } from "./markdown.js?v=2";
 const contentVersion = Date.now();
 const draftMode = new URLSearchParams(location.search).get("draft") === "1";
 async function githubDraft(name) {
@@ -157,9 +157,11 @@ const moduleFile = id => {
   if (!file) throw new Error(`Era ${activeEra.id} is missing required module ${id}`);
   return file;
 };
-const [prologueSource, briefSource, actionsSource, eventsSource, gaugesSource, elementsSource, mapSource] = await Promise.all([
+const [prologueSource, briefSource, actionsSource, eventsSource, gaugesSource, elementIndexSource, mapSource] = await Promise.all([
   "story", "brief", "actions", "events", "gauges", "elements", "map"
 ].map(id=>loadText(moduleFile(id))));
+const elementSources = await Promise.all(parseElementIndex(elementIndexSource).map(loadText));
+const elementsSource = elementSources.join("\n\n---\n\n");
 
 export const introBeats = parsePrologue(prologueSource);
 export const briefCopy = parseBrief(briefSource);

@@ -5,7 +5,7 @@ const SESSION_SECONDS = 7 * 24 * 60 * 60;
 const OAUTH_SECONDS = 10 * 60;
 
 export function isAllowedContentPath(path) {
-  return /^content\/[a-z0-9][a-z0-9._-]*\.(?:md|json)$/i.test(path);
+  return /^content\/(?:[a-z0-9][a-z0-9._-]*\/)*[a-z0-9][a-z0-9._-]*\.(?:md|json)$/i.test(path);
 }
 
 export function encodeBase64(value) {
@@ -146,8 +146,17 @@ async function githubJson(url, options = {}) {
   const length = Number(response.headers.get("Content-Length") || 0);
   if (length > MAX_BODY_BYTES * 2) throw new Error("GitHub response is too large");
   const result = await response.json();
-  if (!response.ok) throw new Error(result.message || "GitHub request failed");
+  if (!response.ok) {
+    const error = new Error(result.message || "GitHub request failed");
+    error.status = response.status;
+    throw error;
+  }
   return result;
+}
+
+async function githubFileOrNull(path, env, token) {
+  try { return await githubFile(path, env, token); }
+  catch (error) { if (error.status === 404) return null; throw error; }
 }
 
 async function githubFile(path, env, token) {
@@ -161,46 +170,54 @@ async function githubFile(path, env, token) {
 
 async function draftRow(path, env) {
   return env.DRAFTS_DB.prepare(
-    "SELECT path, content, base_sha, version, saved_at, saved_by FROM drafts WHERE path = ?"
+    "SELECT path, content, base_sha, version, saved_at, saved_by, operation FROM drafts WHERE path = ?"
   ).bind(path).first();
 }
 
+async function draftRows(prefix, env) {
+  return (await env.DRAFTS_DB.prepare(
+    "SELECT path, content, base_sha, version, saved_at, saved_by, operation FROM drafts WHERE path LIKE ? ORDER BY path"
+  ).bind(`${prefix}%`).all()).results || [];
+}
+
 function combinedContent(remote, draft) {
-  if (!draft) return { ...remote, remoteSha: remote.sha, source: "github", draftVersion: null };
+  if (!draft) return remote ? { ...remote, remoteSha: remote.sha, source: "github", draftVersion: null } : null;
+  if (draft.operation === "delete") return null;
   return {
     content: draft.content,
     sha: draft.base_sha,
-    remoteSha: remote.sha,
+    remoteSha: remote?.sha || null,
     source: "dev",
     draftVersion: draft.version,
     savedAt: draft.saved_at,
     savedBy: draft.saved_by,
-    remoteChanged: draft.base_sha !== remote.sha
+    remoteChanged: draft.base_sha !== (remote?.sha || "")
   };
 }
 
 async function saveDevDraft(payload, env, session) {
   const path = payload.path || "";
   if (!isAllowedContentPath(path)) return json({ error: "This content path is not allowed." }, 400);
-  if (typeof payload.content !== "string") return json({ error: "Content must be text." }, 400);
+  const operation = payload.operation === "delete" ? "delete" : "upsert";
+  if (operation === "upsert" && typeof payload.content !== "string") return json({ error: "Content must be text." }, 400);
   const [remote, existing] = await Promise.all([
-    githubFile(path, env, session.accessToken),
+    githubFileOrNull(path, env, session.accessToken),
     draftRow(path, env)
   ]);
   const expectedVersion = payload.expectedDraftVersion || null;
   if ((existing?.version || null) !== expectedVersion) {
     return json({ error: "The dev draft changed after this file was loaded.", draftVersion: existing?.version || null }, 409);
   }
-  const expectedBase = existing?.base_sha || remote.sha;
-  if (!payload.baseSha || payload.baseSha !== expectedBase) {
-    return json({ error: "The file base changed after this file was loaded.", remoteSha: remote.sha }, 409);
+  const expectedBase = existing?.base_sha ?? remote?.sha ?? "";
+  if ((payload.baseSha || "") !== expectedBase) {
+    return json({ error: "The file base changed after this file was loaded.", remoteSha: remote?.sha || null }, 409);
   }
-  if (payload.content === remote.content) {
+  if ((operation === "delete" && !remote) || (operation === "upsert" && payload.content === remote?.content)) {
     if (existing) {
       await env.DRAFTS_DB.prepare("DELETE FROM drafts WHERE path = ? AND version = ?")
         .bind(path, existing.version).run();
     }
-    return json({ ...combinedContent(remote, null), cleared: true });
+    return json({ ...(combinedContent(remote, null) || { content: "", sha: "", source: "github", draftVersion: null }), cleared: true });
   }
   const version = crypto.randomUUID();
   const savedAt = Date.now();
@@ -208,13 +225,13 @@ async function saveDevDraft(payload, env, session) {
     const result = existing
       ? await env.DRAFTS_DB.prepare(`
           UPDATE drafts
-          SET content = ?, base_sha = ?, version = ?, saved_at = ?, saved_by = ?
+          SET content = ?, base_sha = ?, version = ?, saved_at = ?, saved_by = ?, operation = ?
           WHERE path = ? AND version = ?
-        `).bind(payload.content, expectedBase, version, savedAt, session.login, path, existing.version).run()
+        `).bind(payload.content || "", expectedBase, version, savedAt, session.login, operation, path, existing.version).run()
       : await env.DRAFTS_DB.prepare(`
-          INSERT INTO drafts (path, content, base_sha, version, saved_at, saved_by)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `).bind(path, payload.content, expectedBase, version, savedAt, session.login).run();
+          INSERT INTO drafts (path, content, base_sha, version, saved_at, saved_by, operation)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(path, payload.content || "", expectedBase, version, savedAt, session.login, operation).run();
     if (!result.meta?.changes) {
       return json({ error: "The dev draft changed while it was being saved." }, 409);
     }
@@ -225,11 +242,12 @@ async function saveDevDraft(payload, env, session) {
     throw error;
   }
   return json(combinedContent(remote, {
-    content: payload.content,
+    content: payload.content || "",
     base_sha: expectedBase,
     version,
     saved_at: savedAt,
-    saved_by: session.login
+    saved_by: session.login,
+    operation
   }));
 }
 
@@ -243,17 +261,18 @@ async function publishFile(payload, env, session) {
   if (draft.content !== payload.content || draft.base_sha !== payload.expectedSha) {
     return json({ error: "The editor content no longer matches the saved dev draft." }, 409);
   }
-  const current = await githubFile(payload.path, env, session.accessToken);
-  if (!payload.expectedSha || payload.expectedSha !== current.sha) {
-    return json({ error: "The GitHub file changed after this draft was loaded.", remoteSha: current.sha }, 409);
+  const current = await githubFileOrNull(payload.path, env, session.accessToken);
+  if ((payload.expectedSha || "") !== (current?.sha || "")) {
+    return json({ error: "The GitHub file changed after this draft was loaded.", remoteSha: current?.sha || null }, 409);
   }
+  const deleting = draft.operation === "delete";
   const response = await fetch(githubContentUrl(payload.path, env), {
-    method: "PUT",
+    method: deleting ? "DELETE" : "PUT",
     headers: { ...githubHeaders(session.accessToken), "Content-Type": "application/json" },
     body: JSON.stringify({
       message: String(payload.message || `Update ${payload.path}`).slice(0, 120),
-      content: encodeBase64(payload.content),
-      sha: current.sha,
+      ...(!deleting ? { content: encodeBase64(payload.content) } : {}),
+      ...(current ? { sha: current.sha } : {}),
       branch: env.GITHUB_BRANCH
     })
   });
@@ -261,7 +280,7 @@ async function publishFile(payload, env, session) {
   if (!response.ok) return json({ error: result.message || "GitHub rejected the update." }, response.status);
   await env.DRAFTS_DB.prepare("DELETE FROM drafts WHERE path = ? AND version = ?")
     .bind(payload.path, draft.version).run();
-  return json({ sha: result.content.sha, commit: result.commit.sha, author: session.login });
+  return json({ sha: result.content?.sha || null, commit: result.commit.sha, author: session.login, deleted: deleting });
 }
 
 async function serveAsset(request, env) {
@@ -395,10 +414,16 @@ async function handleRequest(request, env) {
         const filePath = url.searchParams.get("path") || "";
         if (!isAllowedContentPath(filePath)) return json({ error: "This content path is not allowed." }, 400);
         const [remote, draft] = await Promise.all([
-          githubFile(filePath, env, session.accessToken),
+          githubFileOrNull(filePath, env, session.accessToken),
           draftRow(filePath, env)
         ]);
-        return json(combinedContent(remote, draft));
+        const combined = combinedContent(remote, draft);
+        return combined ? json(combined) : json({ error: "Content not found." }, 404);
+      }
+      if (path === "/api/drafts" && request.method === "GET") {
+        const prefix = url.searchParams.get("prefix") || "";
+        if (!/^content\/elements\/[a-z0-9_-]+\/$/i.test(prefix)) return json({ error: "This draft prefix is not allowed." }, 400);
+        return json({ drafts: await draftRows(prefix, env) });
       }
       if (path === "/api/draft" && request.method === "POST" && sameOrigin(request)) {
         return saveDevDraft(await boundedJson(request), env, session);

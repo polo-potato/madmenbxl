@@ -9,7 +9,8 @@ export function splitSource(source){const blocks=source.split(/^---$/m);return{h
 
 export function parseElementDocument(source,{normalizeVisual=(shape,style)=>({shape:shape||"rect",style:style||"pure"}),defaultWidth=0,defaultHeight=0}={}){
   const parsed=splitSource(source);
-  const elements=parsed.blocks.map(block=>{
+  const elementBlocks=/^\[ELEMENT\]\s+/m.test(parsed.header)?[parsed.header,...parsed.blocks]:parsed.blocks;
+  const elements=elementBlocks.map(block=>{
     const id=tagValue(block,"ELEMENT");if(!id)return null;
     const firstPart=block.search(/^\[PART\]/m),head=firstPart<0?block:block.slice(0,firstPart);
     const parts=[...block.matchAll(/^\[PART\]\s+(.+?)\n([\s\S]*?)(?=^\[PART\]|(?![\s\S]))/gm)].map(match=>{
@@ -20,6 +21,10 @@ export function parseElementDocument(source,{normalizeVisual=(shape,style)=>({sh
     return{id,width:numberTag(head,"WIDTH",defaultWidth),height:numberTag(head,"HEIGHT",defaultHeight),anchorX:numberTag(head,"ANCHOR X"),anchorY:numberTag(head,"ANCHOR Y"),show:tagValue(head,"SHOW"),attach:tagValue(head,"ATTACH"),parts};
   }).filter(Boolean);
   return{header:parsed.header,elements};
+}
+
+export function parseElementIndex(source){
+  return [...source.matchAll(/^\[FILE\]\s+(elements\/[a-z0-9._/-]+\.md)$/gmi)].map(match=>match[1]);
 }
 
 export function parseMapDocument(source){

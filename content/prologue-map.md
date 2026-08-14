@@ -2,7 +2,7 @@
 
 ## LEGEND
 
-- `[PLACE] desk` = place an element defined in `prologue-elements.md`.
+- `[PLACE] desk` = place an element from the library indexed by `prologue-elements.md`.
 - `[INSTANCE] desk-1` = unique name for this placed copy.
 - `[MAP WIDTH] 280` and `[MAP HEIGHT] 360` = map canvas size.
 - `[POSITION] window 177 10` = a named player destination used by `[MOVE]`.

@@ -1,4 +1,4 @@
-import { activeEra, introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=16";
+import { activeEra, introBeats, briefEvents, briefCopy, personalActions, prologueGauges, prologueIdea, prologueMap } from "./content.js?v=17";
 import { initialState, loadState, saveState, resetState } from "./state.js?v=8";
 import { simulate } from "./simulation.js";
 import { activityLogView, agencyView, bar, money } from "./ui.js?v=2";

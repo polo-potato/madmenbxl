@@ -3,8 +3,11 @@ import { readFile } from "node:fs/promises";
 const manifest = JSON.parse(await readFile("content/manifest.json","utf8"));
 const activeFiles = ["content/prologue.md", "content/prologue-gauges.md", "content/brief.md", "content/actions.md", "content/events.md", "content/prologue-elements.md", "content/prologue-map.md"];
 const declaredFiles = [...(manifest.globals||[]),...(manifest.eras||[]).flatMap(era=>era.modules||[])].map(module=>`content/${module.file}`);
-const files = [...new Set([...activeFiles,...declaredFiles])];
+const indexSource = await readFile("content/prologue-elements.md","utf8");
+const elementFiles = [...indexSource.matchAll(/^\[FILE\]\s+(.+)$/gm)].map(match=>`content/${match[1].trim()}`);
+const files = [...new Set([...activeFiles,...declaredFiles,...elementFiles])];
 const sources = Object.fromEntries(await Promise.all(files.map(async file => [file, await readFile(file,"utf8")])));
+const elementSource = elementFiles.map(file=>sources[file]).join("\n\n---\n\n");
 const errors=[];
 const editorTypes = new Set(["story","gauges","brief","actions","events","elements","map","text"]);
 for(const era of manifest.eras||[]){
@@ -24,7 +27,7 @@ const clickableLegendTags = {
   "content/brief.md": ["## VISIBLE ACTIONS", "- cigarette", "[BRIEF]", "[LABEL] BRIEF", "[PREFIX] WHAT IF...", "[PROMPT] waiting felt useful?", "[ACTION] try a direction", "[METER] IDEA", "[COMPLETE] there it is.", "[SEND] send it", "[TARGET] 100", "[MISSING creativity] Creativity is missing.", "[LOG START] Find a direction for the brief.", "[MAIL] Hey, / / is it still ok for later?", "[AFTER TEXT] one thought survived.", "[NEXT] enter the office"],
   "content/actions.md": ["---", "[ACTION] cigarette", "[COOLDOWN] 20", "[EFFECT] stress -5", "[REVEAL] stress", "[REQUIRES] stress >= 10", "[MOVE] cigarette-1", "[PROP] coffee", "[ANIMATION] smoke", "[CHANCE] 0.1", "[LUCKY EFFECT] creativity +19", "## NOTE", "## LUCKY NOTE"],
   "content/events.md": ["---", "[EVENT] event title", "## TEXT", "## CHOICE", "[CHOICE] open the window", "[EFFECT] stress -4", "[UNLOCK] take a walk", "## RESULT"],
-  "content/prologue-elements.md": ["---", "[ELEMENT] bed", "[WIDTH] 118", "[HEIGHT] 62", "[ANCHOR X] 0", "[ANCHOR Y] 0", "[SHOW] coffee", "[ATTACH] player", "[PART] pillow", "[SHAPE] rect", "[STYLE] pure", "[X] 0", "[Y] 0", "[TEXT] ○"],
+  "content/prologue-elements.md": ["[FILE] elements/prologue/bed.md"],
   "content/prologue-map.md": ["[MAP WIDTH] 280", "[MAP HEIGHT] 360", "[POSITION] window 177 10", "---", "[PLACE] desk", "[INSTANCE] desk-1", "[X] 46", "[Y] 44", "[ROTATION] 45"]
 };
 for (const [file,tags] of Object.entries(clickableLegendTags)) {
@@ -58,7 +61,7 @@ const unlockIds=Object.entries(sources).flatMap(([file,source])=>[...source.matc
 unlockIds.forEach(([file,id])=>{if(!actionIds.includes(id))errors.push(`${file}: [UNLOCK] ${id} has no matching global action`);});
 const visibleActions=[...(sources["content/brief.md"].match(/^## VISIBLE ACTIONS\s*\n([\s\S]*?)(?=^\[BRIEF\])/m)?.[1]||"").matchAll(/^\s*-\s+(.+)$/gm)].map(match=>match[1].trim());
 visibleActions.forEach(id=>{if(!actionIds.includes(id))errors.push(`content/brief.md: visible action ${id} has no matching global action`);});
-const elementIds=[...sources["content/prologue-elements.md"].matchAll(/^\[ELEMENT\]\s+(.+)$/gm)].map(match=>match[1].trim());
+const elementIds=[...elementSource.matchAll(/^\[ELEMENT\]\s+(.+)$/gm)].map(match=>match[1].trim());
 if(!elementIds.length)errors.push("content/prologue-elements.md: no [ELEMENT] tags");
 const duplicateElements=elementIds.filter((id,index)=>elementIds.indexOf(id)!==index);
 duplicateElements.forEach(id=>errors.push(`content/prologue-elements.md: duplicate element ${id}`));
@@ -71,12 +74,12 @@ instances.filter((id,index)=>instances.indexOf(id)!==index).forEach(id=>errors.p
 const namedPositions=[...sources["content/prologue-map.md"].matchAll(/^\[POSITION\]\s+(\S+)\s+/gm)].map(match=>match[1].trim());
 const moveIds=[...sources["content/actions.md"].matchAll(/^\[MOVE\]\s+(.+)$/gm)].map(match=>match[1].trim());
 moveIds.forEach(id=>{if(!instances.includes(id)&&!namedPositions.includes(id))errors.push(`content/actions.md: [MOVE] ${id} has no matching Map instance or named position`);});
-for(const block of sources["content/prologue-elements.md"].split(/^---$/m).slice(1)){if(/^\[ELEMENT\]/m.test(block)&&!/^\[PART\]/m.test(block))errors.push(`content/prologue-elements.md: ${block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]} has no [PART]`);}
+for(const block of elementSource.split(/^---$/m)){if(/^\[ELEMENT\]/m.test(block)&&!/^\[PART\]/m.test(block))errors.push(`element library: ${block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]} has no [PART]`);}
 const propIds=[...sources["content/actions.md"].matchAll(/^\[PROP\]\s+(.+)$/gm)].map(match=>match[1].trim());
 propIds.forEach(id=>{if(!elementIds.includes(id))errors.push(`content/actions.md: [PROP] ${id} has no matching element`);});
 const animationIds=[...sources["content/actions.md"].matchAll(/^\[ANIMATION\]\s+(.+)$/gm)].map(match=>match[1].trim());
 animationIds.forEach(id=>{if(!elementIds.includes(id))errors.push(`content/actions.md: [ANIMATION] ${id} has no matching element`);});
-const attachedIds=sources["content/prologue-elements.md"].split(/^---$/m).slice(1).filter(block=>/^\[ATTACH\]\s+player$/m.test(block)).map(block=>block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim()).filter(Boolean);
+const attachedIds=elementSource.split(/^---$/m).filter(block=>/^\[ATTACH\]\s+player$/m.test(block)).map(block=>block.match(/^\[ELEMENT\]\s+(.+)$/m)?.[1]?.trim()).filter(Boolean);
 attachedIds.forEach(id=>{if(!placedIds.includes(id))errors.push(`content/prologue-elements.md: attached element ${id} must have a Map placement to define its relative offset`);});
 if(errors.length){console.error(errors.join("\n"));process.exit(1);}
 console.log("Content looks good.");

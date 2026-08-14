@@ -3,7 +3,8 @@ import { decodeBase64, encodeBase64, isAllowedContentPath } from "../worker/inde
 
 assert.equal(isAllowedContentPath("content/prologue.md"), true);
 assert.equal(isAllowedContentPath("content/manifest.json"), true);
-assert.equal(isAllowedContentPath("content/nested/file.md"), false);
+assert.equal(isAllowedContentPath("content/elements/prologue/bed.md"), true);
+assert.equal(isAllowedContentPath("content/../worker/index.js"), false);
 assert.equal(isAllowedContentPath("../worker/index.js"), false);
 assert.equal(isAllowedContentPath("content/file.html"), false);
 

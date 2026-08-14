@@ -1,4 +1,4 @@
-import { tagValue as tag, numberTag, normalizeRotation, parseElementDocument, parseMapDocument } from "../js/markdown.js?v=1";
+import { tagValue as tag, numberTag, normalizeRotation, parseElementDocument, parseElementIndex, parseMapDocument } from "../js/markdown.js?v=2";
 const editor = document.querySelector("#markdown");
 const toast = document.querySelector("#toast");
 const mapStudio = document.querySelector("#map-studio");
@@ -35,6 +35,8 @@ let cleanStateLabel = "LOADED FROM GITHUB";
 let currentBaseSha = null;
 let currentDraftVersion = null;
 let remoteConflict = false;
+let elementIndexState = null;
+let elementFileStates = new Map();
 
 const activityStorageKey = "what-if-writer-activity-v1";
 let activity = {};
@@ -92,7 +94,7 @@ const editorTypes = {
     counts: source => [["EVENTS", /^\[EVENT\]/gm], ["CHOICES", /^\[CHOICE\]/gm], ["EFFECTS", /^\[EFFECT\]/gm]]
   },
   elements: {
-    legend: makeLegend("ELEMENT TAGS", [["---", "NEW ELEMENT"], ["[ELEMENT] bed", "REUSABLE ELEMENT"], ["[WIDTH] 118", "CANVAS / PART WIDTH"], ["[HEIGHT] 62", "CANVAS / PART HEIGHT"], ["[ANCHOR X] 0", "MOVE ANCHOR X"], ["[ANCHOR Y] 0", "MOVE ANCHOR Y"], ["[SHOW] coffee", "ACTIVE WITH PROP"], ["[ATTACH] player", "FOLLOW PLAYER", "Keeps Map-relative spacing."], ["[PART] pillow", "NEW LAYER", "Maximum five."], ["[SHAPE] rect", "FIXED GEOMETRY"], ["[STYLE] pure", "VISUAL EFFECT", "Pure is the default."], ["[X] 0", "LAYER X"], ["[Y] 0", "LAYER Y"], ["[TEXT] ○", "TEXT CONTENT"]], "The MOVE anchor is independent: dragging it never moves the element's layers."),
+    legend: makeLegend("ELEMENT TAGS", [["[FILE] elements/prologue/bed.md", "LIBRARY ENTRY", "Managed automatically."], ["[ELEMENT] bed", "ONE ELEMENT FILE"], ["[WIDTH] 118", "CANVAS / PART WIDTH"], ["[HEIGHT] 62", "CANVAS / PART HEIGHT"], ["[ANCHOR X] 0", "MOVE ANCHOR X"], ["[ANCHOR Y] 0", "MOVE ANCHOR Y"], ["[SHOW] coffee", "ACTIVE WITH PROP"], ["[ATTACH] player", "FOLLOW PLAYER", "Keeps Map-relative spacing."], ["[PART] pillow", "NEW LAYER", "Maximum five."], ["[SHAPE] rect", "FIXED GEOMETRY"], ["[STYLE] pure", "VISUAL EFFECT", "Pure is the default."], ["[X] 0", "LAYER X"], ["[Y] 0", "LAYER Y"], ["[TEXT] ○", "TEXT CONTENT"]], "Each library object is stored in its own file. The editor keeps the index in sync."),
     counts: source => [["ELEMENTS", /^\[ELEMENT\]/gm], ["LAYERS", /^\[PART\]/gm], ["ACTION LINKS", /^\[(?:SHOW|ATTACH)\]/gm]]
   },
   map: {
@@ -157,19 +159,25 @@ function serializePart(part) {
   ].filter(Boolean).join("\n");
 }
 
+function serializeElementBlock(item) {
+  return [
+    `# ELEMENT / ${item.id}`,
+    "",
+    `[ELEMENT] ${item.id}`,
+    `[WIDTH] ${Math.round(item.width)}`,
+    `[HEIGHT] ${Math.round(item.height)}`,
+    `[ANCHOR X] ${Math.round(item.anchorX || 0)}`,
+    `[ANCHOR Y] ${Math.round(item.anchorY || 0)}`,
+    item.show ? `[SHOW] ${item.show}` : "",
+    item.attach ? `[ATTACH] ${item.attach}` : "",
+    ...item.parts.map(serializePart)
+  ].filter(value => value !== "").join("\n");
+}
+
 function serializeCurrentSource() {
   let blocks;
   if (currentEditor() === "elements") {
-    blocks = elements.map(item => [
-      `[ELEMENT] ${item.id}`,
-      `[WIDTH] ${Math.round(item.width)}`,
-      `[HEIGHT] ${Math.round(item.height)}`,
-      `[ANCHOR X] ${Math.round(item.anchorX || 0)}`,
-      `[ANCHOR Y] ${Math.round(item.anchorY || 0)}`,
-      item.show ? `[SHOW] ${item.show}` : "",
-      item.attach ? `[ATTACH] ${item.attach}` : "",
-      ...item.parts.map(serializePart)
-    ].filter(Boolean).join("\n"));
+    blocks = elements.map(serializeElementBlock);
   } else {
     blocks = placements.map(item => [
       `[PLACE] ${item.id}`,
@@ -179,7 +187,8 @@ function serializeCurrentSource() {
       `[ROTATION] ${normalizeRotation(item.rotation)}`
     ].join("\n"));
   }
-  editor.value = [sourceHeader, ...blocks].filter(Boolean).join("\n\n---\n").trim() + "\n";
+  editor.value = (currentEditor() === "elements" ? blocks : [sourceHeader, ...blocks])
+    .filter(Boolean).join("\n\n---\n").trim() + "\n";
 }
 
 function activeElement() {
@@ -312,7 +321,7 @@ function recordActivity(kind) {
 }
 
 function hasUnpublishedDraft() {
-  return Boolean(currentDraftVersion);
+  return Boolean(currentDraftVersion || [...elementFileStates.values()].some(state => state.draftVersion));
 }
 
 function updatePublishReminder() {
@@ -323,6 +332,7 @@ function updatePublishReminder() {
 }
 
 async function saveCurrentToDev() {
+  if (currentEditor() === "elements") return saveElementLibraryToDev();
   const file = modules[current].file;
   const response = await fetch("/api/draft", {
     method: "POST",
@@ -353,7 +363,105 @@ async function saveCurrentToDev() {
   return result;
 }
 
+function elementPath(id) {
+  const slug = String(id).toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!slug) throw new Error("ELEMENT NAME NEEDS LETTERS OR NUMBERS");
+  return `elements/${modules[current].era}/${slug}.md`;
+}
+
+function buildElementIndex(paths) {
+  const header = (elementIndexState?.content || "# ELEMENT LIBRARY\n\n## FILES").split(/^\[FILE\]/m)[0].trimEnd();
+  return `${header}\n\n${paths.map(path => `[FILE] ${path}`).join("\n")}\n`;
+}
+
+async function saveDraftFile(path, content, state = {}, operation = "upsert") {
+  const response = await fetch("/api/draft", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      path: `content/${path}`,
+      content,
+      operation,
+      baseSha: state.sha || "",
+      expectedDraftVersion: state.draftVersion || null
+    })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `COULD NOT SAVE ${path}`);
+  return { path, content, operation, sha: result.sha || "", draftVersion: result.draftVersion || null };
+}
+
+async function saveElementLibraryToDev() {
+  const parsed = parseElementCatalog(editor.value);
+  if (!parsed.elements.length) throw new Error("AN ELEMENT LIBRARY CANNOT BE EMPTY");
+  const previousById = new Map([...elementFileStates.values()].map(state => [state.id, state]));
+  const desired = parsed.elements.map(item => {
+    const previous = previousById.get(item.id);
+    return { item, path: previous?.path || elementPath(item.id), previous };
+  });
+  if (new Set(desired.map(entry => entry.path)).size !== desired.length) throw new Error("ELEMENT NAMES MUST BE UNIQUE");
+  const nextStates = new Map();
+  for (const entry of desired) {
+    const content = `${serializeElementBlock(entry.item)}\n`;
+    const saved = await saveDraftFile(entry.path, content, entry.previous || {});
+    nextStates.set(entry.path, { ...saved, id: entry.item.id });
+  }
+  for (const state of elementFileStates.values()) {
+    if (nextStates.has(state.path)) continue;
+    const deleted = await saveDraftFile(state.path, "", state, "delete");
+    nextStates.set(state.path, { ...deleted, id: state.id });
+  }
+  const livePaths = desired.map(entry => entry.path);
+  const indexContent = buildElementIndex(livePaths);
+  elementIndexState = await saveDraftFile(modules[current].file, indexContent, elementIndexState || {});
+  currentBaseSha = elementIndexState.sha;
+  currentDraftVersion = elementIndexState.draftVersion;
+  elementIndexState.content = indexContent;
+  elementFileStates = nextStates;
+  loadedSource = editor.value;
+  cleanStateLabel = "LIBRARY SAVED TO DEV GAME";
+  recordActivity("dev");
+  check();
+  message("ELEMENT LIBRARY SAVED TO DEV GAME");
+}
+
+async function publishDraftFile(state) {
+  if (!state?.draftVersion) return state;
+  const response = await fetch("/api/publish", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      path: `content/${state.path}`,
+      content: state.content || "",
+      expectedSha: state.sha || "",
+      expectedDraftVersion: state.draftVersion,
+      message: `Update ${state.path} from Writer's Room`
+    })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `COULD NOT PUBLISH ${state.path}`);
+  return { ...state, sha: result.sha || "", draftVersion: null };
+}
+
+async function publishElementLibrary() {
+  if (isDirty) await saveElementLibraryToDev();
+  if (!hasUnpublishedDraft()) return message("NOTHING NEW TO PUSH");
+  const live = [...elementFileStates.values()].filter(state => state.operation !== "delete");
+  const deleted = [...elementFileStates.values()].filter(state => state.operation === "delete");
+  for (const state of live) elementFileStates.set(state.path, await publishDraftFile(state));
+  elementIndexState = await publishDraftFile(elementIndexState);
+  currentBaseSha = elementIndexState.sha;
+  currentDraftVersion = null;
+  for (const state of deleted) await publishDraftFile(state);
+  elementFileStates = new Map([...elementFileStates].filter(([, state]) => state.operation !== "delete"));
+  cleanStateLabel = "LIBRARY PUBLISHED TO GITHUB";
+  recordActivity("github");
+  check();
+  message("ELEMENT LIBRARY PUSHED TO GITHUB");
+}
+
 async function publishCurrent() {
+  if (currentEditor() === "elements") return publishElementLibrary();
   if (isDirty) await saveCurrentToDev();
   if (!hasUnpublishedDraft()) return message("NOTHING NEW TO PUSH");
   const file = modules[current].file;
@@ -434,7 +542,28 @@ async function load() {
   const remote = await loadEditableFile(module.file);
   currentBaseSha = remote.sha;
   currentDraftVersion = remote.draftVersion || null;
-  editor.value = remote.content;
+  elementIndexState = null;
+  elementFileStates = new Map();
+  if (currentEditor() === "elements") {
+    const paths = parseElementIndex(remote.content);
+    const files = await Promise.all(paths.map(async path => ({ path, remote: await loadEditableFile(path) })));
+    elementIndexState = { path: module.file, content: remote.content, sha: remote.sha || "", draftVersion: remote.draftVersion || null };
+    files.forEach(({ path, remote: file }) => {
+      const id = parseElementCatalog(file.content).elements[0]?.id;
+      if (id) elementFileStates.set(path, { path, id, content: file.content, sha: file.sha || "", draftVersion: file.draftVersion || null, operation: "upsert" });
+    });
+    const draftResponse = await fetch(`/api/drafts?prefix=${encodeURIComponent(`content/elements/${module.era}/`)}`, { cache: "no-store" });
+    if (draftResponse.ok) {
+      const { drafts = [] } = await draftResponse.json();
+      drafts.filter(draft => draft.operation === "delete").forEach(draft => {
+        const path = draft.path.replace(/^content\//, "");
+        elementFileStates.set(path, { path, id: path.split("/").pop().replace(/\.md$/, ""), content: "", sha: draft.base_sha || "", draftVersion: draft.version, operation: "delete" });
+      });
+    }
+    editor.value = files.map(({ remote: file }) => file.content.trim()).join("\n\n---\n\n") + "\n";
+  } else {
+    editor.value = remote.content;
+  }
   remoteConflict = Boolean(remote.remoteChanged);
   cleanStateLabel = remote.source === "dev"
     ? `${remoteConflict ? "DEV DRAFT · GITHUB CHANGED" : "DEV DRAFT"}${remote.savedBy ? ` · @${remote.savedBy}` : ""}`
@@ -443,8 +572,9 @@ async function load() {
   if (currentEditor() === "map") {
     const elementsModule = modules[`${module.era}:${module.elementsModule || "elements"}`];
     if (!elementsModule) throw new Error(`Map module ${module.id} has no Elements module`);
-    const catalogRemote = await loadEditableFile(elementsModule.file);
-    const catalogSource = catalogRemote.content;
+    const catalogIndex = await loadEditableFile(elementsModule.file);
+    const catalogFiles = await Promise.all(parseElementIndex(catalogIndex.content).map(loadEditableFile));
+    const catalogSource = catalogFiles.map(file => file.content).join("\n\n---\n\n");
     catalog = Object.fromEntries(parseElementCatalog(catalogSource).elements.map(item => [item.id, item]));
   }
   setVisualMode(currentEditor() === "map" || currentEditor() === "elements");

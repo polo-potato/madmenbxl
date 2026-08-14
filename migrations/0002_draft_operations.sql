@@ -1,0 +1,1 @@
+ALTER TABLE drafts ADD COLUMN operation TEXT NOT NULL DEFAULT 'upsert';
