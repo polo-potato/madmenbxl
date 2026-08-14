@@ -403,8 +403,9 @@ async function saveElementLibraryToDev() {
   const nextStates = new Map();
   for (const entry of desired) {
     const content = `${serializeElementBlock(entry.item)}\n`;
-    const saved = await saveDraftFile(entry.path, content, entry.previous || {});
-    nextStates.set(entry.path, { ...saved, id: entry.item.id });
+    const changed = !entry.previous || JSON.stringify(entry.item) !== entry.previous.snapshot;
+    const saved = changed ? await saveDraftFile(entry.path, content, entry.previous || {}) : entry.previous;
+    nextStates.set(entry.path, { ...saved, id: entry.item.id, snapshot: JSON.stringify(entry.item) });
   }
   for (const state of elementFileStates.values()) {
     if (nextStates.has(state.path)) continue;
@@ -550,7 +551,8 @@ async function load() {
     elementIndexState = { path: module.file, content: remote.content, sha: remote.sha || "", draftVersion: remote.draftVersion || null };
     files.forEach(({ path, remote: file }) => {
       const id = parseElementCatalog(file.content).elements[0]?.id;
-      if (id) elementFileStates.set(path, { path, id, content: file.content, sha: file.sha || "", draftVersion: file.draftVersion || null, operation: "upsert" });
+      const item = parseElementCatalog(file.content).elements[0];
+      if (id) elementFileStates.set(path, { path, id, content: file.content, sha: file.sha || "", draftVersion: file.draftVersion || null, operation: "upsert", snapshot: JSON.stringify(item) });
     });
     const draftResponse = await fetch(`/api/drafts?prefix=${encodeURIComponent(`content/elements/${module.era}/`)}`, { cache: "no-store" });
     if (draftResponse.ok) {
