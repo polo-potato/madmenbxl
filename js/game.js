@@ -6,6 +6,9 @@ import { createEraRuntime } from "./era-runtime.js?v=1";
 import { createPrologueController } from "./eras/prologue-controller.js?v=1";
 import { createAgencyController } from "./eras/agency-controller.js?v=1";
 
+const developerSurface = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".workers.dev");
+document.querySelectorAll("[data-dev-only]").forEach(element => { element.hidden = !developerSurface; });
+
 let state = loadState();
 let lastTick = Date.now();
 let afkNote = "";

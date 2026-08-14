@@ -9,9 +9,9 @@
 <body>
   <main id="game" aria-live="polite"></main>
   <div id="debug" class="debug-controls">
-    <a href="writer/index.html">[ WRITER'S ROOM ]</a>
+    <a href="writer/index.html" data-dev-only hidden>[ WRITER'S ROOM ]</a>
     <button data-theme-toggle>[ DARK MODE ]</button>
-    <details class="debug-menu">
+    <details class="debug-menu" data-dev-only hidden>
       <summary>[ DEBUG ]</summary>
       <div class="debug-menu-panel">
         <button data-action="brief">[ SKIP TO BRIEF ]</button>
@@ -21,7 +21,7 @@
       </div>
     </details>
   </div>
-  <script type="module" src="js/game.js?v=26"></script>
+  <script type="module" src="js/game.js?v=27"></script>
   <script type="module" src="js/theme.js"></script>
 </body>
 </html>
